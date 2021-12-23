@@ -22,12 +22,17 @@ namespace MPCServer
         {
             try
             {
+
                 Console.WriteLine("Start server");
                 serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 3333));
+                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2021));
                 serverSocket.Listen(10);
-                serverSocket.BeginAccept(AcceptCallback, null);
                 Console.WriteLine("Listening...");
+                while (true)
+                {
+                    serverSocket.BeginAccept(AcceptCallback, null);
+                }
+                
 
             }
             catch (SocketException ex)
