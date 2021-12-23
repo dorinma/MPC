@@ -130,9 +130,11 @@ namespace MPCServer
         private List<UInt16> GetValues()
         {
             List<UInt16> output = new List<UInt16>();
-            for (int i = 0; i < buffer.Length- sizeof(UInt16); i+=sizeof(UInt16))
+            byte nullTerminator = 0xA;
+            for (int i = 0; i < buffer.Length - sizeof(UInt16) && buffer[i] != nullTerminator; i+=sizeof(UInt16))
             {
                 output.Add(BitConverter.ToUInt16(buffer, i));
+                Console.WriteLine(BitConverter.ToUInt16(buffer, i)); //TODO delete
             }
             return output;
         }

@@ -77,7 +77,6 @@ namespace MPCDataClient
                 clientSocket.EndConnect(AR);
                 buffer = new byte[clientSocket.ReceiveBufferSize];
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
-                Console.WriteLine("Message received at 2: {0}", Encoding.ASCII.GetString(buffer)); //TODO delete
             }
             catch (SocketException ex)
             {
@@ -101,12 +100,6 @@ namespace MPCDataClient
                 }
 
                 string message = Encoding.ASCII.GetString(buffer);
-                Console.WriteLine("Message received at 1: {0}", message); //TODO delete
-                /*Invoke((Action)delegate
-                {
-                    Text = "Server says: " + message;
-                });*/
-
                 // Start receiving data again.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
             }
