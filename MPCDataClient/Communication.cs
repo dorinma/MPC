@@ -34,10 +34,18 @@ namespace MPCDataClient
             }
         }
 
-        public static void SendRequest(string serverIP, string message)
+        public static void SendRequest(/*string serverIP, */string message)
         {
-            byte[] buffer = Encoding.ASCII.GetBytes(message);
-            clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+            try
+            {
+                byte[] buffer = Encoding.ASCII.GetBytes(message);
+                if(clientSocket.Connected)
+                    clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("SocketException : {0}", ex.Message);
+            }
         }
 
         private static void ConnectCallback(IAsyncResult AR)

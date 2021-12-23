@@ -10,9 +10,9 @@ namespace MPCDataClient
     {
         static void Main(string[] args)
         {
-            string IP = "100.64.182.7"; //eden
+            string IP = "127.0.0.1"; //eden 100.64.182.7
             Connect(IP);
-            Communication.SendRequest(IP, "Hey bitchessss");
+            Communication.SendRequest("Hey bitchessss");
         }
         
         private static void Connect(string IP)
