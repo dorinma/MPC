@@ -6,7 +6,8 @@ namespace MPCServer
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Communication comm = new Communication();
+            comm.StartServer();
         }
     }
 }
