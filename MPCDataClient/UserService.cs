@@ -12,13 +12,24 @@ namespace MPCDataClient
             int operation = readOperation();
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);
+
+
+            string IP = "172.16.205.108"; //eden 100.64.182.7
+            Connect(IP);
+            Communication<UInt16>.SendRequest(data);
+            while (true)
+            {
+                if (Console.Read() == 'q')
+                    break;
+            }
         }
 
         public static List<UInt16> readData()
         {
-            Console.WriteLine("Insert data file path");
-            string path = "";
-            path = Console.ReadLine();
+            //Console.WriteLine("Insert data file path");
+            //string path = "";
+            //path = Console.ReadLine();
+            string path = "C:\\Users\\USER\\Desktop\\inputFile.csv";
             return readFromFile(path);
 
         }
@@ -30,6 +41,12 @@ namespace MPCDataClient
             operation = Convert.ToInt32(Console.ReadLine());
             return operation;
 
+        }
+
+         
+        private static void Connect(string IP)
+        {
+            Communication<UInt16>.Connect(IP);
         }
 
         public static List<UInt16> readFromFile(string path)
