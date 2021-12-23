@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
-
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace MPCDataClient
 {
-    public class Communication
+    public class Communication <T>
     {
         private static Socket clientSocket;
         private static byte[] buffer;
@@ -34,8 +34,19 @@ namespace MPCDataClient
             }
         }
 
-        public static void SendRequest(/*string serverIP, */string message)
+        public static void SendRequest(List<UInt16> values)
         {
+            byte[] buffer = IntListToByteArray(values);
+            try
+            {
+                if (clientSocket.Connected)
+                    clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("SocketException : {0}", ex.Message);
+            }
+            /*
             try
             {
                 byte[] buffer = Encoding.ASCII.GetBytes(message);
@@ -45,7 +56,17 @@ namespace MPCDataClient
             catch (SocketException ex)
             {
                 Console.WriteLine("SocketException : {0}", ex.Message);
+            }*/
+        }
+
+        private static byte[] IntListToByteArray(List<UInt16> values)
+        {
+            List<byte> bytes = new List<byte>();
+            for(int i = 0; i < values.Count; i++)
+            {
+                bytes.AddRange(Encoding.ASCII.GetBytes(values.ElementAt(0).ToString()));
             }
+            return bytes.ToArray();
         }
 
         private static void ConnectCallback(IAsyncResult AR)
