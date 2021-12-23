@@ -14,13 +14,13 @@ namespace MPCDataClient
             dataService.generateSecretShares(data);
 
 
-            string IP = "172.16.205.108"; //eden 100.64.182.7
+            string IP = "100.64.182.74"; //eden 100.64.182.74
             Connect(IP);
             Communication<UInt16>.SendRequest(dataService.ServerAList);
 
-            string IP2 = "127.0.0.1"; //eden 100.64.182.7
+            string IP2 = "127.0.0.1"; 
             Connect(IP2);
-            Communication<UInt16>.SendRequest(dataService.ServerAList);
+            Communication<UInt16>.SendRequest(dataService.ServerBList);
 
             while (true)
             {
@@ -31,10 +31,10 @@ namespace MPCDataClient
 
         public static List<UInt16> readData()
         {
-            //Console.WriteLine("Insert data file path");
-            //string path = "";
-            //path = Console.ReadLine();
-            string path = "C:\\Users\\USER\\Desktop\\inputFile.csv";
+            Console.WriteLine("Insert data file path");
+            string path = "";
+            path = Console.ReadLine();
+            //string path = "C:\\Users\\USER\\Desktop\\inputFile.csv";
             return readFromFile(path);
 
         }

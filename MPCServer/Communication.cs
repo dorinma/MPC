@@ -109,9 +109,6 @@ namespace MPCServer
                 {
                     return;
                 }
-                
-                //String recievedMessage = Encoding.ASCII.GetString(buffer, 0, buffer.Length);
-                //Console.WriteLine(recievedMessage);
                 values.AddRange(GetValues());
                 // Start receiving data again.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
@@ -134,7 +131,6 @@ namespace MPCServer
             for (int i = 0; i < buffer.Length - sizeof(UInt16) && buffer[i] != nullTerminator; i+=sizeof(UInt16))
             {
                 output.Add(BitConverter.ToUInt16(buffer, i));
-                Console.WriteLine(BitConverter.ToUInt16(buffer, i)); //TODO delete
             }
             return output;
         }
