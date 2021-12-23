@@ -16,7 +16,12 @@ namespace MPCDataClient
 
             string IP = "172.16.205.108"; //eden 100.64.182.7
             Connect(IP);
-            Communication<UInt16>.SendRequest(data);
+            Communication<UInt16>.SendRequest(dataService.ServerAList);
+
+            string IP2 = "127.0.0.1"; //eden 100.64.182.7
+            Connect(IP2);
+            Communication<UInt16>.SendRequest(dataService.ServerAList);
+
             while (true)
             {
                 if (Console.Read() == 'q')
