@@ -8,7 +8,9 @@ namespace MPCServer
 {
     class Manager
     {
-        private static Computer comp = new SortCircuit();
+        Dictionary<LogicCircuit.Types.CIRCUIT_TYPE, LogicCircuit.Circuit> circuits;
+        static Computer computer;
+        bool isDebugMode;
 
         static void Main(string[] args)
         {
@@ -16,7 +18,15 @@ namespace MPCServer
             Communication comm = new Communication(values, 2, 10);
             values = comm.StartServer();
             for (int i = 0; i < values.Count; i++) Console.WriteLine(values.ElementAt(i));
-            comp.data = values;
+            computer.data = values;
         }
+
+        public void ReceiveRandomness(LogicCircuit.Types.CIRCUIT_TYPE pOperation, LogicCircuit.Circuit pCircuit) { }
+
+        public void Compute(LogicCircuit.Types.CIRCUIT_TYPE pOperation, List<UInt16> pData) { }
+
+        public void SendResult() { }
+
+        public void SumOutputs() { }
     }
 }
