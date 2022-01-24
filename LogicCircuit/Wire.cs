@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MPCServer
+namespace LogicCircuit
 {
-    class SortCircuit : Computer
+    class Wire
     {
+        public UInt16 mask;
     }
 }

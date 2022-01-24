@@ -124,6 +124,64 @@ namespace MPCServer
             }
         }
 
+        public void SendData(List<UInt16> values, string dest)
+        {
+            byte[] buffer = IntListToByteArray(values);
+            try
+            {
+                if(dest == "DataClient")
+                {
+                    if (serverSocket.Connected)
+                        serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else if (dest == "Server")
+                {
+                    //if (serverSocket.Connected)
+                      //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else
+                    throw new NotImplementedException(); //todo fix
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("SocketException : {0}", ex.Message);
+            }
+        }
+
+        public void SendStr(string msg, string dest)
+        {
+            byte[] buffer = Encoding.ASCII.GetBytes(msg);
+            try
+            {
+                if (dest == "DataClient")
+                {
+                    if (serverSocket.Connected)
+                        serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else if (dest == "Server")
+                {
+                    //if (serverSocket.Connected)
+                    //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else
+                    throw new NotImplementedException(); //todo fix
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("SocketException : {0}", ex.Message);
+            }
+        }
+        private static byte[] IntListToByteArray(List<UInt16> values)
+        {
+            List<byte> bytes = new List<byte>();
+            for (int i = 0; i < values.Count; i++)
+            {
+                bytes.AddRange(BitConverter.GetBytes(values.ElementAt(i)));
+            }
+            bytes.Add(0xA);
+            return bytes.ToArray();
+        }
+
         private List<UInt16> GetValues()
         {
             List<UInt16> output = new List<UInt16>();
