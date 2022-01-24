@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MPCServer
 {
-    class Manager
+    class ManagerServer
     {
         Dictionary<LogicCircuit.Types.CIRCUIT_TYPE, LogicCircuit.Circuit> circuits;
         static Computer computer;
@@ -21,12 +21,21 @@ namespace MPCServer
             computer.data = values;
         }
 
-        public void ReceiveRandomness(LogicCircuit.Types.CIRCUIT_TYPE pOperation, LogicCircuit.Circuit pCircuit) { }
+        public void ReceiveRandomness(LogicCircuit.Types.CIRCUIT_TYPE pOperation, LogicCircuit.Circuit pCircuit) 
+        {
+            //Update circuits dictonry 
+        }
 
-        public void Compute(LogicCircuit.Types.CIRCUIT_TYPE pOperation, List<UInt16> pData) { }
+        public List<UInt16> Compute(LogicCircuit.Types.CIRCUIT_TYPE pOperation, List<UInt16> pData) 
+        {
+            return null;
+        }
 
         public void SendResult() { }
 
-        public void SumOutputs() { }
+        public List<UInt16> SumOutputs() 
+        {
+            return null;
+        }
     }
 }

@@ -13,6 +13,14 @@ namespace LogicCircuit
         public List<Gate> inputs;
         public List<Gate> outputs;
 
+        public Circuit()
+        {
+            nodes = new List<Gate>();
+            //edges
+            inputs = new List<Gate>();
+            outputs = new List<Gate>();
+        }
+
         public abstract void CreateCircuit();
 
     }

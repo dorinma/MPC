@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace MPCServer
 {
-    class DCFAdapter
+    class DPFAdapter
     {
-        public UInt16 Eval(int serverIndex, UInt16 key, UInt16 input)
+        public UInt16 Eval(int serverIndex, UInt16 key, UInt16 inputSum, UInt16 maskedOrignalInput)
         {
             return 0;
         }

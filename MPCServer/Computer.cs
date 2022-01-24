@@ -10,11 +10,22 @@ namespace MPCServer
     {
         public List<UInt16> data;
 
-        public void Compute(LogicCircuit.Circuit pCircuit) { }
+        public Computer()
+        {
+            data = new List<UInt16>();
+        }
+
+        public List<UInt16> Compute(LogicCircuit.Circuit pCircuit) 
+        {
+            return null;
+        }
 
         public void SendMaskValues(UInt16 pValue) { }
 
-        public void ReceiveMaskedValues() { }
+        public UInt16 ReceiveMaskedValues() 
+        {
+            return 0;
+        }
 
     }
 }

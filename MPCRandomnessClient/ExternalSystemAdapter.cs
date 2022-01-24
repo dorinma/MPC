@@ -19,13 +19,15 @@ namespace MPCRandomnessClient
             inputRange = pInputRange;
         }
 
-        private void GenerateDCF(UInt16 maskDiff) 
+        private UInt16 GenerateDCF(UInt16 maskDiff) 
         {
             //Call DCF with lambda, maskDiff, beta, inputRange
+            return 0;
         }
-        private void GenerateDPF(UInt16 maskDiff) 
+        private UInt16 GenerateDPF(UInt16 maskDiff) 
         {
             //Call DPF with lambda, maskDiff, beta, inputRange
+            return 0;
         }
 
     }

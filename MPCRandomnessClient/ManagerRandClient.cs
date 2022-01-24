@@ -11,7 +11,6 @@ namespace MPCRandomnessClient
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
         }
 
         public List<LogicCircuit.Circuit> CreateCircuits(List<LogicCircuit.Types.CIRCUIT_TYPE> pTypes) 
