@@ -34,8 +34,8 @@ namespace MPCServer
             {
                 Console.WriteLine("[INFO] Server started.");
                 serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2021));
-                serverSocket.Listen(10);
+                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
+                serverSocket.Listen(1);
                 Console.WriteLine("[INFO] Listening...");
                 while (values.Count < usersCounter * dataCounter)
                 {
@@ -64,8 +64,8 @@ namespace MPCServer
                 buffer = new byte[clientSocket.ReceiveBufferSize];
 
                 // Send a message to the newly connected client.
-                var sendData = Encoding.ASCII.GetBytes("[SERVER] Hello Client!");
-                clientSocket.BeginSend(sendData, 0, sendData.Length, SocketFlags.None, SendCallback, null);
+                // var sendData = Encoding.ASCII.GetBytes("[SERVER] Hello Client!");
+                // clientSocket.BeginSend(sendData, 0, sendData.Length, SocketFlags.None, SendCallback, null);
                 // Listen for client data.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
                 // Continue listening for clients.
@@ -131,8 +131,8 @@ namespace MPCServer
             {
                 if(dest == "DataClient")
                 {
-                    if (serverSocket.Connected)
-                        serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                    if (clientSocket.Connected)
+                        clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
                 }
                 else if (dest == "Server")
                 {
@@ -155,8 +155,13 @@ namespace MPCServer
             {
                 if (dest == "DataClient")
                 {
-                    if (serverSocket.Connected)
-                        serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                    Console.WriteLine("success");
+                    if (clientSocket.Connected)
+                    {
+                        Console.WriteLine("senddd");
+                        clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                        //while (true){ }
+                    }
                 }
                 else if (dest == "Server")
                 {
@@ -164,7 +169,10 @@ namespace MPCServer
                     //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
                 }
                 else
+                {
+                    Console.WriteLine("faileeee");
                     throw new NotImplementedException(); //todo fix
+                }
             }
             catch (SocketException ex)
             {

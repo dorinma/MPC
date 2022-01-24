@@ -15,11 +15,13 @@ namespace MPCServer
         static void Main(string[] args)
         {
             List<UInt16> values = new List<UInt16>();
-            Communication comm = new Communication(values, 2, 10);
+            Communication comm = new Communication(values, 1, 1);            
             values = comm.StartServer();
-            if (isDebugMode)
-                for (int i = 0; i < values.Count; i++) Console.WriteLine(values.ElementAt(i));
+            //if (isDebugMode)
+            for (int i = 0; i < values.Count; i++) Console.WriteLine(values.ElementAt(i));
+            Console.WriteLine("here1");
             computer.SetData(values);
+            Console.WriteLine("end compute");
             List<UInt16> res = Compute(LogicCircuit.Types.CIRCUIT_TYPE.SORT_UINT16);
             string msg = "Computation is done :)"; //todo if exception send another msg
             comm.SendStr(msg, "DataClient");
