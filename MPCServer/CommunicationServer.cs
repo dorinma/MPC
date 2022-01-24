@@ -34,7 +34,7 @@ namespace MPCServer
             {
                 Console.WriteLine("[INFO] Server started.");
                 serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
+                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2021));
                 serverSocket.Listen(1);
                 Console.WriteLine("[INFO] Listening...");
                 while (values.Count < usersCounter * dataCounter)
@@ -140,7 +140,7 @@ namespace MPCServer
                       //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
                 }
                 else
-                    throw new NotImplementedException(); //todo fix
+                    throw new NotImplementedException(); //TODO fix
             }
             catch (SocketException ex)
             {
@@ -158,7 +158,6 @@ namespace MPCServer
                     Console.WriteLine("success");
                     if (clientSocket.Connected)
                     {
-                        Console.WriteLine("senddd");
                         clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
                         //while (true){ }
                     }
@@ -170,7 +169,6 @@ namespace MPCServer
                 }
                 else
                 {
-                    Console.WriteLine("faileeee");
                     throw new NotImplementedException(); //todo fix
                 }
             }
