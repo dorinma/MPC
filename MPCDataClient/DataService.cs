@@ -24,6 +24,7 @@ namespace MPCDataClient
 
 		public void generateSecretShares(List<UInt16> input)
 		{
+			Console.WriteLine("Start generating secret shares");
 			Random rnd = new Random();
 
 			foreach (UInt16 i in input)
