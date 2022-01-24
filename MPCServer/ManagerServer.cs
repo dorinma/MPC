@@ -10,7 +10,7 @@ namespace MPCServer
     {
         Dictionary<LogicCircuit.Types.CIRCUIT_TYPE, LogicCircuit.Circuit> circuits;
         static Computer computer = new Computer();
-        static bool isDebugMode = false;
+        static bool isDebugMode = true;
 
         static void Main(string[] args)
         {
@@ -20,7 +20,8 @@ namespace MPCServer
             if (isDebugMode)
             {
                 Console.WriteLine("[DEBUG] Secret shares of input:");
-                for (int i = 0; i < values.Count; i++) Console.Write(values.ElementAt(i) + "\t");
+                for (int i = 0; i < values.Count; i++) Console.Write("\t" + values.ElementAt(i) + "\t");
+                Console.WriteLine("");
             }
             computer.SetData(values);
             List<UInt16> res = Compute(LogicCircuit.Types.CIRCUIT_TYPE.SORT_UINT16);
@@ -32,11 +33,15 @@ namespace MPCServer
             }
             else
             {
-                for (int i = 0; i < res.Count; i++) Console.WriteLine(res.ElementAt(i));
+                Console.WriteLine("[DEBUG] Secret shares of output:");
+                for (int i = 0; i < res.Count; i++) Console.WriteLine("\t" + res.ElementAt(i) + "\t");
+                Console.WriteLine("");
                 comm.SendData(res, "DataClient");
             }
 
-            while (true) { }
+            while (true) {
+                if (Console.Read() == 'q' | Console.Read() == 'Q') Environment.Exit(0);
+            }
         }
 
         public void ReceiveRandomness(LogicCircuit.Types.CIRCUIT_TYPE pOperation, LogicCircuit.Circuit pCircuit) 

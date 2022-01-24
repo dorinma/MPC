@@ -155,11 +155,9 @@ namespace MPCServer
             {
                 if (dest == "DataClient")
                 {
-                    Console.WriteLine("success");
                     if (clientSocket.Connected)
                     {
                         clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
-                        //while (true){ }
                     }
                 }
                 else if (dest == "Server")
