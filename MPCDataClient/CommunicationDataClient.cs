@@ -31,6 +31,7 @@ public class CommunicationDataClient<T>
 
     // The response from the remote device.  
     public String response { get; set; }
+    public List<UInt16> dataResponse { get; set; }
 
 
     public CommunicationDataClient(string ip, int port)
@@ -38,6 +39,7 @@ public class CommunicationDataClient<T>
         this.ip = ip; 
         this.port = port;
         response = string.Empty;
+        dataResponse = new List<UInt16>();
         connectDone = new ManualResetEvent(false);
         sendDone = new ManualResetEvent(false);
         receiveDone = new ManualResetEvent(false);
@@ -49,10 +51,6 @@ public class CommunicationDataClient<T>
         try
         {
             // Establish the remote endpoint for the socket.  
-            // The name of the
-            // remote device is "host.contoso.com".  
-            /*IPHostEntry ipHostInfo = Dns.GetHostEntry("host.contoso.com");
-            IPAddress ipAddress = ipHostInfo.AddressList[0];*/
             IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(ip), port);
 
             // Create a TCP/IP socket.  
@@ -61,14 +59,14 @@ public class CommunicationDataClient<T>
             
             // Connect to the remote endpoint.  
             client.BeginConnect(remoteEP,
-                new AsyncCallback(ConnectCallback), null);
+                new AsyncCallback(ConnectCallback), client);
             Console.WriteLine($"ip: {ip} port: {port}");
             connectDone.WaitOne();
-            Console.WriteLine($"after done");
         }
         catch (Exception e)
         {
             Console.WriteLine(e.ToString());
+            Environment.Exit(-1);
         }
     }
 
@@ -77,7 +75,7 @@ public class CommunicationDataClient<T>
         try
         {
             // Retrieve the socket from the state object.  
-            //Socket client = (Socket)ar.AsyncState;
+            Socket client = (Socket)ar.AsyncState;
 
             // Complete the connection.  
             client.EndConnect(ar);
@@ -97,8 +95,9 @@ public class CommunicationDataClient<T>
     public void SendRequest(List<T> data) {
 
         // Send data to the remote device.
-        byte[] byteData = new byte[data.Count * SizeOf(typeof(T))];
-        Buffer.BlockCopy(data.ToArray(), 0, byteData, 0, byteData.Length);
+        byte[] byteData = new byte[data.Count * SizeOf(typeof(T))+1];
+        Buffer.BlockCopy(data.ToArray(), 0, byteData, 0, byteData.Length-1);
+        byteData[byteData.Length - 1] = 0XA;
         // Begin sending the data to the remote device.  
         client.BeginSend(byteData, 0, byteData.Length, 0,
             new AsyncCallback(SendCallback), client);
@@ -174,25 +173,34 @@ public class CommunicationDataClient<T>
                 // Get the rest of the data.  
                 client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(ReceiveCallback), state);
+                var message = state.sb.ToString();
+                if (message.StartsWith("Message:"))
+                {
+                    response = message;
+                }
+                else
+                {
+                    dataResponse.AddRange(GetValues(state.buffer));
+                }
+                receiveDone.Set();
             }
-            else
+            /*else
             {
+                Console.WriteLine("errr");
                 // All the data has arrived; put it in response.  
                 if (state.sb.Length > 1)
                 {
+                    Console.WriteLine("errr2");
                     var message = state.sb.ToString();
                     if (message.StartsWith("C"))
                     {
+                        Console.WriteLine(message);
                         response = message;
-                    }
-                    else
-                    {
-                        //
                     }
                 }
                 // Signal that all bytes have been received.  
                 receiveDone.Set();
-            }
+            }*/
         }
         catch (Exception e)
         {
@@ -200,7 +208,7 @@ public class CommunicationDataClient<T>
         }
     }
 
-    /*private List<UInt16> GetValues()
+    private List<UInt16> GetValues(byte[] buffer)
     {
         List<UInt16> output = new List<UInt16>();
         byte nullTerminator = 0xA;
@@ -209,7 +217,7 @@ public class CommunicationDataClient<T>
             output.Add(BitConverter.ToUInt16(buffer, i));
         }
         return output;
-    }*/
+    }
 
     public void WaitForReceive()
     {

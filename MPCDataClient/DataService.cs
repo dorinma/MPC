@@ -18,7 +18,7 @@ namespace MPCDataClient
 		{
 			this.serverAList = new List<UInt16>();
 			this.serverBList = new List<UInt16>();
-			this.randomRange = 65535;
+			this.randomRange = 65536;
 		}
 
 
