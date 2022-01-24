@@ -124,6 +124,41 @@ namespace MPCServer
             }
         }
 
+        public void SendRequest(List<UInt16> values, string dest)
+        {
+            byte[] buffer = IntListToByteArray(values);
+            try
+            {
+                if(dest == "data_client")
+                {
+                    if (serverSocket.Connected)
+                        serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else if (dest == "server")
+                {
+                    //if (serverSocket.Connected)
+                      //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else
+                    throw new NotImplementedException(); //todo fix
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("SocketException : {0}", ex.Message);
+            }
+        }
+
+        private static byte[] IntListToByteArray(List<UInt16> values)
+        {
+            List<byte> bytes = new List<byte>();
+            for (int i = 0; i < values.Count; i++)
+            {
+                bytes.AddRange(BitConverter.GetBytes(values.ElementAt(i)));
+            }
+            bytes.Add(0xA);
+            return bytes.ToArray();
+        }
+
         private List<UInt16> GetValues()
         {
             List<UInt16> output = new List<UInt16>();

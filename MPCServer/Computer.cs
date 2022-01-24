@@ -6,8 +6,26 @@ using System.Threading.Tasks;
 
 namespace MPCServer
 {
-    abstract class Computer
+    class Computer
     {
         public List<UInt16> data;
+
+        public Computer()
+        {
+            data = new List<UInt16>();
+        }
+
+        public List<UInt16> Compute(LogicCircuit.Circuit pCircuit) 
+        {
+            return null;
+        }
+
+        public void SendMaskValues(UInt16 pValue) { }
+
+        public UInt16 ReceiveMaskedValues() 
+        {
+            return 0;
+        }
+
     }
 }
