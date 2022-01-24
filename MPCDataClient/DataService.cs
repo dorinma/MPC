@@ -10,15 +10,14 @@ namespace MPCDataClient
 	
 	public class DataService
 	{
-		public List<UInt16> ServerAList;
-		public List<UInt16> ServerBList;
-		public int operation;
+		public List<UInt16> serverAList { get; set; }
+		public List<UInt16> serverBList { get; set; }
 		public int randomRange;
 
 		public DataService()
 		{
-			this.ServerAList = new List<UInt16>();
-			this.ServerBList = new List<UInt16>();
+			this.serverAList = new List<UInt16>();
+			this.serverBList = new List<UInt16>();
 			this.randomRange = 65535;
 		}
 
@@ -30,9 +29,9 @@ namespace MPCDataClient
 			foreach (UInt16 i in input)
 			{
 				UInt16 shareA = (UInt16)rnd.Next(0, this.randomRange+1); // creates a number between 1 and 12
-				this.ServerAList.Add(shareA);
+				this.serverAList.Add(shareA);
 				UInt16 shareB = (UInt16)(i + this.randomRange - shareA);
-				this.ServerBList.Add(shareB);
+				this.serverBList.Add(shareB);
 			}
 		}
 	}

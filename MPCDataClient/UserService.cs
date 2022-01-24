@@ -4,31 +4,8 @@ using System.IO;
 
 namespace MPCDataClient
 {
-    class UserService
+    public class UserService
     {
-        static void Main(string[] args)
-        {
-            List<UInt16> data = readData();
-            int operation = readOperation();
-            DataService dataService = new DataService();
-            dataService.generateSecretShares(data);
-
-
-            string IP = "100.64.182.74"; //eden 100.64.182.74
-            Connect(IP);
-            Communication<UInt16>.SendRequest(dataService.ServerAList);
-
-            string IP2 = "127.0.0.1"; 
-            Connect(IP2);
-            Communication<UInt16>.SendRequest(dataService.ServerBList);
-
-            while (true)
-            {
-                if (Console.Read() == 'q')
-                    break;
-            }
-        }
-
         public static List<UInt16> readData()
         {
             Console.WriteLine("Insert data file path");
@@ -46,12 +23,6 @@ namespace MPCDataClient
             operation = Convert.ToInt32(Console.ReadLine());
             return operation;
 
-        }
-
-         
-        private static void Connect(string IP)
-        {
-            Communication<UInt16>.Connect(IP);
         }
 
         public static List<UInt16> readFromFile(string path)
