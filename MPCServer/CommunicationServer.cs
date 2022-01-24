@@ -124,17 +124,17 @@ namespace MPCServer
             }
         }
 
-        public void SendRequest(List<UInt16> values, string dest)
+        public void SendData(List<UInt16> values, string dest)
         {
             byte[] buffer = IntListToByteArray(values);
             try
             {
-                if(dest == "data_client")
+                if(dest == "DataClient")
                 {
                     if (serverSocket.Connected)
                         serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
                 }
-                else if (dest == "server")
+                else if (dest == "Server")
                 {
                     //if (serverSocket.Connected)
                       //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
@@ -148,6 +148,29 @@ namespace MPCServer
             }
         }
 
+        public void SendStr(string msg, string dest)
+        {
+            byte[] buffer = Encoding.ASCII.GetBytes(msg);
+            try
+            {
+                if (dest == "DataClient")
+                {
+                    if (serverSocket.Connected)
+                        serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else if (dest == "Server")
+                {
+                    //if (serverSocket.Connected)
+                    //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+                else
+                    throw new NotImplementedException(); //todo fix
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("SocketException : {0}", ex.Message);
+            }
+        }
         private static byte[] IntListToByteArray(List<UInt16> values)
         {
             List<byte> bytes = new List<byte>();

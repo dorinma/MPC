@@ -8,7 +8,7 @@ namespace MPCServer
 {
     class Computer
     {
-        public List<UInt16> data;
+        private List<UInt16> data;
 
         public Computer()
         {
@@ -17,7 +17,10 @@ namespace MPCServer
 
         public List<UInt16> Compute(LogicCircuit.Circuit pCircuit) 
         {
-            return null;
+            if (data.Count == 1)
+                return data;
+            else 
+                return null;
         }
 
         public void SendMaskValues(UInt16 pValue) { }
@@ -25,6 +28,11 @@ namespace MPCServer
         public UInt16 ReceiveMaskedValues() 
         {
             return 0;
+        }
+
+        public void SetData(List<UInt16> pData)
+        {
+            data = pData;
         }
 
     }

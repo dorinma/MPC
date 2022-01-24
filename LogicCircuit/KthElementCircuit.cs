@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogicCircuit
 {
-    class KthElementCircuit : Circuit
+    public class KthElementCircuit : Circuit
     {
         public override void CreateCircuit()
         {

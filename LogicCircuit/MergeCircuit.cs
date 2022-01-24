@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogicCircuit
 {
-    class MergeCircuit : Circuit
+    public class MergeCircuit : Circuit
     {
         public override void CreateCircuit()
         {

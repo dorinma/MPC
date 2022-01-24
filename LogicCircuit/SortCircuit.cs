@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LogicCircuit
 {
-    class SortCircuit : Circuit
+    public class SortCircuit : Circuit
     {
         public override void CreateCircuit()
         {
