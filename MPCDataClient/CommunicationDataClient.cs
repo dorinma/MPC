@@ -58,11 +58,13 @@ public class CommunicationDataClient<T>
             // Create a TCP/IP socket.  
             client = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
-
+            
             // Connect to the remote endpoint.  
             client.BeginConnect(remoteEP,
-                new AsyncCallback(ConnectCallback), client);
+                new AsyncCallback(ConnectCallback), null);
+            Console.WriteLine($"ip: {ip} port: {port}");
             connectDone.WaitOne();
+            Console.WriteLine($"after done");
         }
         catch (Exception e)
         {
@@ -75,7 +77,7 @@ public class CommunicationDataClient<T>
         try
         {
             // Retrieve the socket from the state object.  
-            Socket client = (Socket)ar.AsyncState;
+            //Socket client = (Socket)ar.AsyncState;
 
             // Complete the connection.  
             client.EndConnect(ar);
@@ -178,7 +180,15 @@ public class CommunicationDataClient<T>
                 // All the data has arrived; put it in response.  
                 if (state.sb.Length > 1)
                 {
-                    response = state.sb.ToString();
+                    var message = state.sb.ToString();
+                    if (message.StartsWith("C"))
+                    {
+                        response = message;
+                    }
+                    else
+                    {
+                        //
+                    }
                 }
                 // Signal that all bytes have been received.  
                 receiveDone.Set();
@@ -189,6 +199,17 @@ public class CommunicationDataClient<T>
             Console.WriteLine(e.ToString());
         }
     }
+
+    /*private List<UInt16> GetValues()
+    {
+        List<UInt16> output = new List<UInt16>();
+        byte nullTerminator = 0xA;
+        for (int i = 0; i < buffer.Length - sizeof(UInt16) && buffer[i] != nullTerminator; i += sizeof(UInt16))
+        {
+            output.Add(BitConverter.ToUInt16(buffer, i));
+        }
+        return output;
+    }*/
 
     public void WaitForReceive()
     {

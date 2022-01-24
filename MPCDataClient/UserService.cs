@@ -27,6 +27,7 @@ namespace MPCDataClient
 
         public static List<UInt16> readFromFile(string path)
         {
+            Console.WriteLine("Start reading..");
             List<UInt16> output = new List<UInt16>();
             try
             {
@@ -43,6 +44,7 @@ namespace MPCDataClient
                         output.Add(curr);
                     }
                 }
+                Console.WriteLine("Read file successfuly");
                 return output;
             }
             catch (Exception e)
