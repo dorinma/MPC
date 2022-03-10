@@ -34,7 +34,7 @@ namespace MPCServer
             {
                 Console.WriteLine("[INFO] Server started.");
                 serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2021));
+                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
                 serverSocket.Listen(1);
                 Console.WriteLine("[INFO] Listening...");
                 while (values.Count < usersCounter * dataCounter)
