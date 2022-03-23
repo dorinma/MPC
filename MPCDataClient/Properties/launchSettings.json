@@ -2,7 +2,7 @@
   "profiles": {
     "MPCDataClient": {
       "commandName": "Project",
-      "commandLineArgs": "192.168.1.36 2022 127.0.0.1 2022 -d"
+      "commandLineArgs": "127.0.0.1 2022 -d"
     }
   }
 }

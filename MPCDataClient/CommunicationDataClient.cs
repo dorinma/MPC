@@ -98,9 +98,10 @@ public class CommunicationDataClient<T>
     {
         // Send data to the remote device.
         byte[] byteData = new byte[data.Count * SizeOf(typeof(T)) + 1 + protocol.GetHeaderSize()];
-        Buffer.BlockCopy(protocol.CreateHeaderDataMsg(), 0, byteData, 0, byteData.Length - 1); //header
-        Buffer.BlockCopy(data.ToArray(), 0, byteData, 4, byteData.Length - 1); //data
-        byteData[byteData.Length - 1] = 0XA;
+        byte[] header = protocol.CreateHeaderDataMsg();
+        Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
+        Buffer.BlockCopy(data.ToArray(), 0, byteData, 4, byteData.Length - header.Length - 1); //data
+        byteData[byteData.Length - 1] = protocol.GetNullTerminator();
         // Begin sending the data to the remote device.  
         client.BeginSend(byteData, 0, byteData.Length, 0,
             new AsyncCallback(SendCallback), client);
@@ -214,8 +215,7 @@ public class CommunicationDataClient<T>
     private List<UInt16> GetValues(byte[] buffer)
     {
         List<UInt16> output = new List<UInt16>();
-        byte nullTerminator = 0xA;
-        for (int i = 0; i < buffer.Length - sizeof(UInt16) && buffer[i] != nullTerminator; i += sizeof(UInt16))
+        for (int i = 0; i < buffer.Length - sizeof(UInt16) && buffer[i] != protocol.GetNullTerminator(); i += sizeof(UInt16))
         {
             output.Add(BitConverter.ToUInt16(buffer, i));
         }

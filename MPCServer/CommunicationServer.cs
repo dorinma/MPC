@@ -273,6 +273,7 @@ namespace MPCServer
             if (values.Count == dataCounter)
                 isDone = true;
         }
+        //where does the server send the response?
 
         private void RespondReceiveInit(byte Participants, byte InputsCount)
         {

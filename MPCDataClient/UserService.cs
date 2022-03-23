@@ -20,6 +20,7 @@ namespace MPCDataClient
         {
             Console.WriteLine("Insert the number of operation you want to perform:\n1. merge\n2. find the K'th element\n3. sort");
             int operation = 0;
+            
             operation = Convert.ToInt32(Console.ReadLine());
             return operation;
 

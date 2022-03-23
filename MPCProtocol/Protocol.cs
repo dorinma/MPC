@@ -11,6 +11,8 @@ namespace MPCProtocol
         public const byte SYNC_LSB = 0; //M
         public const byte SYNC_MSB = 1; //C
         public const byte OPCODE_LSB = 2;
+
+        public const byte NULL_TERM = 0xA;
     }
 
     public enum OPCODE_MPC : UInt16
@@ -59,7 +61,7 @@ namespace MPCProtocol
             Opcode = BitConverter.ToUInt16(Data, ConstProtocol.OPCODE_LSB);
             MsgData = new byte[Data.Length - ConstProtocol.HEADER_SIZE];
             for (int i = 0; i < MsgData.Length; i++)
-                MsgData[i] = Data[i + ConstProtocol.HEADER_SIZE];
+                MsgData[i] = Data[i];
         }
 
 
@@ -70,12 +72,17 @@ namespace MPCProtocol
 
         public byte[] CreateHeaderDataMsg()
         {
-            return new byte[] { (byte)'M', (byte)'C', 0, (byte)OPCODE_MPC.E_OPCODE_DATA };
+            return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_DATA, 0 };
         }
 
         public int GetHeaderSize()
         {
             return ConstProtocol.HEADER_SIZE;
+        }
+        
+        public byte GetNullTerminator()
+        {
+            return ConstProtocol.NULL_TERM;
         }
 
         public bool GetServerDone(byte[] Data, out byte Status)
