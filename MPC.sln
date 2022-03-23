@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCServer", "MPCServer\MPCS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCRandomnessClient", "MPCRandomnessClient\MPCRandomnessClient.csproj", "{4D3383D3-9E0B-4330-99C3-39917C66E1C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogicCircuit", "LogicCircuit\LogicCircuit.csproj", "{D7B50CDE-237B-457F-8373-4581C7486F6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogicCircuit", "LogicCircuit\LogicCircuit.csproj", "{D7B50CDE-237B-457F-8373-4581C7486F6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MPCProtocol", "MPCProtocol\MPCProtocol.csproj", "{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{D7B50CDE-237B-457F-8373-4581C7486F6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7B50CDE-237B-457F-8373-4581C7486F6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7B50CDE-237B-457F-8373-4581C7486F6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

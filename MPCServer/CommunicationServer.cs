@@ -19,28 +19,48 @@ namespace MPCServer
         private byte[] buffer;
         List<UInt16> values;
         private int usersCounter; 
-        private int dataCounter; 
+        private int dataCounter;
+        MPCProtocol.Protocol protocol = MPCProtocol.Protocol.Instance;
+        private bool isDone;
 
-        public Communication(List<UInt16> valuesList, int users, int data)
+        public Communication(List<UInt16> valuesList)//, int users, int data)
         {
             values = valuesList;
-            usersCounter = users;
-            dataCounter = data;
+            usersCounter = 0;
+            dataCounter = 0;
+            isDone = false;
         }
 
         public List<UInt16> StartServer()
         {
+
+            // todo steps
+            //1- loop infinity for listen until get msg
+            //2- get info abut input and update
+            //3- listen to clients according step 2
+            //4- computing
+            //5- finish and send informative success msg
+            //6- restart and back to step 1
+
             try
             {
                 Console.WriteLine("[INFO] Server started.");
                 serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
-                serverSocket.Listen(1);
+                serverSocket.Listen(0);
                 Console.WriteLine("[INFO] Listening...");
-                while (values.Count < usersCounter * dataCounter)
+                while (!isDone)
                 {
                     serverSocket.BeginAccept(AcceptCallback, null);
                 }
+
+                /*                serverSocket.Listen(1);
+                                Console.WriteLine("[INFO] Listening...");
+                                while (values.Count < usersCounter * dataCounter)
+                                {
+                                    serverSocket.BeginAccept(AcceptCallback, null);
+                                } 
+                */
                 return values;
             }
             catch (SocketException ex)
@@ -68,6 +88,13 @@ namespace MPCServer
                 // clientSocket.BeginSend(sendData, 0, sendData.Length, SocketFlags.None, SendCallback, null);
                 // Listen for client data.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
+                if (!protocol.ValidateMessage(buffer))
+                {
+                    //todo send error
+                    return; // todo check
+                }
+                protocol.ParseData(buffer, out UInt16 Opcode, out Byte[] MsgData);
+                AnalyzeMessage(Opcode, MsgData);
                 // Continue listening for clients.
                 serverSocket.BeginAccept(AcceptCallback, null);
             }
@@ -109,7 +136,14 @@ namespace MPCServer
                 {
                     return;
                 }
-                values.AddRange(GetValues());
+                //values.AddRange(GetValues());
+                if (!protocol.ValidateMessage(buffer))
+                {
+                    //todo send error
+                    return; // todo check
+                }
+                protocol.ParseData(buffer, out UInt16 Opcode, out Byte[] MsgData);
+                AnalyzeMessage(Opcode, MsgData);
                 // Start receiving data again.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
             }
@@ -186,16 +220,71 @@ namespace MPCServer
             return bytes.ToArray();
         }
 
-        private List<UInt16> GetValues()
+        private List<UInt16> GetValues(byte[] Data)
         {
             List<UInt16> output = new List<UInt16>();
             byte nullTerminator = 0xA;
-            for (int i = 0; i < buffer.Length - sizeof(UInt16) && buffer[i] != nullTerminator; i+=sizeof(UInt16))
+            for (int i = 0; i < Data.Length - sizeof(UInt16) && Data[i] != nullTerminator; i+=sizeof(UInt16))
             {
                 output.Add(BitConverter.ToUInt16(buffer, i));
             }
             return output;
         }
 
+        public void AnalyzeMessage(UInt16 Opcode, byte[] Data)
+        {
+            switch (Opcode)
+            {
+                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_SERVER_DONE:
+                    {
+                        protocol.GetServerDone(Data, out byte Status);
+                        RespondServerDone(Status);
+                        break;
+                    }
+                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_INIT:
+                    {
+                        protocol.GetInitParams(Data, out byte Participants, out byte InputsCount);
+                        RespondReceiveInit(Participants, InputsCount);
+                        break;
+                    }
+                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_DATA:
+                    {
+                        RespondReceiveData(Data);
+                        break;
+                    }
+                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_ERROR:
+                    {
+                        //RespondServerDone(Data);
+                        break;
+                    }
+                default:
+                    break;
+            }
+        }
+
+        private void RespondServerDone(byte Status)
+        {
+
+        }
+
+        private void RespondReceiveData(byte[] Data)
+        {
+            values.AddRange(GetValues(Data));
+            if (values.Count == dataCounter)
+                isDone = true;
+        }
+
+        private void RespondReceiveInit(byte Participants, byte InputsCount)
+        {
+            if (usersCounter == 0)
+            {
+                usersCounter = Participants;
+            }
+            else if (usersCounter != Participants)
+            {
+                //TODO send error message to the clients
+            }
+            dataCounter += InputsCount;
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace MPCServer
         static void Main(string[] args)
         {
             List<UInt16> values = new List<UInt16>();
-            Communication comm = new Communication(values, 1, 1); //TODO change parameters: not hard-coded           
+            Communication comm = new Communication(values);         
             values = comm.StartServer();
             if (isDebugMode)
             {

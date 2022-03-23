@@ -28,6 +28,8 @@ public class CommunicationDataClient<T>
     private ManualResetEvent connectDone;
     private ManualResetEvent sendDone;
     private ManualResetEvent receiveDone;
+    MPCProtocol.Protocol protocol = MPCProtocol.Protocol.Instance;
+
 
     // The response from the remote device.  
     public String response { get; set; }
@@ -92,11 +94,12 @@ public class CommunicationDataClient<T>
         }
     }
 
-    public void SendRequest(List<T> data) {
-
+    public void SendRequest(List<T> data)
+    {
         // Send data to the remote device.
-        byte[] byteData = new byte[data.Count * SizeOf(typeof(T))+1];
-        Buffer.BlockCopy(data.ToArray(), 0, byteData, 0, byteData.Length-1);
+        byte[] byteData = new byte[data.Count * SizeOf(typeof(T)) + 1 + protocol.GetHeaderSize()];
+        Buffer.BlockCopy(protocol.CreateHeaderDataMsg(), 0, byteData, 0, byteData.Length - 1); //header
+        Buffer.BlockCopy(data.ToArray(), 0, byteData, 4, byteData.Length - 1); //data
         byteData[byteData.Length - 1] = 0XA;
         // Begin sending the data to the remote device.  
         client.BeginSend(byteData, 0, byteData.Length, 0,
