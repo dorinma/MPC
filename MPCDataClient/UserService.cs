@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 
 namespace MPCDataClient
 {
     public class UserService
     {
+        //https://github.com/TestableIO/System.IO.Abstractions
+        //https://stackoverflow.com/questions/52077416/unit-test-a-method-that-has-dependency-on-streamreader-for-reading-file
+        readonly IFileSystem fileSystem;
         public static int readOperation()
         {
             int operation; 
