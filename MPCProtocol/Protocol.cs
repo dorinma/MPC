@@ -74,6 +74,10 @@ namespace MPCProtocol
         {
             return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_DATA, 0 };
         }
+        public byte[] CreateHeaderInitMsg()
+        {
+            return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_INIT, 0 };
+        }
 
         public int GetHeaderSize()
         {

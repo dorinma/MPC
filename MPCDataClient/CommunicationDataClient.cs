@@ -96,6 +96,28 @@ public class CommunicationDataClient<T>
 
     public void SendRequest(List<T> data)
     {
+        SendInit();
+        SendData(data);
+    }
+
+    private void SendInit()
+    {
+        /*
+        // Send data to the remote device.
+        byte[] byteData = new byte[data.Count * SizeOf(typeof(T)) + 1 + protocol.GetHeaderSize()];
+        byte[] header = protocol.CreateHeaderInitMsg();
+        Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
+        Buffer.BlockCopy(data.ToArray(), 0, byteData, 4, byteData.Length - header.Length - 1); //data
+        byteData[byteData.Length - 1] = protocol.GetNullTerminator();
+        // Begin sending the data to the remote device.  
+        client.BeginSend(byteData, 0, byteData.Length, 0,
+            new AsyncCallback(SendCallback), client);
+        sendDone.WaitOne();
+        */
+    }
+
+    private void SendData(List<T> data)
+    {
         // Send data to the remote device.
         byte[] byteData = new byte[data.Count * SizeOf(typeof(T)) + 1 + protocol.GetHeaderSize()];
         byte[] header = protocol.CreateHeaderDataMsg();
