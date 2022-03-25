@@ -33,16 +33,9 @@ namespace Tests.DataClientTest
         }
 
         public static IEnumerable<object[]> Data() {
-            Random random = new Random();
-            var bigList = new List<UInt16>();
-            for (int i = 0; i < 10000; i++)
-            {
-                bigList.Add((UInt16)random.Next(1000));
-            }
-
             yield return new object[]
             {
-                bigList
+                TestUtils.GenerateRandomList(10000)
             };
 
             yield return new object[]

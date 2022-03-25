@@ -36,9 +36,9 @@
                 Environment.Exit(-1);
             }
 
-            int operation = UserService.readOperation();
-            
-            List<UInt16> data = UserService.readData();
+            UserService userService = new UserService();
+            int operation = userService.ReadOperation();
+            List<UInt16> data = userService.ReadData();
 
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);

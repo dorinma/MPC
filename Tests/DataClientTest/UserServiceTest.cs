@@ -1,55 +1,142 @@
-﻿using System;
+﻿using MPCDataClient;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Tests.DataClientTest
 {
     public class UserServiceTest
     {
+        UserService userService;
+        public UserServiceTest()
+        {
+            var fileSystemMock = new MockFileSystem();
+            this.userService = new UserService(fileSystemMock);
+        }
 
         [Theory]
-        [MemberData(nameof(Data))]
-        public void CanAddTheoryMemberDataProperty(List<UInt16> inputList)
+        [MemberData(nameof(ValidOperations))]
+        public void TryParseOperation_ShouldSucceed(string userChoice)
         {
-            this.dataService.generateSecretShares(inputList);
-            Assert.Equal(inputList, SumList(dataService.serverAList, dataService.serverBList));
+            int operation;
+            bool success = userService.TryParseOperation(userChoice, out operation);
+            Assert.True(success);
         }
 
-        private List<UInt16> SumList(List<UInt16> listA, List<UInt16> listB)
+        [Theory]
+        [MemberData(nameof(InvalidOperations))]
+        public void TryParseOperation_ShouldFail(string userChoice)
         {
-            return (List<UInt16>)listA.Zip(listB, SumUints).ToList();
+            int operation;
+            bool success = userService.TryParseOperation(userChoice, out operation);
+            Assert.False(success);
         }
 
-        private UInt16 SumUints(UInt16 a, UInt16 b)
+        [Theory]
+        [MemberData(nameof(ValidFileContent))]
+        public void ParseFile_ShouldSuccess(List<UInt16> contentList)
         {
-            return (UInt16)(a + b);
+            var filePath = "mock path";
+            var fileContent = "title\n" + string.Join('\n', contentList);
+            var fileSystemMock = new MockFileSystem();
+            fileSystemMock.AddFile(filePath, new MockFileData(fileContent));
+            var userService = new UserService(fileSystemMock);
+            var outputContent = userService.ParseFile(filePath);
+            Assert.Equal(contentList, outputContent);
+
         }
 
-        public static IEnumerable<object[]> Data()
+        [Theory]
+        [MemberData(nameof(InvalidFile))]
+        public void ParseFile_ShouldThrow(string fileContent, string pathToSend = null)
         {
-            Random random = new Random();
-            var bigList = new List<UInt16>();
-            for (int i = 0; i < 10000; i++)
-            {
-                bigList.Add((UInt16)random.Next(1000));
-            }
+            var mockPath = "mock path";
+            var fileSystemMock = new MockFileSystem();
+            fileSystemMock.AddFile(mockPath, new MockFileData(fileContent));
+            var userService = new UserService(fileSystemMock);;
+            Assert.ThrowsAny<Exception>(() => userService.ParseFile(pathToSend ?? mockPath));
 
+        }
+
+
+        public static IEnumerable<object[]> ValidOperations()
+        {
             yield return new object[]
             {
-                bigList
+                "1"
             };
 
             yield return new object[]
             {
-                new List<UInt16> { 1, 2, 3 }
+                "3"
+            };
+        }
+
+        public static IEnumerable<object[]> InvalidOperations()
+        {
+            yield return new object[]
+            {
+                0 
+            };
+
+            yield return new object[]
+            {
+                4
+            };
+
+            yield return new object[]
+            {
+                "a"
+            };
+
+            yield return new object[]
+            {
+                null
+            };
+        }
+
+        public static IEnumerable<object[]> ValidFileContent()
+        {            
+            yield return new object[]
+            {
+                new List<UInt16>{1, 2, 3, 4, 5}
+            };
+
+            yield return new object[]
+            {
+                TestUtils.GenerateRandomList(10000)
             };
 
             yield return new object[]
             {
                 new List<UInt16>()
+            };
+        }
+
+        public static IEnumerable<object[]> InvalidFile()
+        {
+            yield return new object[]
+            {
+                "title\n1", "none existing path" //bad file path
+            };
+
+            yield return new object[]
+            {
+                "title\n1\na\n2" //contains none numeric element
+            };
+
+            yield return new object[]
+            {
+                "title\n1\n656000\n2" //contains element value that is bigger than type allows
+            };
+
+            yield return new object[]
+            {
+                "title\n1 2 3" //wrong format
             };
         }
     }
