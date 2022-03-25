@@ -1,3 +1,0 @@
-Sort
-Merge
-Find the k-th element

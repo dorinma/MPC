@@ -10,19 +10,33 @@
         <Grid.Background>
             <ImageBrush ImageSource="C:\Users\דורין\Desktop\FinalProject\MPC\MPC_UI\Resources\wp.jpg" Stretch="UniformToFill"/>
         </Grid.Background>
-        <Label Content="Please fill the following details:" Foreground="White" FontSize="15" FontFamily="Cascadia Code" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Height="58" Width="345"/>
-        <Label Content="Input file path:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Left" Margin="10,84,0,0" VerticalAlignment="Top" Height="58" Width="184"/>
-        <Label Content="Operation to perform:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Left" Margin="10,142,0,0" VerticalAlignment="Top" Height="58" Width="184"/>
-        <StackPanel Margin="10">
-            <ComboBox Width="244" RenderTransformOrigin="0.5,0.579">
-                <ComboBoxItem Content="ComboBox Item #1"/>
-                <ComboBoxItem IsSelected="True" Content="ComboBox Item #2"/>
-                <ComboBoxItem Content="ComboBox Item #3"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="201*"/>
+            <ColumnDefinition Width="357*"/>
+            <ColumnDefinition Width="106*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="70"/>
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0" Grid.ColumnSpan="2" Content="Please fill the following details:" Foreground="White" FontSize="15" FontFamily="Cascadia Code" HorizontalAlignment="Left" Margin="10,14,0,0" VerticalAlignment="Top" Height="26" Width="345"/>
+        <Label Grid.Row="1" Content="Input file path:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Height="26" Width="184"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Name="inFile" HorizontalAlignment="Left" Height="23" Margin="0,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="318"  BorderBrush="Transparent" FontFamily="Cascadia Code" FontSize="13"/>
+        <Button Grid.Row="1" Grid.Column="2" Name="openFile" Content="Open" HorizontalAlignment="Left" VerticalAlignment="Center" Width="60" Background="Transparent" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="2" Height="26" Foreground="White" FontSize="14" Click="OpenFile_Click" Margin="10,0,0,0"/>
+        <Label Grid.Row="2" Content="Operation to perform:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Center" Margin="0,7,0,0" VerticalAlignment="Top" Height="33" Width="184"/>
+        <StackPanel Margin="0,10,0,10" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left" Width="120">
+            <ComboBox Width="120" RenderTransformOrigin="0.5,0.579" FontFamily="Cascadia Code">
+                <ComboBoxItem  IsSelected="True" Content="Merge"/>
+                <ComboBoxItem Content="Sort"/>
+                <ComboBoxItem Content="Find k-th element"/>
             </ComboBox>
         </StackPanel>
-        <Label Content="Participants number:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Left" Margin="10,200,0,0" VerticalAlignment="Top" Height="58" Width="184"/>
-        <TextBox HorizontalAlignment="Left" Height="23" Margin="285,200,0,0" TextWrapping="Wrap" Text="{Binding ParticipantsNum}" VerticalAlignment="Top" Width="120"  BorderBrush="Transparent" FontFamily="Cascadia Code"/>
-        <Button Name="compute" Content="Send" HorizontalAlignment="Left" Margin="553,200,0,0" VerticalAlignment="Top" Width="85" Background="Transparent" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="4" Height="38" Foreground="White" FontSize="14" Click="Add_Click"/>
+        <Label Grid.Row="3" Content="Participants number:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Center" VerticalAlignment="Top" Height="58" Width="184" Grid.RowSpan="2"/>
+        <TextBox Grid.Row="3" Grid.Column="1" PreviewTextInput="NumberValidationTextBox" HorizontalAlignment="Left" Height="23" Margin="0,2,0,0" TextWrapping="Wrap" Text="{Binding ParticipantsNum}" VerticalAlignment="Top" Width="120"  BorderBrush="Transparent" FontFamily="Cascadia Code"/>
+        <Button Grid.Row="4" Grid.Column="2" Name="compute" Content="Send" HorizontalAlignment="Left" VerticalAlignment="Top" Width="67" Background="Transparent" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="4" Height="34" Foreground="White" FontSize="14" Click="Send_Click" Margin="10,0,0,0"/>
 
     </Grid>
 
