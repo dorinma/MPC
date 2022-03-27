@@ -1,58 +1,95 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 
 namespace MPCDataClient
 {
     public class UserService
     {
-        public static List<UInt16> readData()
-        {
-            Console.WriteLine("Insert data file path");
-            string path = "";
-            path = Console.ReadLine();
-            //string path = "C:\\Users\\USER\\Desktop\\inputFile.csv";
-            return readFromFile(path);
+        //https://github.com/TestableIO/System.IO.Abstractions
+        //https://stackoverflow.com/questions/52077416/unit-test-a-method-that-has-dependency-on-streamreader-for-reading-file
+        readonly IFileSystem fileSystem;
 
+        public UserService(IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem;
         }
+        /// <summary>Create MyComponent</summary>
+        public UserService() : this(fileSystem: new FileSystem()) {}
 
-        public static int readOperation()
+        public int ReadOperation()
         {
+            int operation; 
             Console.WriteLine("Insert the number of operation you want to perform:\n1. merge\n2. find the K'th element\n3. sort");
-            int operation = 0;
-            
-            operation = Convert.ToInt32(Console.ReadLine());
-            return operation;
+            while(!TryParseOperation(Console.ReadLine(), out operation))
+            {
+                Console.WriteLine("Invalid operation number.");
+                Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
+                var option = Console.ReadLine();
+                if (option != "1")
+                {
+                    Environment.Exit(-1);
+                }
+                Console.Write("Number of operation: ");
+            }
 
+            return operation;
         }
 
-        public static List<UInt16> readFromFile(string path)
+        public bool TryParseOperation(string userChoice, out int operation)
         {
-            Console.WriteLine("Start reading..");
-            List<UInt16> output = new List<UInt16>();
+            return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
+        }
+
+        public List<UInt16> ReadData()
+         {
+            Console.WriteLine("Insert data file path");
+            string path = @"C:\Users\eden\Desktop\BGU\Semester7\Project\MPC\inputFile.csv";
+            path = Console.ReadLine();
             try
             {
-                using (var reader = new StreamReader(path))
+                /*Stream fileStream = this.fileSystem.File.OpenRead(path);
+                //StreamReader reader = new StreamReader(fileStream);
+                using (var reader = new StreamReader(fileStream))
                 {
-                    UInt16 curr;
                     reader.ReadLine(); //skip column name
                     while (!reader.EndOfStream)
                     {
-                        if (!UInt16.TryParse(reader.ReadLine(), out curr))
-                        {
-                            return null;
-                        }
-                        output.Add(curr);
+                        output.Add(UInt16.Parse(reader.ReadLine()));
                     }
-                }
-                Console.WriteLine("Read file successfuly");
-                return output;
+                }*/
+                return ParseFile(path);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Reading failed - {0}", e.Message);
-                return null;
+                Console.WriteLine("If you want to try again press 1, otherwise press any other character");
+                var option = Console.ReadLine();
+                if (option != "1")
+                {
+                    Environment.Exit(-1);
+                }
+
+                ReadData();
             }
+            return null;
+        }
+
+        public List<UInt16> ParseFile(string path)
+        {
+            List<UInt16> output = new List<UInt16>();
+            Stream fileStream = fileSystem.File.OpenRead(path);
+            using (var reader = new StreamReader(fileStream))
+            {
+                reader.ReadLine(); //skip column name
+                while (!reader.EndOfStream)
+                {
+                    output.Add(UInt16.Parse(reader.ReadLine()));
+                }
+            }
+
+            return output;
         }
 
     }
