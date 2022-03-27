@@ -14,6 +14,8 @@ namespace MPC_UI
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const int MAX_PORTS = 65536; //+1
+
         MainDataContext mainDataContext;
         MPCDataClient.ManagerDataClient managerDataClient;
 
@@ -44,6 +46,12 @@ namespace MPC_UI
         {
             if (ValidateInput())
             {
+                int oper = 0;
+                if (OperationMerge.IsSelected) oper = 1;
+                else if (OperationSort.IsSelected) oper = 2;
+                else oper = 3;
+                managerDataClient.Start(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2,
+                    oper, inFile.Text);
 
             }
             else
@@ -74,7 +82,7 @@ namespace MPC_UI
 
         private bool ValidatePort(int port)
         {
-            return port > -1 && port < 65536;
+            return port > -1 && port < MAX_PORTS;
         }
     }
 }

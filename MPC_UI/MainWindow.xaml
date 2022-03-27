@@ -43,9 +43,9 @@
         <Label Grid.Row="4" Content="Operation to perform:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Center" Margin="0,7,0,0" VerticalAlignment="Top" Height="33" Width="184"/>
         <StackPanel Margin="0,10,0,10" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Width="120">
             <ComboBox Width="120" RenderTransformOrigin="0.5,0.579" FontFamily="Cascadia Code" FontSize="13">
-                <ComboBoxItem  IsSelected="True" Content="Merge"/>
-                <ComboBoxItem Content="Sort"/>
-                <ComboBoxItem Content="Find k-th element"/>
+                <ComboBoxItem Name="OperationMerge" Content="Merge" IsSelected="True"/>
+                <ComboBoxItem Name="OperationSort" Content="Sort"/>
+                <ComboBoxItem Name="OperationFindElem" Content="Find k-th element"/>
             </ComboBox>
         </StackPanel>
         <Label Grid.Row="5" Content="Participants number:" Foreground="White" FontSize="14" FontFamily="Cascadia Code" HorizontalAlignment="Center" VerticalAlignment="Top" Height="58" Width="184" Grid.RowSpan="2"/>
