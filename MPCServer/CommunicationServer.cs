@@ -116,6 +116,7 @@ namespace MPCServer
                     //todo send error
                     return; // todo check
                 }
+                //todo special parse per nulltermintor
                 protocol.ParseData(buffer, out UInt16 Opcode, out Byte[] MsgData);
                 AnalyzeMessage(Opcode, MsgData);
                 // Continue listening for clients.

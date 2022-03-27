@@ -96,7 +96,7 @@ public class CommunicationDataClient<T>
 
     public void SendRequest(List<UInt16> data)
     {
-        //SendInit(1,4);
+        SendInit(1,4);
         SendData(data);
     }
 
