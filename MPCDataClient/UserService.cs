@@ -12,6 +12,7 @@ namespace MPCDataClient
             string path = "";
             path = Console.ReadLine();
             //string path = "C:\\Users\\USER\\Desktop\\inputFile.csv";
+            path = "C:\\Users\\hodaya\\Desktop\\test.csv";
             return readFromFile(path);
 
         }
@@ -43,6 +44,8 @@ namespace MPCDataClient
                             return null;
                         }
                         output.Add(curr);
+
+                        Console.WriteLine("curr = " + curr);
                     }
                 }
                 Console.WriteLine("Read file successfuly");

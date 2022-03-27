@@ -61,7 +61,7 @@ namespace MPCProtocol
             Opcode = BitConverter.ToUInt16(Data, ConstProtocol.OPCODE_LSB);
             MsgData = new byte[Data.Length - ConstProtocol.HEADER_SIZE];
             for (int i = 0; i < MsgData.Length; i++)
-                MsgData[i] = Data[i];
+                MsgData[i] = Data[i + ConstProtocol.HEADER_SIZE];
         }
 
 
@@ -102,12 +102,12 @@ namespace MPCProtocol
                 return false;
             }
         }
-        public bool GetInitParams(byte[] Data, out byte Participants, out byte InputsCount)
+        public bool GetInitParams(byte[] Data, out uint Participants, out uint InputsCount)
         {
             try
             {
-                Participants = Data[0];
-                InputsCount = Data[1];
+                Participants = BitConverter.ToUInt32(Data, 0);
+                InputsCount = BitConverter.ToUInt32(Data, sizeof(UInt32));
                 return true;
             }
             catch

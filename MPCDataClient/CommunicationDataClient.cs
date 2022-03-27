@@ -94,37 +94,42 @@ public class CommunicationDataClient<T>
         }
     }
 
-    public void SendRequest(List<T> data)
+    public void SendRequest(List<UInt16> data)
     {
-        SendInit();
+        //SendInit(1,4);
         SendData(data);
     }
 
-    private void SendInit()
+    private void SendInit(uint userCounter, uint dataCounter)
     {
-        /*
-        // Send data to the remote device.
-        byte[] byteData = new byte[data.Count * SizeOf(typeof(T)) + 1 + protocol.GetHeaderSize()];
+        // Send init to the remote device.
+        byte[] byteData = new byte[2* sizeof(uint) + protocol.GetHeaderSize() + 1];
         byte[] header = protocol.CreateHeaderInitMsg();
         Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
-        Buffer.BlockCopy(data.ToArray(), 0, byteData, 4, byteData.Length - header.Length - 1); //data
+        byte[] user = BitConverter.GetBytes(userCounter);
+        byte[] data = BitConverter.GetBytes(dataCounter);
+        Buffer.BlockCopy(user, 0, byteData, header.Length, user.Length);
+        Buffer.BlockCopy(data, 0, byteData, header.Length + user.Length, data.Length);
         byteData[byteData.Length - 1] = protocol.GetNullTerminator();
-        // Begin sending the data to the remote device.  
-        client.BeginSend(byteData, 0, byteData.Length, 0,
+        // Begin sending the data to the remote device.      
+        client.BeginSend(byteData, 0, byteData.Length, 0, 
             new AsyncCallback(SendCallback), client);
         sendDone.WaitOne();
-        */
     }
 
-    private void SendData(List<T> data)
+    private void SendData(List<UInt16> data)
     {
         // Send data to the remote device.
-        byte[] byteData = new byte[data.Count * SizeOf(typeof(T)) + 1 + protocol.GetHeaderSize()];
+        byte[] byteData = new byte[data.Count * SizeOf(typeof(UInt16)) + 1 + protocol.GetHeaderSize()];
         byte[] header = protocol.CreateHeaderDataMsg();
         Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
-        Buffer.BlockCopy(data.ToArray(), 0, byteData, 4, byteData.Length - header.Length - 1); //data
+        Buffer.BlockCopy(data.ToArray(), 0, byteData, header.Length, data.Count * SizeOf(typeof(UInt16))); //data
         byteData[byteData.Length - 1] = protocol.GetNullTerminator();
         // Begin sending the data to the remote device.  
+        for (int i = 0; i < byteData.Length; i++)
+        {
+            Console.WriteLine(byteData[i]);
+        }
         client.BeginSend(byteData, 0, byteData.Length, 0,
             new AsyncCallback(SendCallback), client);
         sendDone.WaitOne();

@@ -8,6 +8,15 @@ using System.Threading.Tasks;
 
 namespace MPCServer
 {
+
+    public enum SERVER_STATE
+    {
+        FIRST_INIT = 1,
+        INIT_AND_DATA = 2,
+        DATA = 3
+    } 
+
+
     /*
     BinaryFormatter formatter = new BinaryFormatter();
     clientList = (List<string>) formatter.Deserialize(networkStream);
@@ -18,17 +27,27 @@ namespace MPCServer
         private Socket clientSocket; // We will only accept one socket.
         private byte[] buffer;
         List<UInt16> values;
-        private int usersCounter; 
-        private int dataCounter;
+        private uint dataCounter;
+        private uint usersCounter; 
+        private uint numOfUsersConected;  
         MPCProtocol.Protocol protocol = MPCProtocol.Protocol.Instance;
-        private bool isDone;
+        SERVER_STATE serverSstate;
 
         public Communication(List<UInt16> valuesList)//, int users, int data)
         {
             values = valuesList;
-            usersCounter = 0;
             dataCounter = 0;
-            isDone = false;
+            usersCounter = 0;
+            numOfUsersConected = 0;
+            serverSstate = SERVER_STATE.FIRST_INIT;
+        }
+
+        public void RestartServer()
+        {
+            dataCounter = 0;
+            usersCounter = 0;
+            numOfUsersConected = 0;
+            serverSstate = SERVER_STATE.FIRST_INIT;
         }
 
         public List<UInt16> StartServer()
@@ -42,6 +61,8 @@ namespace MPCServer
             //5- finish and send informative success msg
             //6- restart and back to step 1
 
+            RestartServer();
+
             try
             {
                 Console.WriteLine("[INFO] Server started.");
@@ -49,7 +70,8 @@ namespace MPCServer
                 serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
                 serverSocket.Listen(0);
                 Console.WriteLine("[INFO] Listening...");
-                while (!isDone)
+
+                while (!(serverSstate == SERVER_STATE.DATA) || !(values.Count == dataCounter))
                 {
                     serverSocket.BeginAccept(AcceptCallback, null);
                 }
@@ -75,7 +97,7 @@ namespace MPCServer
         }
 
         private void AcceptCallback(IAsyncResult AR)
-        {
+        { 
             try
             {
                 Console.WriteLine("[INFO] A client is trying to connect.");
@@ -87,6 +109,7 @@ namespace MPCServer
                 // var sendData = Encoding.ASCII.GetBytes("[SERVER] Hello Client!");
                 // clientSocket.BeginSend(sendData, 0, sendData.Length, SocketFlags.None, SendCallback, null);
                 // Listen for client data.
+
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
                 if (!protocol.ValidateMessage(buffer))
                 {
@@ -224,7 +247,7 @@ namespace MPCServer
         {
             List<UInt16> output = new List<UInt16>();
             byte nullTerminator = 0xA;
-            for (int i = 0; i < Data.Length - sizeof(UInt16) && Data[i] != nullTerminator; i+=sizeof(UInt16))
+            for (int i = 0; i <= Data.Length - sizeof(UInt16) && Data[i] != nullTerminator; i+=sizeof(UInt16))
             {
                 output.Add(BitConverter.ToUInt16(buffer, i));
             }
@@ -243,7 +266,7 @@ namespace MPCServer
                     }
                 case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_INIT:
                     {
-                        protocol.GetInitParams(Data, out byte Participants, out byte InputsCount);
+                        protocol.GetInitParams(Data, out uint Participants, out uint InputsCount);
                         RespondReceiveInit(Participants, InputsCount);
                         break;
                     }
@@ -270,21 +293,27 @@ namespace MPCServer
         private void RespondReceiveData(byte[] Data)
         {
             values.AddRange(GetValues(Data));
-            if (values.Count == dataCounter)
-                isDone = true;
         }
         //where does the server send the response?
 
-        private void RespondReceiveInit(byte Participants, byte InputsCount)
+        private void RespondReceiveInit(uint Participants, uint InputsCount)
         {
             if (usersCounter == 0)
             {
                 usersCounter = Participants;
+                numOfUsersConected++;
+                serverSstate = SERVER_STATE.INIT_AND_DATA;
             }
             else if (usersCounter != Participants)
             {
                 //TODO send error message to the clients
             }
+
+            if (numOfUsersConected == usersCounter)
+            {
+                serverSstate = SERVER_STATE.DATA;
+            }
+
             dataCounter += InputsCount;
         }
     }
