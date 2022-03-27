@@ -15,6 +15,7 @@ namespace MPC_UI
     public partial class MainWindow : Window
     {
         MainDataContext mainDataContext;
+        MPCDataClient.ManagerDataClient managerDataClient;
 
         public MainWindow()
         {
@@ -22,6 +23,8 @@ namespace MPC_UI
 
             mainDataContext = new MainDataContext();
             DataContext = mainDataContext;
+
+            managerDataClient = new MPCDataClient.ManagerDataClient();
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
@@ -33,12 +36,13 @@ namespace MPC_UI
             if (Path.GetExtension(openFileDialog.FileName) != ".csv")
             {
                 MessageBox.Show("Please choose .csv file.");
+                inFile.Text = "";
             }
         }
 
         private void Send_Click(object sender, RoutedEventArgs e)
         {
-            if(ValidateInput())
+            if (ValidateInput())
             {
 
             }
