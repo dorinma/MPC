@@ -10,6 +10,7 @@
         static bool debug = false;
         UserService userService;
         List<UInt16> data;
+        CommunicationDataClient<UInt16> commServerA;
 
 
         public ManagerDataClient()
@@ -108,13 +109,20 @@
             else return true;
         }
 
-        public void Start(string ip1, string ip2, int port1, int port2, int operation)
+        public string StartSession(string ip1, int port1)
         {
+            commServerA = new CommunicationDataClient<UInt16>(ip1, port1);
+            // TODO send request for session id
+            return "";
+        }
 
+        public void SendData(string ip1, string ip2, int port1, int port2, int operation, string sessionId)
+        {
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);
 
-            CommunicationDataClient<UInt16> commServerA = new CommunicationDataClient<UInt16>(ip1, port1);
+            //CommunicationDataClient<UInt16> commServerA = new CommunicationDataClient<UInt16>(ip1, port1);
+            // TODO check connection exists
             //CommunicationDataClient<UInt16> commServerB = new CommunicationDataClient<UInt16>(ip2, port2);
 
             Console.WriteLine($"ip1: {ip1} port1: {port1}");

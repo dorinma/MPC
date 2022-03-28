@@ -52,7 +52,7 @@ namespace MPC_UI
                     if (OperationMerge.IsSelected) oper = 1;
                     else if (OperationSort.IsSelected) oper = 2;
                     else oper = 3;
-                    managerDataClient.Start(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2, oper);
+                    managerDataClient.SendData(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2, oper, "");
                 }
                 else
                 {
@@ -63,6 +63,11 @@ namespace MPC_UI
             {
                 MessageBox.Show("Please make sure all information is valid.");
             }
+        }
+
+        private void GetSessionId_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
