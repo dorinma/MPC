@@ -1,9 +1,11 @@
-﻿using System;
+﻿using MPCProtocol;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MPCServer
@@ -12,7 +14,7 @@ namespace MPCServer
     public enum SERVER_STATE
     {
         FIRST_INIT = 1,
-        INIT_AND_DATA = 2,
+        CONNECT_AND_DATA = 2,
         DATA = 3
     } 
 
@@ -28,26 +30,29 @@ namespace MPCServer
         private byte[] buffer;
         List<UInt16> values;
         private uint dataCounter;
-        private uint usersCounter; 
-        private uint numOfUsersConected;  
+        private uint usersCounter;
+        private uint connectedUsersCounter;
+        private string sessionId;
         MPCProtocol.Protocol protocol = MPCProtocol.Protocol.Instance;
-        SERVER_STATE serverSstate;
+        SERVER_STATE serverState;
 
         public Communication(List<UInt16> valuesList)//, int users, int data)
         {
             values = valuesList;
             dataCounter = 0;
             usersCounter = 0;
-            numOfUsersConected = 0;
-            serverSstate = SERVER_STATE.FIRST_INIT;
+            connectedUsersCounter = 0;
+            sessionId = string.Empty;
+            serverState = SERVER_STATE.FIRST_INIT;
         }
 
         public void RestartServer()
         {
             dataCounter = 0;
             usersCounter = 0;
-            numOfUsersConected = 0;
-            serverSstate = SERVER_STATE.FIRST_INIT;
+            connectedUsersCounter = 0;
+            sessionId = string.Empty;
+            serverState = SERVER_STATE.FIRST_INIT;
         }
 
         public List<UInt16> StartServer()
@@ -71,7 +76,7 @@ namespace MPCServer
                 serverSocket.Listen(0);
                 Console.WriteLine("[INFO] Listening...");
 
-                while (!(serverSstate == SERVER_STATE.DATA) || !(values.Count == dataCounter))
+                while (!(serverState == SERVER_STATE.DATA) || !(values.Count == dataCounter))
                 {
                     serverSocket.BeginAccept(AcceptCallback, null);
                 }
@@ -233,18 +238,32 @@ namespace MPCServer
                 Console.WriteLine("SocketException : {0}", ex.Message);
             }
         }
+
+        public void SendString(OPCODE_MPC opcode , string msg, bool toClient)
+        {
+            var socket = toClient ? clientSocket : serverSocket;
+            var buffer = protocol.CreateMessage(opcode, sizeof(char), msg.ToCharArray());
+            try
+            {
+                if (socket.Connected)
+                {
+                    socket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                }
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine("SocketException : {0}", ex.Message);
+            }
+        }
         private static byte[] IntListToByteArray(List<UInt16> values)
         {
             List<byte> bytes = new List<byte>();
-            for (int i = 0; i < values.Count; i++)
-            {
-                bytes.AddRange(BitConverter.GetBytes(values.ElementAt(i)));
-            }
+            values.ForEach(number => bytes.AddRange(BitConverter.GetBytes(number)));
             bytes.Add(0xA);
             return bytes.ToArray();
         }
 
-        private List<UInt16> GetValues(byte[] Data)
+        /*private List<UInt16> GetValues(byte[] Data)
         {
             List<UInt16> output = new List<UInt16>();
             byte nullTerminator = 0xA;
@@ -253,30 +272,29 @@ namespace MPCServer
                 output.Add(BitConverter.ToUInt16(buffer, i));
             }
             return output;
-        }
+        }*/
 
         public void AnalyzeMessage(UInt16 Opcode, byte[] Data)
         {
             switch (Opcode)
             {
-                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_SERVER_DONE:
+                case (UInt16)OPCODE_MPC.E_OPCODE_SERVER_DONE:
                     {
                         protocol.GetServerDone(Data, out byte Status);
-                        RespondServerDone(Status);
+                        //HandleServerDone
                         break;
                     }
-                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_INIT:
+                case (UInt16)OPCODE_MPC.E_OPCODE_CLIENT_INIT:
                     {
-                        protocol.GetInitParams(Data, out uint Participants, out uint InputsCount);
-                        RespondReceiveInit(Participants, InputsCount);
+                        HandleClientInit(Data);
                         break;
                     }
-                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_DATA:
+                case (UInt16)OPCODE_MPC.E_OPCODE_CLIENT_DATA:
                     {
-                        RespondReceiveData(Data);
+                        HandleClientData(Data);
                         break;
                     }
-                case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_ERROR:
+                case (UInt16)OPCODE_MPC.E_OPCODE_ERROR:
                     {
                         //RespondServerDone(Data);
                         break;
@@ -286,36 +304,50 @@ namespace MPCServer
             }
         }
 
-        private void RespondServerDone(byte Status)
+        private void HandleClientInit(byte[] Data)
         {
+            if (string.Empty != Interlocked.CompareExchange(ref sessionId, GenerateSessionId(), string.Empty))
+            {
+                // Session is already in motion
+                //SendError();
+            }
 
+            if (!protocol.GetInitParams(Data, out uint Participants))
+            {
+                // Failed to parse participants
+                //SendError();
+            }
+
+            usersCounter = Participants;
+            serverState = SERVER_STATE.CONNECT_AND_DATA;
+           
+            SendString(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId.ToString(), toClient: true);
         }
 
-        private void RespondReceiveData(byte[] Data)
+        private void HandleClientData(byte[] Data)
         {
-            values.AddRange(GetValues(Data));
+            if (!protocol.GetDataParams(Data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements))
+            {
+                // Failed to parse participants
+                //SendError();
+            }
+
+            if (!Session.Equals(sessionId))
+            {
+                // Failed to parse participants
+                //SendError();
+            }
+
+            connectedUsersCounter++;
+            dataCounter += ElementsCounter;
+            values.AddRange(Elements);
         }
+
         //where does the server send the response?
 
-        private void RespondReceiveInit(uint Participants, uint InputsCount)
+        private string GenerateSessionId()
         {
-            if (usersCounter == 0)
-            {
-                usersCounter = Participants;
-                numOfUsersConected++;
-                serverSstate = SERVER_STATE.INIT_AND_DATA;
-            }
-            else if (usersCounter != Participants)
-            {
-                //TODO send error message to the clients
-            }
-
-            if (numOfUsersConected == usersCounter)
-            {
-                serverSstate = SERVER_STATE.DATA;
-            }
-
-            dataCounter += InputsCount;
+            return Guid.NewGuid().ToString().Substring(0, 8);
         }
     }
 }
