@@ -35,6 +35,7 @@ public class CommunicationDataClient<T>
     public String response { get; set; }
     public List<UInt16> dataResponse { get; set; }
 
+    public String sessionId { get; set; }
 
     public CommunicationDataClient(string ip, int port)
     {
@@ -94,42 +95,40 @@ public class CommunicationDataClient<T>
         }
     }
 
-    public void SendRequest(List<UInt16> data)
+    public void SendRequest(List<UInt16> data, String sessionId)
     {
-        SendInit(1,4);
-        SendData(data);
+        SendInit(2);
+        ConnectAndSendData(data, sessionId);
     }
 
-    private void SendInit(uint userCounter, uint dataCounter)
+    private void SendInit(uint usersCounter)
     {
         // Send init to the remote device.
-        byte[] byteData = new byte[2* sizeof(uint) + protocol.GetHeaderSize() + 1];
+        byte[] byteData = new byte[sizeof(uint) + protocol.GetHeaderSize() + 1];
         byte[] header = protocol.CreateHeaderInitMsg();
         Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
-        byte[] user = BitConverter.GetBytes(userCounter);
-        byte[] data = BitConverter.GetBytes(dataCounter);
+        byte[] user = BitConverter.GetBytes(usersCounter);
         Buffer.BlockCopy(user, 0, byteData, header.Length, user.Length);
-        Buffer.BlockCopy(data, 0, byteData, header.Length + user.Length, data.Length);
         byteData[byteData.Length - 1] = protocol.GetNullTerminator();
         // Begin sending the data to the remote device.      
-        client.BeginSend(byteData, 0, byteData.Length, 0, 
+        client.BeginSend(byteData, 0, byteData.Length, 0,
             new AsyncCallback(SendCallback), client);
         sendDone.WaitOne();
     }
 
-    private void SendData(List<UInt16> data)
+    private void ConnectAndSendData(List<UInt16> data, String sessionId)
     {
         // Send data to the remote device.
-        byte[] byteData = new byte[data.Count * SizeOf(typeof(UInt16)) + 1 + protocol.GetHeaderSize()];
+        byte[] byteData = new byte[data.Count * SizeOf(typeof(UInt16)) + 1 + protocol.GetHeaderSize() + SizeOf(typeof(uint)) + IDENTIFIER_SIZE];
         byte[] header = protocol.CreateHeaderDataMsg();
         Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
-        Buffer.BlockCopy(data.ToArray(), 0, byteData, header.Length, data.Count * SizeOf(typeof(UInt16))); //data
+        byte[] identifiar_ = Encoding.ASCII.GetBytes(sessionId);
+        Buffer.BlockCopy(identifiar_, 0, byteData, header.Length , sessionId.Length);
+        byte[] dataCount = BitConverter.GetBytes(data.Count);
+        Buffer.BlockCopy(dataCount, 0, byteData, header.Length + IDENTIFIER_SIZE , dataCount.Length);
+        Buffer.BlockCopy(data.ToArray(), 0, byteData, header.Length + IDENTIFIER_SIZE + dataCount.Length, data.Count * SizeOf(typeof(UInt16))); //data
         byteData[byteData.Length - 1] = protocol.GetNullTerminator();
         // Begin sending the data to the remote device.  
-        for (int i = 0; i < byteData.Length; i++)
-        {
-            Console.WriteLine(byteData[i]);
-        }
         client.BeginSend(byteData, 0, byteData.Length, 0,
             new AsyncCallback(SendCallback), client);
         sendDone.WaitOne();
@@ -204,7 +203,17 @@ public class CommunicationDataClient<T>
                 // Get the rest of the data.  
                 client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(ReceiveCallback), state);
-                var message = state.sb.ToString();
+
+                if (!protocol.ValidateMessage(state.buffer))
+                {
+                    //todo send error
+                    return; // todo check
+                }
+
+                protocol.ParseData(state.buffer, out UInt16 Opcode, out Byte[] MsgData);
+                AnalyzeMessage(Opcode, MsgData);
+
+                /*var message = state.sb.ToString();
                 if (message.StartsWith("Message:"))
                 {
                     response = message;
@@ -213,7 +222,7 @@ public class CommunicationDataClient<T>
                 {
                     dataResponse.AddRange(GetValues(state.buffer));
                 }
-                receiveDone.Set();
+                receiveDone.Set();*/
             }
             /*else
             {
@@ -239,6 +248,23 @@ public class CommunicationDataClient<T>
         }
     }
 
+
+
+    public void AnalyzeMessage(UInt16 Opcode, byte[] Data)
+    {
+        switch (Opcode)
+        {
+            case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_SERVER_INIT:
+                {
+                    byte[] sessionId = new byte[IDENTIFIER_SIZE];
+                    Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
+                    Console.WriteLine(sessionId.ToString());
+                    break;
+                }
+            default:
+                break;
+        }
+    }
     private List<UInt16> GetValues(byte[] buffer)
     {
         List<UInt16> output = new List<UInt16>();

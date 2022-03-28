@@ -133,7 +133,7 @@
 
             Console.WriteLine("Connect to servers successfuly");
 
-            commServerA.SendRequest(dataService.serverAList);
+            commServerA.SendRequest(dataService.serverAList, sessionId);
             //commServerB.SendRequest(dataService.serverBList);
 
             Console.WriteLine("Messages sent to servers");
