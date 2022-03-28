@@ -256,9 +256,9 @@ public class CommunicationDataClient<T>
         {
             case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_SERVER_INIT:
                 {
-                    byte[] sessionId = new byte[IDENTIFIER_SIZE];
-                    Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
-                    Console.WriteLine(sessionId.ToString());
+                    //byte[] sessionId = new byte[IDENTIFIER_SIZE];
+                    //Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
+                    Console.WriteLine(Data.ToString());
                     break;
                 }
             default:
