@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Text;
 using System.Collections.Generic;
+using MPCProtocol;
 
 // State object for receiving data from remote device.  
 public class StateObject
@@ -119,14 +120,14 @@ public class CommunicationDataClient<T>
     private void ConnectAndSendData(List<UInt16> data, String sessionId)
     {
         // Send data to the remote device.
-        byte[] byteData = new byte[data.Count * SizeOf(typeof(UInt16)) + 1 + protocol.GetHeaderSize() + SizeOf(typeof(uint)) + IDENTIFIER_SIZE];
+        byte[] byteData = new byte[data.Count * SizeOf(typeof(UInt16)) + 1 + protocol.GetHeaderSize() + SizeOf(typeof(uint)) + ProtocolConstants.SESSION_ID_SIZE];
         byte[] header = protocol.CreateHeaderDataMsg();
         Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
         byte[] identifiar_ = Encoding.ASCII.GetBytes(sessionId);
         Buffer.BlockCopy(identifiar_, 0, byteData, header.Length , sessionId.Length);
         byte[] dataCount = BitConverter.GetBytes(data.Count);
-        Buffer.BlockCopy(dataCount, 0, byteData, header.Length + IDENTIFIER_SIZE , dataCount.Length);
-        Buffer.BlockCopy(data.ToArray(), 0, byteData, header.Length + IDENTIFIER_SIZE + dataCount.Length, data.Count * SizeOf(typeof(UInt16))); //data
+        Buffer.BlockCopy(dataCount, 0, byteData, header.Length + ProtocolConstants.SESSION_ID_SIZE, dataCount.Length);
+        Buffer.BlockCopy(data.ToArray(), 0, byteData, header.Length + ProtocolConstants.SESSION_ID_SIZE + dataCount.Length, data.Count * SizeOf(typeof(UInt16))); //data
         byteData[byteData.Length - 1] = protocol.GetNullTerminator();
         // Begin sending the data to the remote device.  
         client.BeginSend(byteData, 0, byteData.Length, 0,

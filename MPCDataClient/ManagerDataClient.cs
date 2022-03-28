@@ -70,7 +70,7 @@
 
             Console.WriteLine("Connect to servers successfuly");
 
-            commServerA.SendRequest(dataService.serverAList);
+            //commServerA.SendRequest(dataService.serverAList);
             //commServerB.SendRequest(dataService.serverBList);
 
             Console.WriteLine("Messages sent to servers");

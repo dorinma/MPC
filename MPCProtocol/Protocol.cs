@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace MPCProtocol
 {
-    class ConstProtocol
+    public class ProtocolConstants
     {
         public const int HEADER_SIZE = 4;
         public const int SESSION_ID_SIZE = 8;
@@ -62,10 +62,10 @@ namespace MPCProtocol
 
         public void ParseData(byte[] Data, out UInt16 Opcode, out byte[] MsgData)
         {
-            Opcode = BitConverter.ToUInt16(Data, ConstProtocol.OPCODE_LSB);
-            MsgData = new byte[Data.Length - ConstProtocol.HEADER_SIZE];
+            Opcode = BitConverter.ToUInt16(Data, ProtocolConstants.OPCODE_LSB);
+            MsgData = new byte[Data.Length - ProtocolConstants.HEADER_SIZE];
             for (int i = 0; i < MsgData.Length; i++)
-                MsgData[i] = Data[i + ConstProtocol.HEADER_SIZE];
+                MsgData[i] = Data[i + ProtocolConstants.HEADER_SIZE];
         }
 
 
@@ -95,12 +95,12 @@ namespace MPCProtocol
 
         public int GetHeaderSize()
         {
-            return ConstProtocol.HEADER_SIZE;
+            return ProtocolConstants.HEADER_SIZE;
         }
         
         public byte GetNullTerminator()
         {
-            return ConstProtocol.NULL_TERMINATOR;
+            return ProtocolConstants.NULL_TERMINATOR;
         }
 
         public bool GetServerDone(byte[] Data, out byte Status)
@@ -136,9 +136,9 @@ namespace MPCProtocol
         {
             try
             {
-                Session = BitConverter.ToString(Data, 0, ConstProtocol.SESSION_ID_SIZE);
-                ElementsCounter = BitConverter.ToUInt32(Data, ConstProtocol.SESSION_ID_SIZE);
-                Elements = MPCConvertor.BytesToList(Data, ConstProtocol.SESSION_ID_SIZE + sizeof(UInt32));
+                Session = BitConverter.ToString(Data, 0, ProtocolConstants.SESSION_ID_SIZE);
+                ElementsCounter = BitConverter.ToUInt32(Data, ProtocolConstants.SESSION_ID_SIZE);
+                Elements = MPCConvertor.BytesToList(Data, ProtocolConstants.SESSION_ID_SIZE + sizeof(UInt32));
                 return true;
             }
             catch
