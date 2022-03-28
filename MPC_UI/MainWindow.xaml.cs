@@ -46,13 +46,18 @@ namespace MPC_UI
         {
             if (ValidateInput())
             {
-                int oper = 0;
-                if (OperationMerge.IsSelected) oper = 1;
-                else if (OperationSort.IsSelected) oper = 2;
-                else oper = 3;
-                managerDataClient.Start(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2,
-                    oper, inFile.Text);
-
+                if (managerDataClient.ReadInput(inFile.Text))
+                {
+                    int oper = 0;
+                    if (OperationMerge.IsSelected) oper = 1;
+                    else if (OperationSort.IsSelected) oper = 2;
+                    else oper = 3;
+                    managerDataClient.Start(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2, oper);
+                }
+                else
+                {
+                    MessageBox.Show("Could not parse input file, validate file's content & format.");
+                }
             }
             else
             {

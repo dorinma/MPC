@@ -16,11 +16,12 @@ namespace MPC_UI.ViewModel
 
         public MainDataContext()
         {
-            ip1 = "";
-            ip2 = "";
-            port1 = 0;
+            //TODO reset all params. Data only for developing.
+            ip1 = "127.0.0.1";
+            ip2 = "0.0.0.0";
+            port1 = 2022;
             port2 = 0;
-            participants = 0;
+            participants = 1;
         }
 
         public string IP1

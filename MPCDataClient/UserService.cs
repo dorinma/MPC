@@ -42,28 +42,15 @@ namespace MPCDataClient
             return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
         }
 
-        public List<UInt16> ReadData()
+        public List<UInt16> ReadData(string filePath)
          {
-            Console.WriteLine("Insert data file path");
-            string path = @"C:\Users\eden\Desktop\BGU\Semester7\Project\MPC\inputFile.csv";
-            path = Console.ReadLine();
             try
             {
-                /*Stream fileStream = this.fileSystem.File.OpenRead(path);
-                //StreamReader reader = new StreamReader(fileStream);
-                using (var reader = new StreamReader(fileStream))
-                {
-                    reader.ReadLine(); //skip column name
-                    while (!reader.EndOfStream)
-                    {
-                        output.Add(UInt16.Parse(reader.ReadLine()));
-                    }
-                }*/
-                return ParseFile(path);
+                return ParseFile(filePath);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Reading failed - {0}", e.Message);
+                /*Console.WriteLine("Reading failed - {0}", e.Message);
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character");
                 var option = Console.ReadLine();
                 if (option != "1")
@@ -71,9 +58,9 @@ namespace MPCDataClient
                     Environment.Exit(-1);
                 }
 
-                ReadData();
+                ReadData();*/
+                return null;
             }
-            return null;
         }
 
         public List<UInt16> ParseFile(string path)

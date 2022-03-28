@@ -9,6 +9,7 @@
     {
         static bool debug = false;
         UserService userService;
+        List<UInt16> data;
 
 
         public ManagerDataClient()
@@ -52,7 +53,7 @@
 
             UserService userService = new UserService();
             int operation = userService.ReadOperation();
-            List<UInt16> data = userService.ReadData();
+            List<UInt16> data = userService.ReadData("");
 
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);
@@ -100,10 +101,15 @@
             //}
         }
 
-
-        public void Start(string ip1, string ip2, int port1, int port2, int operation, string filePath)
+        public bool ReadInput(string filePath)
         {
-            List<UInt16> data = userService.ParseFile(filePath);
+            data = userService.ReadData(filePath);
+            if (data == null) return false;
+            else return true;
+        }
+
+        public void Start(string ip1, string ip2, int port1, int port2, int operation)
+        {
 
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);
