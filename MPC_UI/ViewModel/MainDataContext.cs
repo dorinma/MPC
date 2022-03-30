@@ -11,7 +11,7 @@ namespace MPC_UI.ViewModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        string ip1, ip2;
+        string ip1, ip2, sessionId;
         int port1, port2, participants;
 
         public MainDataContext()
@@ -93,6 +93,20 @@ namespace MPC_UI.ViewModel
 
                 if (PropertyChanged != null)
                     PropertyChanged(this, new PropertyChangedEventArgs("ParticipantsNum"));
+            }
+        }
+        public string SessionId
+        {
+            get
+            {
+                return sessionId;
+            }
+            set
+            {
+                sessionId = value;
+
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs("SessionId"));
             }
         }
 
