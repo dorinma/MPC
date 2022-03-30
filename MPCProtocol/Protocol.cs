@@ -147,7 +147,10 @@ namespace MPCProtocol
         {
             try
             {
-                Session = BitConverter.ToString(Data, 0, ProtocolConstants.SESSION_ID_SIZE);
+                //Session = BitConverter.ToString(Data, 0, ProtocolConstants.SESSION_ID_SIZE * sizeof(char));
+                byte[] sessionTemp = new byte[ProtocolConstants.SESSION_ID_SIZE * sizeof(char)];
+                Buffer.BlockCopy(Data, 0, sessionTemp, 0, ProtocolConstants.SESSION_ID_SIZE * sizeof(char));
+                Session = System.Text.Encoding.Default.GetString(sessionTemp);
                 ElementsCounter = BitConverter.ToUInt32(Data, ProtocolConstants.SESSION_ID_SIZE);
                 Elements = MPCConvertor.BytesToList(Data, ProtocolConstants.SESSION_ID_SIZE + sizeof(UInt32));
                 return true;

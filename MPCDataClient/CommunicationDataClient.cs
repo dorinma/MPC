@@ -114,11 +114,11 @@ public class CommunicationDataClient<T>
 
     public void SendData(string sessionId, List<UInt16> data)
     {
-        byte[] dataBytes = new byte[ProtocolConstants.SESSION_ID_SIZE + sizeof(int) + sizeof(UInt16) * data.Count];
-        Buffer.BlockCopy(sessionId.ToCharArray(), 0, dataBytes, 0,ProtocolConstants.SESSION_ID_SIZE);
+        byte[] dataBytes = new byte[ProtocolConstants.SESSION_ID_SIZE * sizeof(char) + sizeof(int) + sizeof(UInt16) * data.Count];
+        Buffer.BlockCopy(Encoding.ASCII.GetBytes(sessionId), 0, dataBytes, 0, ProtocolConstants.SESSION_ID_SIZE * sizeof(char));
         byte[] dataCountbytes = BitConverter.GetBytes(data.Count);
-        Buffer.BlockCopy(dataCountbytes, 0, dataBytes, ProtocolConstants.SESSION_ID_SIZE, dataCountbytes.Length);
-        Buffer.BlockCopy(data.ToArray(), 0, dataBytes, ProtocolConstants.SESSION_ID_SIZE + dataCountbytes.Length, sizeof(UInt16) * data.Count);
+        Buffer.BlockCopy(dataCountbytes, 0, dataBytes, ProtocolConstants.SESSION_ID_SIZE * sizeof(char), dataCountbytes.Length);
+        Buffer.BlockCopy(data.ToArray(), 0, dataBytes, ProtocolConstants.SESSION_ID_SIZE * sizeof(char) + dataCountbytes.Length, sizeof(UInt16) * data.Count);
         byte[] message = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, dataBytes);
 
         client.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), client);

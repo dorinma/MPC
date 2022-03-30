@@ -354,8 +354,7 @@ namespace MPCServer
                 //SendError();
                 return;
             }
-
-            if (!Session.Equals(sessionId))
+            if (!CompareSessionId(Session.ToCharArray()))
             {
                 // wrong session Id
                 //SendError();
@@ -377,7 +376,17 @@ namespace MPCServer
             }
         }
 
-        //where does the server send the response?
+        private bool CompareSessionId(char[] retSession)
+        {
+            char[] currSession = sessionId.ToCharArray();
+            for (int i = 0; i < currSession.Length; i++)
+            {
+                if (currSession[i] != retSession[i * 2])
+                    return false;
+            }
+            return true;
+        }
+
         private string GenerateSessionId()
         {
             return Guid.NewGuid().ToString().Substring(0, 8);
