@@ -71,7 +71,8 @@ namespace MPCDataClient
 
         internal string ReadSessionId()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Insert the session id");
+            return Console.ReadLine();
         }
 
         private uint ReadNumberOfUsers()
@@ -96,6 +97,30 @@ namespace MPCDataClient
         public bool TryParseOperation(string userChoice, out int operation)
         {
             return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
+        }
+
+        public List<UInt16> ReadData()
+        {
+            Console.WriteLine("Insert data file path");
+            string path = @"C:\Users\eden\Desktop\BGU\Semester7\Project\MPC\inputFile.csv";
+            path = Console.ReadLine();
+            try
+            {
+                return ParseFile(path);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Reading failed - {0}", e.Message);
+                Console.WriteLine("If you want to try again press 1, otherwise press any other character");
+                var option = Console.ReadLine();
+                if (option != "1")
+                {
+                    Environment.Exit(-1);
+                }
+
+                ReadData();
+            }
+            return null;
         }
 
         public List<UInt16> ReadData(string filePath)

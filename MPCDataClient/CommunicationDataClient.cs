@@ -105,14 +105,26 @@ public class CommunicationDataClient<T>
     public string SendInitMessage(int operation, int numberOfUsers)
     {
         byte[] message = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_INIT, sizeof(int), new List<int> { operation, numberOfUsers }.ToArray());
-        sendDone.WaitOne();
         client.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), client);
+        sendDone.WaitOne();
         ReceiveRequest();
         WaitForReceive();
         return sessionId;
     }
 
-    private void ConnectAndSendData(List<UInt16> data, String sessionId)
+    public void SendData(string sessionId, List<UInt16> data)
+    {
+        byte[] dataBytes = new byte[ProtocolConstants.SESSION_ID_SIZE + sizeof(int) + sizeof(UInt16) * data.Count];
+        Buffer.BlockCopy(sessionId.ToCharArray(), 0, dataBytes, 0,ProtocolConstants.SESSION_ID_SIZE);
+        byte[] dataCountbytes = BitConverter.GetBytes(data.Count);
+        Buffer.BlockCopy(dataCountbytes, 0, dataBytes, ProtocolConstants.SESSION_ID_SIZE, dataCountbytes.Length);
+        Buffer.BlockCopy(data.ToArray(), 0, dataBytes, ProtocolConstants.SESSION_ID_SIZE + dataCountbytes.Length, sizeof(UInt16) * data.Count);
+        byte[] message = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, dataBytes);
+
+        client.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), client);
+        ReceiveRequest();
+    }
+    private void ConnectAndSendData(List<UInt16> data, string sessionId)
     {
         // Send data to the remote device.
         byte[] byteData = new byte[data.Count * SizeOf(typeof(UInt16)) + 1 + protocol.GetHeaderSize() + SizeOf(typeof(uint)) + ProtocolConstants.SESSION_ID_SIZE];
@@ -206,7 +218,7 @@ public class CommunicationDataClient<T>
                     return; // todo check
                 }
 
-                protocol.ParseData(state.buffer, out UInt16 Opcode, out Byte[] MsgData);
+                protocol.ParseData(state.buffer, out OPCODE_MPC Opcode, out Byte[] MsgData);
                 AnalyzeMessage(Opcode, MsgData);
                 receiveDone.Set();
                 /*var message = state.sb.ToString();
@@ -246,26 +258,27 @@ public class CommunicationDataClient<T>
 
 
 
-    public void AnalyzeMessage(UInt16 Opcode, byte[] Data)
+    public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] Data)
     {
         switch (Opcode)
         {
-            case (UInt16)OPCODE_MPC.E_OPCODE_SERVER_INIT:
+            case OPCODE_MPC.E_OPCODE_SERVER_INIT:
                 {
                     //byte[] sessionId = new byte[IDENTIFIER_SIZE];
                     //Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
-                    sessionId = Data.ToString();
+                    sessionId = Encoding.Default.GetString(Data);
                     Console.WriteLine(sessionId);
                     break;
                 }
-            case (UInt16)OPCODE_MPC.E_OPCODE_SERVER_DONE:
+            case OPCODE_MPC.E_OPCODE_SERVER_DONE:
                 {
                     //byte[] sessionId = new byte[IDENTIFIER_SIZE];
                     //Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
-                    Console.WriteLine(Data.ToString());
+                    string serverDoneMessage = Encoding.Default.GetString(Data);
+                    Console.WriteLine(serverDoneMessage);
                     break;
                 }
-            case (UInt16)OPCODE_MPC.E_OPCODE_ERROR:
+            case OPCODE_MPC.E_OPCODE_ERROR:
                 {
                     //RespondServerDone(Data);
                     break;

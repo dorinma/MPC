@@ -75,13 +75,12 @@
                 communicationA.Connect();
             }
 
-
-
-
-            List<UInt16> data = userService1.ReadData("");
+            List<UInt16> data = userService1.ReadData();
 
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);
+
+            communicationA.SendData(sessionId, dataService.serverAList);
 
             CommunicationDataClient<UInt16> commServerA = new CommunicationDataClient<UInt16>(ip1, port1);
             //CommunicationDataClient<UInt16> commServerB = new CommunicationDataClient<UInt16>(ip2, port2);

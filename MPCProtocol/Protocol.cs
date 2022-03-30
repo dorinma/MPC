@@ -60,9 +60,9 @@ namespace MPCProtocol
         {
         }
 
-        public void ParseData(byte[] Data, out UInt16 Opcode, out byte[] MsgData)
+        public void ParseData(byte[] Data, out OPCODE_MPC Opcode, out byte[] MsgData)
         {
-            Opcode = BitConverter.ToUInt16(Data, ProtocolConstants.OPCODE_LSB);
+            Opcode = (OPCODE_MPC)BitConverter.ToUInt16(Data, ProtocolConstants.OPCODE_LSB);
             MsgData = new byte[Data.Length - ProtocolConstants.HEADER_SIZE];
             for (int i = 0; i < MsgData.Length; i++)
                 MsgData[i] = Data[i + ProtocolConstants.HEADER_SIZE];
@@ -89,6 +89,16 @@ namespace MPCProtocol
             var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
             Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
             Buffer.BlockCopy(data, 0, messageBytes, header.Length, data.Length * elementSize); //data
+            messageBytes[messageBytes.Length - 1] = GetNullTerminator();
+            return messageBytes;
+        }
+
+        public byte[] CreateMessage(OPCODE_MPC opcode, byte[] data)
+        {
+            byte[] messageBytes = new byte[GetHeaderSize() + data.Length + 1];
+            var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
+            Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
+            Buffer.BlockCopy(data, 0, messageBytes, header.Length, data.Length); //data
             messageBytes[messageBytes.Length - 1] = GetNullTerminator();
             return messageBytes;
         }

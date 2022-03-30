@@ -29,28 +29,36 @@ namespace MPCServer
         private Socket clientSocket; // We will only accept one socket.
         private byte[] buffer;
         List<UInt16> values;
-        private uint dataCounter;
-        private uint usersCounter;
-        private uint connectedUsersCounter;
+        private uint numberOfDataElements;
+        private uint numberOfUsers;
+        private uint numberOfConnectedUsers;
         private string sessionId;
         Protocol protocol = Protocol.Instance;
         SERVER_STATE serverState;
 
+        object usersLock = new object();
+
+        private Dictionary<OPCODE_MPC, SERVER_STATE> statesMap = new Dictionary<OPCODE_MPC, SERVER_STATE>
+        {
+            { OPCODE_MPC.E_OPCODE_CLIENT_INIT, SERVER_STATE.FIRST_INIT },
+            { OPCODE_MPC.E_OPCODE_CLIENT_DATA, SERVER_STATE.CONNECT_AND_DATA },
+        };
+
         public Communication(List<UInt16> valuesList)//, int users, int data)
         {
             values = valuesList;
-            dataCounter = 0;
-            usersCounter = 0;
-            connectedUsersCounter = 0;
+            numberOfDataElements = 0;
+            numberOfUsers = 0;
+            numberOfConnectedUsers = 0;
             sessionId = string.Empty;
             serverState = SERVER_STATE.FIRST_INIT;
         }
 
         public void RestartServer()
         {
-            dataCounter = 0;
-            usersCounter = 0;
-            connectedUsersCounter = 0;
+            numberOfDataElements = 0;
+            numberOfUsers = 0;
+            numberOfConnectedUsers = 0;
             sessionId = string.Empty;
             serverState = SERVER_STATE.FIRST_INIT;
         }
@@ -76,7 +84,7 @@ namespace MPCServer
                 serverSocket.Listen(0);
                 Console.WriteLine("[INFO] Listening...");
 
-                while (serverState != SERVER_STATE.DATA || values.Count != dataCounter)
+                while (serverState != SERVER_STATE.DATA || values.Count != numberOfDataElements)
                 {
                     serverSocket.BeginAccept(AcceptCallback, null);
                 }
@@ -122,8 +130,14 @@ namespace MPCServer
                     return; // todo check
                 }
                 //todo special parse per nulltermintor
-                protocol.ParseData(buffer, out UInt16 Opcode, out Byte[] MsgData);
-                AnalyzeMessage(Opcode, MsgData);
+                protocol.ParseData(buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
+                if (!ValidateServerState(opcode))
+                {
+                    //todo send error
+                    return; // todo check
+                }
+
+                AnalyzeMessage(opcode, MsgData);
                 // Continue listening for clients.
                 serverSocket.BeginAccept(AcceptCallback, null);
             }
@@ -135,6 +149,11 @@ namespace MPCServer
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        private bool ValidateServerState(OPCODE_MPC opcode)
+        {
+            return statesMap[opcode] == serverState;
         }
 
         private void SendCallback(IAsyncResult AR)
@@ -171,8 +190,13 @@ namespace MPCServer
                     //todo send error
                     return; // todo check
                 }
-                protocol.ParseData(buffer, out UInt16 Opcode, out Byte[] MsgData);
-                AnalyzeMessage(Opcode, MsgData);
+                protocol.ParseData(buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
+                if (!ValidateServerState(opcode))
+                {
+                    //todo send error
+                    return; // todo check
+                }
+                AnalyzeMessage(opcode, MsgData);
                 // Start receiving data again.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
             }
@@ -274,27 +298,27 @@ namespace MPCServer
             return output;
         }*/
 
-        public void AnalyzeMessage(UInt16 Opcode, byte[] Data)
+        public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] Data)
         {
             switch (Opcode)
             {
-                case (UInt16)OPCODE_MPC.E_OPCODE_SERVER_DONE:
+                case OPCODE_MPC.E_OPCODE_SERVER_DONE:
                     {
                         protocol.GetServerDone(Data, out byte Status);
                         //HandleServerDone
                         break;
                     }
-                case (UInt16)OPCODE_MPC.E_OPCODE_CLIENT_INIT:
+                case OPCODE_MPC.E_OPCODE_CLIENT_INIT:
                     {
                         HandleClientInit(Data);
                         break;
                     }
-                case (UInt16)OPCODE_MPC.E_OPCODE_CLIENT_DATA:
+                case OPCODE_MPC.E_OPCODE_CLIENT_DATA:
                     {
                         HandleClientData(Data);
                         break;
                     }
-                case (UInt16)OPCODE_MPC.E_OPCODE_ERROR:
+                case OPCODE_MPC.E_OPCODE_ERROR:
                     {
                         //RespondServerDone(Data);
                         break;
@@ -318,7 +342,7 @@ namespace MPCServer
                 //SendError();
             }
 
-            usersCounter = Participants;
+            numberOfUsers = Participants;
             serverState = SERVER_STATE.CONNECT_AND_DATA;
            
             SendString(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId.ToString(), toClient: true);
@@ -326,6 +350,7 @@ namespace MPCServer
 
         private void HandleClientData(byte[] Data)
         {
+            //if(serverState != SERVER_STATE.CONNECT_AND_DATA)
             if (!protocol.GetDataParams(Data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements))
             {
                 // Failed to parse participants
@@ -334,17 +359,26 @@ namespace MPCServer
 
             if (!Session.Equals(sessionId))
             {
-                // Failed to parse participants
+                // wrong session Id
                 //SendError();
             }
 
-            connectedUsersCounter++;
-            dataCounter += ElementsCounter;
-            values.AddRange(Elements);
+            lock (usersLock)
+            {
+                if (numberOfConnectedUsers == numberOfUsers)
+                {
+                    // error
+                    return;
+                }
+                numberOfConnectedUsers++;
+                serverState = numberOfConnectedUsers == numberOfUsers ? SERVER_STATE.DATA : serverState;
+                numberOfDataElements += ElementsCounter;
+                values.AddRange(Elements);
+                Console.WriteLine(values);
+            }
         }
 
         //where does the server send the response?
-
         private string GenerateSessionId()
         {
             return Guid.NewGuid().ToString().Substring(0, 8);
