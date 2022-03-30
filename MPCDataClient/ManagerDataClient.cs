@@ -12,6 +12,9 @@
         List<UInt16> data;
         CommunicationDataClient<UInt16> commServerA;
 
+        private static UserService userService1 = new UserService();
+        private static CommunicationDataClient<UInt16> communicationA;
+        private static CommunicationDataClient<UInt16> communicationB;
 
         public ManagerDataClient()
         {
@@ -52,9 +55,30 @@
                 Environment.Exit(-1);
             }
 
-            UserService userService = new UserService();
-            int operation = userService.ReadOperation();
-            List<UInt16> data = userService.ReadData("");
+            Start(ip1, port1);
+            
+        }
+
+        private static void Start(string ip1, int port1)
+        {
+            communicationA = new CommunicationDataClient<UInt16>(ip1, port1);
+            string sessionId;
+            if (userService1.StartSession(out int operation, out uint numberOfUsers))
+            {
+                communicationA.Connect();
+                sessionId = communicationA.SendInitMessage(operation, (int)numberOfUsers);
+                Console.WriteLine($"Session id: {sessionId}");
+            }
+            else
+            {
+                sessionId = userService1.ReadSessionId();
+                communicationA.Connect();
+            }
+
+
+
+
+            List<UInt16> data = userService1.ReadData("");
 
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);
@@ -133,7 +157,7 @@
 
             Console.WriteLine("Connect to servers successfuly");
 
-            commServerA.SendRequest(dataService.serverAList, sessionId);
+            //commServerA.SendRequest(dataService.serverAList, sessionId);
             //commServerB.SendRequest(dataService.serverBList);
 
             Console.WriteLine("Messages sent to servers");

@@ -33,7 +33,7 @@ namespace MPCServer
         private uint usersCounter;
         private uint connectedUsersCounter;
         private string sessionId;
-        MPCProtocol.Protocol protocol = MPCProtocol.Protocol.Instance;
+        Protocol protocol = Protocol.Instance;
         SERVER_STATE serverState;
 
         public Communication(List<UInt16> valuesList)//, int users, int data)
@@ -76,7 +76,7 @@ namespace MPCServer
                 serverSocket.Listen(0);
                 Console.WriteLine("[INFO] Listening...");
 
-                while (!(serverState == SERVER_STATE.DATA) || !(values.Count == dataCounter))
+                while (serverState != SERVER_STATE.DATA || values.Count != dataCounter)
                 {
                     serverSocket.BeginAccept(AcceptCallback, null);
                 }

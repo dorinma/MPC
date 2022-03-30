@@ -29,7 +29,7 @@ public class CommunicationDataClient<T>
     private ManualResetEvent connectDone;
     private ManualResetEvent sendDone;
     private ManualResetEvent receiveDone;
-    MPCProtocol.Protocol protocol = MPCProtocol.Protocol.Instance;
+    MPCProtocol.Protocol protocol = Protocol.Instance;
 
 
     // The response from the remote device.  
@@ -96,25 +96,20 @@ public class CommunicationDataClient<T>
         }
     }
 
-    public void SendRequest(List<UInt16> data, String sessionId)
+    /*public void SendRequest(List<UInt16> data, String sessionId)
     {
         SendInit(2);
         ConnectAndSendData(data, sessionId);
-    }
+    }*/
 
-    private void SendInit(uint usersCounter)
+    public string SendInitMessage(int operation, int numberOfUsers)
     {
-        // Send init to the remote device.
-        byte[] byteData = new byte[sizeof(uint) + protocol.GetHeaderSize() + 1];
-        byte[] header = protocol.CreateHeaderInitMsg();
-        Buffer.BlockCopy(header, 0, byteData, 0, header.Length); //header
-        byte[] user = BitConverter.GetBytes(usersCounter);
-        Buffer.BlockCopy(user, 0, byteData, header.Length, user.Length);
-        byteData[byteData.Length - 1] = protocol.GetNullTerminator();
-        // Begin sending the data to the remote device.      
-        client.BeginSend(byteData, 0, byteData.Length, 0,
-            new AsyncCallback(SendCallback), client);
+        byte[] message = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_INIT, sizeof(int), new List<int> { operation, numberOfUsers }.ToArray());
         sendDone.WaitOne();
+        client.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), client);
+        ReceiveRequest();
+        WaitForReceive();
+        return sessionId;
     }
 
     private void ConnectAndSendData(List<UInt16> data, String sessionId)
@@ -213,7 +208,7 @@ public class CommunicationDataClient<T>
 
                 protocol.ParseData(state.buffer, out UInt16 Opcode, out Byte[] MsgData);
                 AnalyzeMessage(Opcode, MsgData);
-
+                receiveDone.Set();
                 /*var message = state.sb.ToString();
                 if (message.StartsWith("Message:"))
                 {
@@ -255,11 +250,24 @@ public class CommunicationDataClient<T>
     {
         switch (Opcode)
         {
-            case (UInt16)MPCProtocol.OPCODE_MPC.E_OPCODE_SERVER_INIT:
+            case (UInt16)OPCODE_MPC.E_OPCODE_SERVER_INIT:
+                {
+                    //byte[] sessionId = new byte[IDENTIFIER_SIZE];
+                    //Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
+                    sessionId = Data.ToString();
+                    Console.WriteLine(sessionId);
+                    break;
+                }
+            case (UInt16)OPCODE_MPC.E_OPCODE_SERVER_DONE:
                 {
                     //byte[] sessionId = new byte[IDENTIFIER_SIZE];
                     //Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
                     Console.WriteLine(Data.ToString());
+                    break;
+                }
+            case (UInt16)OPCODE_MPC.E_OPCODE_ERROR:
+                {
+                    //RespondServerDone(Data);
                     break;
                 }
             default:

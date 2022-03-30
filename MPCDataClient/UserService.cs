@@ -18,11 +18,43 @@ namespace MPCDataClient
         /// <summary>Create MyComponent</summary>
         public UserService() : this(fileSystem: new FileSystem()) {}
 
+        internal bool StartSession(out int operation, out uint numberOfUsers)
+        {
+            Console.WriteLine("Insert action to perform:");
+            Console.WriteLine("1. Start new session");
+            Console.WriteLine("2. Join existing session");
+            int action;
+            while (!int.TryParse(Console.ReadLine(), out action) || (action != 1 && action != 2))
+            {
+                Console.WriteLine("Invalid action.");
+                Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
+                var option = Console.ReadLine();
+                if (option != "1")
+                {
+                    Environment.Exit(-1);
+                }
+                Console.Write("Number of action: ");
+            }
+
+            if (action == 1)
+            {
+                operation = ReadOperation();
+                numberOfUsers = ReadNumberOfUsers();
+            }
+            else
+            {
+                operation = 0;
+                numberOfUsers = 0;
+            }
+
+            return action == 1;
+        }
+
         public int ReadOperation()
         {
-            int operation; 
+            int operation;
             Console.WriteLine("Insert the number of operation you want to perform:\n1. merge\n2. find the K'th element\n3. sort");
-            while(!TryParseOperation(Console.ReadLine(), out operation))
+            while (!TryParseOperation(Console.ReadLine(), out operation))
             {
                 Console.WriteLine("Invalid operation number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
@@ -37,13 +69,37 @@ namespace MPCDataClient
             return operation;
         }
 
+        internal string ReadSessionId()
+        {
+            throw new NotImplementedException();
+        }
+
+        private uint ReadNumberOfUsers()
+        {
+            uint numberOfUsers;
+            Console.WriteLine("Insert number of users");
+            while (!UInt32.TryParse(Console.ReadLine(), out numberOfUsers))
+            {
+                Console.WriteLine("Invalid users number.");
+                Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
+                var option = Console.ReadLine();
+                if (option != "1")
+                {
+                    Environment.Exit(-1);
+                }
+                Console.Write("Number of users: ");
+            }
+
+            return numberOfUsers;
+        }
+
         public bool TryParseOperation(string userChoice, out int operation)
         {
             return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
         }
 
         public List<UInt16> ReadData(string filePath)
-         {
+        {
             try
             {
                 return ParseFile(filePath);
