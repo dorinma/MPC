@@ -29,14 +29,14 @@ public class CommunicationDataClient<T>
     private ManualResetEvent connectDone;
     private ManualResetEvent sendDone;
     private ManualResetEvent receiveDone;
-    MPCProtocol.Protocol protocol = Protocol.Instance;
+    Protocol protocol = Protocol.Instance;
 
 
     // The response from the remote device.  
-    public String response { get; set; }
+    public string response { get; set; }
     public List<UInt16> dataResponse { get; set; }
 
-    public String sessionId { get; set; }
+    public string sessionId { get; set; }
 
     public CommunicationDataClient(string ip, int port)
     {
@@ -264,18 +264,18 @@ public class CommunicationDataClient<T>
         {
             case OPCODE_MPC.E_OPCODE_SERVER_INIT:
                 {
-                    //byte[] sessionId = new byte[IDENTIFIER_SIZE];
-                    //Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
                     sessionId = Encoding.Default.GetString(Data);
                     Console.WriteLine(sessionId);
                     break;
                 }
-            case OPCODE_MPC.E_OPCODE_SERVER_DONE:
+            case OPCODE_MPC.E_OPCODE_SERVER_MSG:
                 {
-                    //byte[] sessionId = new byte[IDENTIFIER_SIZE];
-                    //Buffer.BlockCopy(sessionId, 0, Data, 0, sessionId.Length);
-                    string serverDoneMessage = Encoding.Default.GetString(Data);
-                    Console.WriteLine(serverDoneMessage);
+                    response = Encoding.Default.GetString(Data);
+                    break;
+                }
+            case OPCODE_MPC.E_OPCODE_SERVER_DATA:
+                {
+                    dataResponse = MPCConvertor.BytesToList(Data, ProtocolConstants.SESSION_ID_SIZE + sizeof(UInt32));
                     break;
                 }
             case OPCODE_MPC.E_OPCODE_ERROR:

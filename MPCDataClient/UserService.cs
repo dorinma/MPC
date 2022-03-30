@@ -102,8 +102,8 @@ namespace MPCDataClient
         public List<UInt16> ReadData()
         {
             Console.WriteLine("Insert data file path");
-            string path = @"C:\Users\eden\Desktop\BGU\Semester7\Project\MPC\inputFile.csv";
-            path = Console.ReadLine();
+            string path = Console.ReadLine();
+            path = @"C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv";
             try
             {
                 return ParseFile(path);

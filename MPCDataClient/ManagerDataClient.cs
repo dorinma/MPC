@@ -74,7 +74,7 @@
                 sessionId = userService1.ReadSessionId();
                 communicationA.Connect();
             }
-
+            //C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv
             List<UInt16> data = userService1.ReadData();
 
             DataService dataService = new DataService();
@@ -82,42 +82,36 @@
 
             communicationA.SendData(sessionId, dataService.serverAList);
 
-            CommunicationDataClient<UInt16> commServerA = new CommunicationDataClient<UInt16>(ip1, port1);
-            //CommunicationDataClient<UInt16> commServerB = new CommunicationDataClient<UInt16>(ip2, port2);
+            
 
-            Console.WriteLine($"ip1: {ip1} port1: {port1}");
-            //Console.WriteLine($"ip2: {ip2} port2: {port2}");
-
-            commServerA.Connect();
-            //commServerB.Connect();
-
-            Console.WriteLine("Connect to servers successfuly");
-
-            //commServerA.SendRequest(dataService.serverAList);
-            //commServerB.SendRequest(dataService.serverBList);
-
-            Console.WriteLine("Messages sent to servers");
-
-            commServerA.ReceiveRequest();
+            communicationA.ReceiveRequest();
             //commServerB.ReceiveRequest();
 
 
-            commServerA.WaitForReceive();
-            //commServerB.WaitForReceive();
+            communicationA.WaitForReceive();
+            communicationA.WaitForReceive();
+
+            while (true)
+            {
+
+            }
+                //commServerB.WaitForReceive();
+
+                communicationA.CloseSocket();
 
             if (debug)
             {
-                Console.WriteLine($"Server A list: {String.Join(", ", commServerA.dataResponse)}");
+                Console.WriteLine($"Server A list: {String.Join(", ", communicationA.dataResponse)}");
                 //Console.WriteLine($"Server B list: {String.Join(", ", commServerB.dataResponse)}");
 
                 //Console.WriteLine(
                 //    $"Output list: {String.Join(", ", commServerA.dataResponse.Zip(commServerB.dataResponse, (x, y) => { return (UInt16)(x + y); }).ToList())}");
-                Console.WriteLine(
-                    $"Output list: {String.Join(", ", commServerA.dataResponse.ToList())}");
+                /*Console.WriteLine(
+                    $"Output list: {String.Join(", ", communicationA.dataResponse.ToList())}");*/
             }
-            if (commServerA.response.Length > 0)
+            if (communicationA.response.Length > 0)
             {
-                Console.WriteLine(commServerA.response);
+                Console.WriteLine(communicationA.response);
             }
             //if (commServerB.response.Length > 0)
             //{

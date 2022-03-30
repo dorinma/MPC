@@ -25,7 +25,8 @@ namespace MPCProtocol
         E_OPCODE_CLIENT_INIT    = 0x01,
         E_OPCODE_SERVER_INIT    = 0x02,
         E_OPCODE_CLIENT_DATA    = 0x03,
-        E_OPCODE_SERVER_DONE    = 0x04  
+        E_OPCODE_SERVER_MSG     = 0x04,  
+        E_OPCODE_SERVER_DATA     = 0x05 
     }
 
     public class Protocol

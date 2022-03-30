@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MPCProtocol;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,11 +15,12 @@ namespace MPCServer
 
         static void Main(string[] args)
         {
+            Communication comm = new Communication();
+            comm.OpenSocket();
             while (true)
             {
-                List<UInt16> values = new List<UInt16>();
-                Communication comm = new Communication(values);
-                values = comm.StartServer();
+                List<UInt16> values = comm.StartServer();
+                // if return null -> restart server
                 if (isDebugMode)
                 {
                     Console.WriteLine("[DEBUG] Secret shares of input:");
@@ -31,20 +33,17 @@ namespace MPCServer
                 if (!isDebugMode)
                 {
                     string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
-                    comm.SendStr(msg, "DataClient");
+                    comm.SendString(OPCODE_MPC.E_OPCODE_SERVER_MSG, msg, toClient: true);
                 }
                 else
                 {
                     Console.WriteLine("[DEBUG] Secret shares of output:");
                     for (int i = 0; i < res.Count; i++) Console.WriteLine("\t" + res.ElementAt(i) + "\t");
                     Console.WriteLine("");
-                    comm.SendData(res, "DataClient");
+                    comm.SendData(OPCODE_MPC.E_OPCODE_SERVER_DATA, values);
                 }
 
-                while (true)
-                {
-                    if (Console.Read() == 'q' | Console.Read() == 'Q') Environment.Exit(0);
-                }
+                comm.RestartServer();
             }
         }
 

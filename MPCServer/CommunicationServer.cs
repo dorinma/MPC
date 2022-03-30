@@ -44,9 +44,9 @@ namespace MPCServer
             { OPCODE_MPC.E_OPCODE_CLIENT_DATA, SERVER_STATE.CONNECT_AND_DATA },
         };
 
-        public Communication(List<UInt16> valuesList)//, int users, int data)
+        public Communication()
         {
-            values = valuesList;
+            values = new List<UInt16>();
             numberOfDataElements = 0;
             numberOfUsers = 0;
             numberOfConnectedUsers = 0;
@@ -56,6 +56,7 @@ namespace MPCServer
 
         public void RestartServer()
         {
+            values = new List<UInt16>();
             numberOfDataElements = 0;
             numberOfUsers = 0;
             numberOfConnectedUsers = 0;
@@ -63,9 +64,25 @@ namespace MPCServer
             serverState = SERVER_STATE.FIRST_INIT;
         }
 
+        public void OpenSocket()
+        {
+            try
+            {
+                Console.WriteLine("[INFO] Server started.");
+                serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            
+        }
         public List<UInt16> StartServer()
         {
-
+            Console.WriteLine("[INFO] Listening...");
+            serverSocket.Listen(0);
             // todo steps
             //1- loop infinity for listen until get msg
             //2- get info abut input and update
@@ -74,16 +91,10 @@ namespace MPCServer
             //5- finish and send informative success msg
             //6- restart and back to step 1
 
-            RestartServer();
+
 
             try
             {
-                Console.WriteLine("[INFO] Server started.");
-                serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
-                serverSocket.Listen(0);
-                Console.WriteLine("[INFO] Listening...");
-
                 while (serverState != SERVER_STATE.DATA || values.Count != numberOfDataElements)
                 {
                     serverSocket.BeginAccept(AcceptCallback, null);
@@ -211,23 +222,15 @@ namespace MPCServer
             }
         }
 
-        public void SendData(List<UInt16> values, string dest)
+        public void SendData(OPCODE_MPC opcode, List<UInt16> values)
         {
-            byte[] buffer = IntListToByteArray(values);
             try
             {
-                if(dest == "DataClient")
+                if (clientSocket.Connected)
                 {
-                    if (clientSocket.Connected)
-                        clientSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
+                    byte[] message = protocol.CreateMessage(opcode, sizeof(UInt16), values.ToArray());
+                    clientSocket.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), null);
                 }
-                else if (dest == "Server")
-                {
-                    //if (serverSocket.Connected)
-                      //  serverSocket.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, SendCallback, null);
-                }
-                else
-                    throw new NotImplementedException(); //TODO fix
             }
             catch (SocketException ex)
             {
@@ -302,12 +305,6 @@ namespace MPCServer
         {
             switch (Opcode)
             {
-                case OPCODE_MPC.E_OPCODE_SERVER_DONE:
-                    {
-                        protocol.GetServerDone(Data, out byte Status);
-                        //HandleServerDone
-                        break;
-                    }
                 case OPCODE_MPC.E_OPCODE_CLIENT_INIT:
                     {
                         HandleClientInit(Data);
@@ -355,12 +352,14 @@ namespace MPCServer
             {
                 // Failed to parse participants
                 //SendError();
+                return;
             }
 
             if (!Session.Equals(sessionId))
             {
                 // wrong session Id
                 //SendError();
+                return;
             }
 
             lock (usersLock)

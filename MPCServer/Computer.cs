@@ -20,7 +20,7 @@ namespace MPCServer
             if (data.Count == 1)
                 return data;
             else 
-                return null;
+                return new List<UInt16>();
         }
 
         public void SendMaskValues(UInt16 pValue) { }
