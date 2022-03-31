@@ -89,12 +89,7 @@
 
 
             communicationA.WaitForReceive();
-            communicationA.WaitForReceive();
 
-            while (true)
-            {
-
-            }
                 //commServerB.WaitForReceive();
 
                 communicationA.CloseSocket();

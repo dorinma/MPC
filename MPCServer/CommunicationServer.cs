@@ -34,6 +34,10 @@ namespace MPCServer
 
         private Socket serverSocket;
         private Socket clientSocket; // We will only accept one socket.
+        private ManualResetEvent acceptDone;
+        private ManualResetEvent sendDone;
+        private ManualResetEvent receiveDone;
+
         private byte[] buffer;
         List<UInt16> values;
         private uint numberOfDataElements;
@@ -42,6 +46,9 @@ namespace MPCServer
         private string sessionId;
         Protocol protocol = Protocol.Instance;
         SERVER_STATE serverState;
+        public static int counter = 0;
+
+
 
         object usersLock = new object();
 
@@ -138,22 +145,23 @@ namespace MPCServer
 
                 // Listen for client data.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
-                if (!protocol.ValidateMessage(buffer))
+                /*if (!protocol.ValidateMessage(buffer))
                 {
                     SendError(MSG_VALIDATE_PROTOCOL_FAIL);
                     return; // todo check
                 }
                 //todo special parse per nulltermintor
                 protocol.ParseData(buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
+                Console.WriteLine($"opcode {opcode}");
+                Console.WriteLine("accept callback");
                 if (!ValidateServerState(opcode))
                 {
                     SendError(MSG_VALIDATE_SERVER_STATE_FAIL);
                     return; // todo check
                 }
-
                 AnalyzeMessage(opcode, MsgData);
                 // Continue listening for clients.
-                serverSocket.BeginAccept(AcceptCallback, null);
+                serverSocket.BeginAccept(AcceptCallback, null);*/
             }
             catch (SocketException ex)
             {
@@ -205,6 +213,8 @@ namespace MPCServer
                     return; // todo check
                 }
                 protocol.ParseData(buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
+                Console.WriteLine($"opcode {opcode}");
+                Console.WriteLine("recieve callback");
                 if (!ValidateServerState(opcode))
                 {
                     SendError(MSG_VALIDATE_SERVER_STATE_FAIL);
@@ -311,6 +321,8 @@ namespace MPCServer
 
         public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] Data)
         {
+            counter++;
+            Console.WriteLine($"counter {counter}");
             switch (Opcode)
             {
                 case OPCODE_MPC.E_OPCODE_CLIENT_INIT:
@@ -349,7 +361,7 @@ namespace MPCServer
 
             numberOfUsers = Participants;
             serverState = SERVER_STATE.CONNECT_AND_DATA;
-           
+            Console.WriteLine($"session id {sessionId}, participants {numberOfUsers}, servsr state {serverState}");
             SendString(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId.ToString(), toClient: true);
         }
 
@@ -381,7 +393,7 @@ namespace MPCServer
                 serverState = numberOfConnectedUsers == numberOfUsers ? SERVER_STATE.DATA : serverState;
                 numberOfDataElements += ElementsCounter;
                 values.AddRange(Elements);
-                Console.WriteLine(values);
+                Console.WriteLine($"server state {serverState}");
             }
         }
 

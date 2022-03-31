@@ -103,8 +103,8 @@ namespace MPCDataClient
         {
             Console.WriteLine("Insert data file path");
             string path = Console.ReadLine();
-            //path = @"C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\
-            path = @"C:\Users\דורין\Downloads\inputFile.csv";
+            path = @"C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv";    
+            //path = @"C:\Users\דורין\Downloads\";
             try
             {
                 return ParseFile(path);

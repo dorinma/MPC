@@ -280,6 +280,7 @@ public class CommunicationDataClient<T>
                 }
             case OPCODE_MPC.E_OPCODE_ERROR:
                 {
+                    Console.WriteLine(Encoding.Default.GetString(Data));
                     //RespondServerDone(Data);
                     break;
                 }
