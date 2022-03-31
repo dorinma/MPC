@@ -16,8 +16,7 @@ namespace MPCServer
         FIRST_INIT = 1,
         CONNECT_AND_DATA = 2,
         DATA = 3
-    } 
-
+    }
 
     /*
     BinaryFormatter formatter = new BinaryFormatter();
@@ -25,6 +24,13 @@ namespace MPCServer
      */
     public class Communication
     {
+        public const string MSG_VALIDATE_PROTOCOL_FAIL = "Could not parse message.";
+        public const string MSG_VALIDATE_SERVER_STATE_FAIL = "The server is currently not accepting this kind of messages.";
+        public const string MSG_SESSION_RUNNING = "Session already running.";
+        public const string MSG_VALIDATE_PARAMS_FAIL = "Could not parse message parameters.";
+        public const string MSG_WRONG_SESSION_ID = "Session id is wrong.";
+
+
         private Socket serverSocket;
         private Socket clientSocket; // We will only accept one socket.
         private byte[] buffer;
@@ -77,8 +83,8 @@ namespace MPCServer
             {
                 Console.WriteLine(ex.Message);
             }
-            
         }
+
         public List<UInt16> StartServer()
         {
             Console.WriteLine("[INFO] Listening...");
@@ -137,14 +143,14 @@ namespace MPCServer
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
                 if (!protocol.ValidateMessage(buffer))
                 {
-                    //todo send error
+                    SendError(MSG_VALIDATE_PROTOCOL_FAIL);
                     return; // todo check
                 }
                 //todo special parse per nulltermintor
                 protocol.ParseData(buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
                 if (!ValidateServerState(opcode))
                 {
-                    //todo send error
+                    SendError(MSG_VALIDATE_SERVER_STATE_FAIL);
                     return; // todo check
                 }
 
@@ -198,13 +204,13 @@ namespace MPCServer
                 //values.AddRange(GetValues());
                 if (!protocol.ValidateMessage(buffer))
                 {
-                    //todo send error
+                    SendError(MSG_VALIDATE_PROTOCOL_FAIL);
                     return; // todo check
                 }
                 protocol.ParseData(buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
                 if (!ValidateServerState(opcode))
                 {
-                    //todo send error
+                    SendError(MSG_VALIDATE_SERVER_STATE_FAIL);
                     return; // todo check
                 }
                 AnalyzeMessage(opcode, MsgData);
@@ -238,7 +244,12 @@ namespace MPCServer
             }
         }
 
-        public void SendStr(string msg, string dest)
+        public void SendError(string errMsg)
+        {
+            SendString(OPCODE_MPC.E_OPCODE_ERROR, "Error: " + errMsg, toClient: true);
+        }
+
+       /* public void SendStr(string msg, string dest)
         {
             byte[] buffer = Encoding.ASCII.GetBytes(msg);
             try
@@ -264,9 +275,9 @@ namespace MPCServer
             {
                 Console.WriteLine("SocketException : {0}", ex.Message);
             }
-        }
+        }*/
 
-        public void SendString(OPCODE_MPC opcode , string msg, bool toClient)
+        public void SendString(OPCODE_MPC opcode, string msg, bool toClient)
         {
             var socket = toClient ? clientSocket : serverSocket;
             var buffer = protocol.CreateMessage(opcode, sizeof(char), msg.ToCharArray());
@@ -330,13 +341,13 @@ namespace MPCServer
             if (string.Empty != Interlocked.CompareExchange(ref sessionId, GenerateSessionId(), string.Empty))
             {
                 // Session is already in motion
-                //SendError();
+                SendError(MSG_SESSION_RUNNING);
             }
 
             if (!protocol.GetInitParams(Data, out uint Participants))
             {
-                // Failed to parse participants
-                //SendError();
+                // Failed to parse parameters
+                SendError(MSG_VALIDATE_PARAMS_FAIL);
             }
 
             numberOfUsers = Participants;
@@ -350,14 +361,14 @@ namespace MPCServer
             //if(serverState != SERVER_STATE.CONNECT_AND_DATA)
             if (!protocol.GetDataParams(Data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements))
             {
-                // Failed to parse participants
-                //SendError();
+                // Failed to parse parameters
+                SendError(MSG_VALIDATE_PARAMS_FAIL);
                 return;
             }
             if (!CompareSessionId(Session.ToCharArray()))
             {
                 // wrong session Id
-                //SendError();
+                SendError(MSG_WRONG_SESSION_ID);
                 return;
             }
 
