@@ -15,7 +15,8 @@ namespace MPCServer
     {
         FIRST_INIT = 1,
         CONNECT_AND_DATA = 2,
-        DATA = 3
+        DATA = 3,
+        COMPUTATION = 4
     }
 
     /*
@@ -135,11 +136,7 @@ namespace MPCServer
                 clientSocket = serverSocket.EndAccept(AR);
                 buffer = new byte[clientSocket.ReceiveBufferSize];
 
-                // Send a message to the newly connected client.
-                // var sendData = Encoding.ASCII.GetBytes("[SERVER] Hello Client!");
-                // clientSocket.BeginSend(sendData, 0, sendData.Length, SocketFlags.None, SendCallback, null);
                 // Listen for client data.
-
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
                 if (!protocol.ValidateMessage(buffer))
                 {
@@ -326,7 +323,7 @@ namespace MPCServer
                         HandleClientData(Data);
                         break;
                     }
-                case OPCODE_MPC.E_OPCODE_ERROR:
+                case OPCODE_MPC.E_OPCODE_ERROR: //todo is this needed? client will send error to server?
                     {
                         //RespondServerDone(Data);
                         break;
@@ -361,19 +358,20 @@ namespace MPCServer
             //if(serverState != SERVER_STATE.CONNECT_AND_DATA)
             if (!protocol.GetDataParams(Data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements))
             {
-                // Failed to parse parameters
+                // failed to parse parameters
                 SendError(MSG_VALIDATE_PARAMS_FAIL);
                 return;
             }
             if (!CompareSessionId(Session.ToCharArray()))
             {
-                // wrong session Id
+                // wrong session id
                 SendError(MSG_WRONG_SESSION_ID);
                 return;
             }
 
             lock (usersLock)
             {
+                // check if all users are already connected
                 if (numberOfConnectedUsers == numberOfUsers)
                 {
                     // error
