@@ -104,11 +104,11 @@ public class CommunicationDataClient<T>
 
     public string SendInitMessage(int operation, int numberOfUsers)
     {
-        byte[] message = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_INIT, sizeof(int), new List<int> { operation, numberOfUsers }.ToArray());
+       /* byte[] message = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_INIT, sizeof(int), new List<int> { operation, numberOfUsers }.ToArray());
         client.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), client);
         sendDone.WaitOne();
         ReceiveRequest();
-        WaitForReceive();
+        WaitForReceive();*/
         return sessionId;
     }
 

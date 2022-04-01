@@ -13,13 +13,38 @@ namespace MPCServer
         static Computer computer = new Computer();
         static bool isDebugMode = true;
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            Communication comm = new Communication();
+            CommunicationServer2 comm = new CommunicationServer2();
             comm.OpenSocket();
             while (true)
             {
                 List<UInt16> values = comm.StartServer();
+                // if return null -> restart server
+                if (isDebugMode)
+                {
+                    Console.WriteLine("[DEBUG] Secret shares of input:");
+                    for (int i = 0; i < values.Count; i++) Console.Write("\t" + values.ElementAt(i) + "\t");
+                    Console.WriteLine("");
+                }
+                computer.SetData(values);
+                List<UInt16> res = Compute(LogicCircuit.Types.CIRCUIT_TYPE.SORT_UINT16);
+
+                if (!isDebugMode)
+                {
+                    string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
+                    comm.SendOutputMessage(msg);
+                }
+                else
+                {
+                    Console.WriteLine("[DEBUG] Secret shares of output:");
+                    for (int i = 0; i < res.Count; i++) Console.WriteLine("\t" + res.ElementAt(i) + "\t");
+                    Console.WriteLine("");
+                    comm.SendOutputData(values);
+                }
+
+                comm.RestartServer();
+                /*List<UInt16> values = comm.StartServer();
                 // if return null -> restart server
                 if (isDebugMode)
                 {
@@ -43,7 +68,7 @@ namespace MPCServer
                     comm.SendData(OPCODE_MPC.E_OPCODE_SERVER_DATA, values);
                 }
 
-                comm.RestartServer();
+                comm.RestartServer();*/
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using MPCProtocol;
+﻿/*using MPCProtocol;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,27 +11,10 @@ using System.Threading.Tasks;
 namespace MPCServer
 {
 
-    public enum SERVER_STATE
-    {
-        FIRST_INIT = 1,
-        CONNECT_AND_DATA = 2,
-        DATA = 3,
-        COMPUTATION = 4
-    }
+    
 
-    /*
-    BinaryFormatter formatter = new BinaryFormatter();
-    clientList = (List<string>) formatter.Deserialize(networkStream);
-     */
     public class Communication
     {
-        public const string MSG_VALIDATE_PROTOCOL_FAIL = "Could not parse message.";
-        public const string MSG_VALIDATE_SERVER_STATE_FAIL = "The server is currently not accepting this kind of messages.";
-        public const string MSG_SESSION_RUNNING = "Session already running.";
-        public const string MSG_VALIDATE_PARAMS_FAIL = "Could not parse message parameters.";
-        public const string MSG_WRONG_SESSION_ID = "Session id is wrong.";
-
-
         private Socket serverSocket;
         private Socket clientSocket; // We will only accept one socket.
         private ManualResetEvent acceptDone;
@@ -47,16 +30,6 @@ namespace MPCServer
         Protocol protocol = Protocol.Instance;
         SERVER_STATE serverState;
         public static int counter = 0;
-
-
-
-        object usersLock = new object();
-
-        private Dictionary<OPCODE_MPC, SERVER_STATE> statesMap = new Dictionary<OPCODE_MPC, SERVER_STATE>
-        {
-            { OPCODE_MPC.E_OPCODE_CLIENT_INIT, SERVER_STATE.FIRST_INIT },
-            { OPCODE_MPC.E_OPCODE_CLIENT_DATA, SERVER_STATE.CONNECT_AND_DATA },
-        };
 
         public Communication()
         {
@@ -85,7 +58,8 @@ namespace MPCServer
                 Console.WriteLine("[INFO] Server started.");
                 serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 serverSocket.Bind(new IPEndPoint(IPAddress.Any, 2022));
-                
+                serverSocket.Listen(10);
+
             }
             catch (Exception ex)
             {
@@ -96,7 +70,7 @@ namespace MPCServer
         public List<UInt16> StartServer()
         {
             Console.WriteLine("[INFO] Listening...");
-            serverSocket.Listen(0);
+            
             // todo steps
             //1- loop infinity for listen until get msg
             //2- get info abut input and update
@@ -114,13 +88,13 @@ namespace MPCServer
                     serverSocket.BeginAccept(AcceptCallback, null);
                 }
 
-                /*                serverSocket.Listen(1);
+                *//*                serverSocket.Listen(1);
                                 Console.WriteLine("[INFO] Listening...");
                                 while (values.Count < usersCounter * dataCounter)
                                 {
                                     serverSocket.BeginAccept(AcceptCallback, null);
                                 } 
-                */
+                *//*
                 return values;
             }
             catch (SocketException ex)
@@ -145,7 +119,7 @@ namespace MPCServer
 
                 // Listen for client data.
                 clientSocket.BeginReceive(buffer, 0, buffer.Length, SocketFlags.None, ReceiveCallback, null);
-                /*if (!protocol.ValidateMessage(buffer))
+                *//*if (!protocol.ValidateMessage(buffer))
                 {
                     SendError(MSG_VALIDATE_PROTOCOL_FAIL);
                     return; // todo check
@@ -161,7 +135,7 @@ namespace MPCServer
                 }
                 AnalyzeMessage(opcode, MsgData);
                 // Continue listening for clients.
-                serverSocket.BeginAccept(AcceptCallback, null);*/
+                serverSocket.BeginAccept(AcceptCallback, null);*//*
             }
             catch (SocketException ex)
             {
@@ -256,7 +230,7 @@ namespace MPCServer
             SendString(OPCODE_MPC.E_OPCODE_ERROR, "Error: " + errMsg, toClient: true);
         }
 
-       /* public void SendStr(string msg, string dest)
+       *//* public void SendStr(string msg, string dest)
         {
             byte[] buffer = Encoding.ASCII.GetBytes(msg);
             try
@@ -282,7 +256,7 @@ namespace MPCServer
             {
                 Console.WriteLine("SocketException : {0}", ex.Message);
             }
-        }*/
+        }*//*
 
         public void SendString(OPCODE_MPC opcode, string msg, bool toClient)
         {
@@ -308,7 +282,7 @@ namespace MPCServer
             return bytes.ToArray();
         }
 
-        /*private List<UInt16> GetValues(byte[] Data)
+        *//*private List<UInt16> GetValues(byte[] Data)
         {
             List<UInt16> output = new List<UInt16>();
             byte nullTerminator = 0xA;
@@ -317,7 +291,7 @@ namespace MPCServer
                 output.Add(BitConverter.ToUInt16(buffer, i));
             }
             return output;
-        }*/
+        }*//*
 
         public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] Data)
         {
@@ -414,3 +388,4 @@ namespace MPCServer
         }
     }
 }
+*/

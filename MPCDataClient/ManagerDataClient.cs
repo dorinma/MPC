@@ -4,17 +4,18 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Text;
 
     public class ManagerDataClient
     {
-        static bool debug = false;
+        static bool debug = true;
         UserService userService;
         List<UInt16> data;
         CommunicationDataClient<UInt16> commServerA;
 
         private static UserService userService1 = new UserService();
-        private static CommunicationDataClient<UInt16> communicationA;
-        private static CommunicationDataClient<UInt16> communicationB;
+        private static CommunicationDataClient2 communicationA;
+        private static CommunicationDataClient2 communicationB;
 
         public ManagerDataClient()
         {
@@ -55,11 +56,64 @@
                 Environment.Exit(-1);
             }
 
-            Start(ip1, port1);
+            Start2(ip1, port1);
             
         }
 
-        private static void Start(string ip1, int port1)
+        private static void Start2(string ip1, int port1)
+        {
+            communicationA = new CommunicationDataClient2();
+            string sessionId;
+            if (userService1.StartSession(out int operation, out uint numberOfUsers))
+            {
+                communicationA.Connect(ip1, port1);
+                sessionId = communicationA.SendInitMessage(operation, (int)numberOfUsers);
+                Console.WriteLine($"Session id: {sessionId}");
+            }
+            else
+            {
+                sessionId = userService1.ReadSessionId();
+                communicationA.Connect(ip1, port1);
+            }
+            //C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv
+            List<UInt16> data = userService1.ReadData();
+
+            DataService dataService = new DataService();
+            dataService.generateSecretShares(data);
+
+            communicationA.SendData(sessionId, dataService.serverAList);
+
+            communicationA.Receive();
+            //commServerB.ReceiveRequest();
+
+            communicationA.receiveDone.WaitOne();
+
+            //commServerB.WaitForReceive();
+
+            communicationA.CloseSocket();
+
+            if (communicationA.dataResponse.Count > 0)
+            {
+                Console.WriteLine($"Server A list: {String.Join(", ", communicationA.dataResponse)}");
+                //Console.WriteLine($"Server B list: {String.Join(", ", commServerB.dataResponse)}");
+
+                //Console.WriteLine(
+                //    $"Output list: {String.Join(", ", commServerA.dataResponse.Zip(commServerB.dataResponse, (x, y) => { return (UInt16)(x + y); }).ToList())}");
+                /*Console.WriteLine(
+                    $"Output list: {String.Join(", ", communicationA.dataResponse.ToList())}");*/
+            }
+
+            if (communicationA.response.Length > 0)
+            {
+                Console.WriteLine(communicationA.response);
+            }
+            //if (commServerB.response.Length > 0)
+            //{
+            //    Console.WriteLine(commServerB.response);
+            //}
+        }
+
+        /*private static void Start(string ip1, int port1)
         {
             communicationA = new CommunicationDataClient<UInt16>(ip1, port1);
             string sessionId;
@@ -101,8 +155,8 @@
 
                 //Console.WriteLine(
                 //    $"Output list: {String.Join(", ", commServerA.dataResponse.Zip(commServerB.dataResponse, (x, y) => { return (UInt16)(x + y); }).ToList())}");
-                /*Console.WriteLine(
-                    $"Output list: {String.Join(", ", communicationA.dataResponse.ToList())}");*/
+                *//*Console.WriteLine(
+                    $"Output list: {String.Join(", ", communicationA.dataResponse.ToList())}");*//*
             }
             if (communicationA.response.Length > 0)
             {
@@ -112,7 +166,7 @@
             //{
             //    Console.WriteLine(commServerB.response);
             //}
-        }
+        }*/
 
         public bool ReadInput(string filePath)
         {

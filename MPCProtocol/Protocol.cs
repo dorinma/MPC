@@ -3,6 +3,7 @@ using System.Threading;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace MPCProtocol
 {
@@ -84,15 +85,39 @@ namespace MPCProtocol
             return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_CLIENT_DATA, 0 };
         }
 
-        public byte[] CreateMessage(OPCODE_MPC opcode, int elementSize, Array data)
+        public byte[] CreateArrayMessage(OPCODE_MPC opcode, int elementSize, Array data)
         {
-            byte[] messageBytes = new byte[GetHeaderSize() + elementSize * data.Length + 1];
             var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
+            byte[] messageBytes = new byte[header.Length + elementSize * data.Length + 1];
             Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
             Buffer.BlockCopy(data, 0, messageBytes, header.Length, data.Length * elementSize); //data
             messageBytes[messageBytes.Length - 1] = GetNullTerminator();
             return messageBytes;
         }
+
+        public byte[] CreateDataMessage(OPCODE_MPC opcode, string sessionId, int elementSize, Array data)
+        {
+            var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
+            byte[] sessionBytes = Encoding.ASCII.GetBytes(sessionId);
+            byte[] messageBytes = new byte[header.Length + sessionBytes.Length + elementSize * data.Length + 1];
+            Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
+            Buffer.BlockCopy(sessionBytes, 0, messageBytes, header.Length, sessionBytes.Length); //header
+            Buffer.BlockCopy(data, 0, messageBytes, header.Length + sessionBytes.Length, data.Length * elementSize); //data
+            messageBytes[messageBytes.Length - 1] = GetNullTerminator();
+            return messageBytes;
+        }
+
+        public byte[] CreateStringMessage(OPCODE_MPC opcode, string data)
+        {
+            var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
+            byte[] byteData = Encoding.ASCII.GetBytes(data);
+            byte[] messageBytes = new byte[header.Length + byteData.Length + 1];
+            Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
+            Buffer.BlockCopy(byteData, 0, messageBytes, header.Length, byteData.Length); //data
+            messageBytes[messageBytes.Length - 1] = GetNullTerminator();
+            return messageBytes;
+        }
+
 
         public byte[] CreateMessage(OPCODE_MPC opcode, byte[] data)
         {
