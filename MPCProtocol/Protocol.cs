@@ -98,11 +98,12 @@ namespace MPCProtocol
         public byte[] CreateDataMessage(OPCODE_MPC opcode, string sessionId, int elementSize, Array data)
         {
             var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
-            byte[] sessionBytes = Encoding.ASCII.GetBytes(sessionId);
-            byte[] messageBytes = new byte[header.Length + sessionBytes.Length + elementSize * data.Length + 1];
+            byte[] sessionBytes = Encoding.Default.GetBytes(sessionId);
+            byte[] messageBytes = new byte[header.Length + sessionBytes.Length + sizeof(int) + elementSize * data.Length + 1];
             Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
-            Buffer.BlockCopy(sessionBytes, 0, messageBytes, header.Length, sessionBytes.Length); //header
-            Buffer.BlockCopy(data, 0, messageBytes, header.Length + sessionBytes.Length, data.Length * elementSize); //data
+            Buffer.BlockCopy(sessionBytes, 0, messageBytes, header.Length, sessionBytes.Length); //session id
+            Buffer.BlockCopy(BitConverter.GetBytes(data.Length), 0, messageBytes, header.Length+sessionBytes.Length, sizeof(int)); //session id
+            Buffer.BlockCopy(data, 0, messageBytes, header.Length + sessionBytes.Length + sizeof(int), data.Length * elementSize); //data
             messageBytes[messageBytes.Length - 1] = GetNullTerminator();
             return messageBytes;
         }
@@ -110,7 +111,7 @@ namespace MPCProtocol
         public byte[] CreateStringMessage(OPCODE_MPC opcode, string data)
         {
             var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
-            byte[] byteData = Encoding.ASCII.GetBytes(data);
+            byte[] byteData = Encoding.Default.GetBytes(data);
             byte[] messageBytes = new byte[header.Length + byteData.Length + 1];
             Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
             Buffer.BlockCopy(byteData, 0, messageBytes, header.Length, byteData.Length); //data
@@ -153,31 +154,33 @@ namespace MPCProtocol
             }
         }
         
-        public bool GetInitParams(byte[] Data, out uint participants)
+        public bool GetInitParams(byte[] Data, out int operation ,out int participants)
         {
             try
             {
-                participants = BitConverter.ToUInt32(Data, 0);
+                operation = BitConverter.ToInt32(Data, 0);
+                participants = BitConverter.ToInt32(Data, sizeof(int));
                 return true;
             }
             catch
             {
+                operation = 0;
                 participants = 0;
                 return false;
             }
         }
 
         // sessionId, elementsCounter(32b), data
-        public bool GetDataParams(byte[] Data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements)
+        public bool GetDataParams(byte[] data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements)
         {
             try
             {
                 //Session = BitConverter.ToString(Data, 0, ProtocolConstants.SESSION_ID_SIZE * sizeof(char));
-                byte[] sessionTemp = new byte[ProtocolConstants.SESSION_ID_SIZE * sizeof(char)];
-                Buffer.BlockCopy(Data, 0, sessionTemp, 0, ProtocolConstants.SESSION_ID_SIZE * sizeof(char));
-                Session = System.Text.Encoding.Default.GetString(sessionTemp);
-                ElementsCounter = BitConverter.ToUInt32(Data, ProtocolConstants.SESSION_ID_SIZE);
-                Elements = MPCConvertor.BytesToList(Data, ProtocolConstants.SESSION_ID_SIZE + sizeof(UInt32));
+                //byte[] sessionTemp = new byte[ProtocolConstants.SESSION_ID_SIZE];
+                //)Buffer.BlockCopy(Data, 0, sessionTemp, 0, ProtocolConstants.SESSION_ID_SIZE);
+                Session = Encoding.Default.GetString(data, 0, ProtocolConstants.SESSION_ID_SIZE);
+                ElementsCounter = BitConverter.ToUInt32(data, ProtocolConstants.SESSION_ID_SIZE);
+                Elements = MPCConvertor.BytesToList(data, ProtocolConstants.SESSION_ID_SIZE + sizeof(UInt32));
                 return true;
             }
             catch

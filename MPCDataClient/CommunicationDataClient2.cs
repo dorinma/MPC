@@ -183,7 +183,7 @@ namespace MPCDataClient
             {
                 case OPCODE_MPC.E_OPCODE_SERVER_INIT:
                     {
-                        sessionId = Encoding.Default.GetString(Data);
+                        sessionId = Encoding.Default.GetString(Data).Substring(0, ProtocolConstants.SESSION_ID_SIZE);
                         Console.WriteLine($"recieved session id - {sessionId}");
                         break;
                     }

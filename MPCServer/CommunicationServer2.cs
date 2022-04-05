@@ -20,8 +20,9 @@ namespace MPCServer
         private static Protocol protocol = Protocol.Instance;
         private object usersLock = new object();
 
-        private uint totalUsers;
-        private uint connectedUsers;
+        private int operation; // 1.merge 2.find the K'th element 3.sort
+        private int totalUsers;
+        private int connectedUsers;
         private string sessionId;
         private List<UInt16> values;
 
@@ -31,6 +32,7 @@ namespace MPCServer
 
         public CommunicationServer2()
         {
+            operation = 0;
             totalUsers = 0;
             connectedUsers = 0;
             values = new List<UInt16>();
@@ -44,12 +46,15 @@ namespace MPCServer
 
         public void RestartServer()
         {
+            operation = 0;
             totalUsers = 0;
             connectedUsers = 0;
             values = new List<UInt16>();
             sessionId = string.Empty;
             serverState = SERVER_STATE.FIRST_INIT;
             clientsSockets = new List<Socket>();
+            acceptDone.Reset();
+            sendDone.Reset();
         }
 
         public void OpenSocket()
@@ -231,14 +236,15 @@ namespace MPCServer
                 return;
             }
 
-            if (!protocol.GetInitParams(Data, out uint Participants))
+            if (!protocol.GetInitParams(Data, out int userOperation, out int participants))
             {
                 // Failed to parse parameters
                 SendError(socket, ServerConstants.MSG_VALIDATE_PARAMS_FAIL);
                 return;
             }
 
-            totalUsers = Participants;
+            operation = userOperation;
+            totalUsers = participants;
             serverState = SERVER_STATE.CONNECT_AND_DATA;
             Console.WriteLine($"session id {sessionId}, participants {totalUsers}, servsr state {serverState}");
 
@@ -276,7 +282,10 @@ namespace MPCServer
                 //state.numberOfDataElements += ElementsCounter;
                 values.AddRange(elements);
                 Console.WriteLine($"values {values.Count}");
-                
+                Console.WriteLine($"total users {totalUsers}, connected users {connectedUsers}");
+                clientsSockets.Add(socket);
+                Console.WriteLine($"Clients sockets count {clientsSockets.Count}");
+
                 acceptDone.Set();
             }
         }
