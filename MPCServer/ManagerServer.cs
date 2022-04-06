@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MPCServer
 {
-    class ManagerServer
+    public class ManagerServer
     {
         Dictionary<LogicCircuit.Types.CIRCUIT_TYPE, LogicCircuit.Circuit> circuits;
         static Computer computer = new Computer();
@@ -20,7 +20,7 @@ namespace MPCServer
             string memberServerIP = args[1];
             int memberServerPort = instance == "A" ? 2023 : instance == "B" ? 2022 : 0;
 
-            CommunicationServer2 commA = new CommunicationServer2(instance);
+            CommunicationServer commA = new CommunicationServer(instance);
             commA.ConnectServers(memberServerIP, memberServerPort);
             commA.OpenSocket();
 
@@ -42,7 +42,7 @@ namespace MPCServer
                     string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
                     commA.SendOutputMessage(msg);
                 }
-                else
+                else // debug mode
                 {
                     Console.WriteLine("\n[DEBUG] Secret shares of output:");
                     Console.WriteLine("\nres:");

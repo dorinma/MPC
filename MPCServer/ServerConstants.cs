@@ -32,12 +32,4 @@ namespace MPCServer
         public const string MSG_WRONG_SESSION_ID = "Session id is wrong.";
         public const string MSG_ALL_USERS_CONNECTED = "All users are connected";
     }
-
-    public class StateObject
-    {
-        public Socket workSocket = null;
-        public const int BufferSize = 32768;
-        public byte[] buffer = new byte[BufferSize];
-        public StringBuilder sb = new StringBuilder();
-    }
 }

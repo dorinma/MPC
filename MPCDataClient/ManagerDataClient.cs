@@ -11,11 +11,11 @@
         static bool debug = true;
         UserService userService;
         List<UInt16> data;
-        CommunicationDataClient<UInt16> commServerA;
+        //CommunicationDataClient<UInt16> commServerA;
 
         private static UserService userService1 = new UserService();
-        private static CommunicationDataClient2 communicationA;
-        private static CommunicationDataClient2 communicationB;
+        private static CommunicationDataClient communicationA;
+        private static CommunicationDataClient communicationB;
 
         public ManagerDataClient()
         {
@@ -24,13 +24,7 @@
 
         static void Main(string[] args) // ip1 port1 ip2 port2
         {
-            // -----------------------------------------------------------------------
-            // All comments are for testing with only 1 local server
-            // -----------------------------------------------------------------------
-
-            // TODO send init msg first
-            //if (args.Length < 4)
-            if (args.Length < 2)
+            if (args.Length < 4)
             {
                 Console.WriteLine("Missing servers' communication details.");
                 Environment.Exit(-1);
@@ -42,27 +36,19 @@
             }
 
             string ip1 = args[0];
-            //string ip2 = args[2];
-            int port1 = 0;
-            //int port2 = 0;
-            try
+            string ip2 = args[2];
+            if (!Int32.TryParse(args[1], out int port1) | !Int32.TryParse(args[3], out int port2))
             {
-                port1 = Int32.Parse(args[1]);
-                //port2 = Int32.Parse(args[3]);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Invalid port number. exception: {e.Message}");
+                Console.WriteLine($"Invalid port number");
                 Environment.Exit(-1);
             }
-
-            Start2(ip1, port1);
-            
+            Start(ip1, port1, ip2, port2);
         }
 
-        private static void Start2(string ip1, int port1)
+        private static void Start(string ip1, int port1, string ip2, int port2)
         {
-            communicationA = new CommunicationDataClient2();
+            communicationA = new CommunicationDataClient();
+            communicationB = new CommunicationDataClient();
             string sessionId;
             if (userService1.StartSession(out int operation, out uint numberOfUsers))
             {
@@ -76,102 +62,48 @@
                 sessionId = userService1.ReadSessionId();
                 communicationA.Connect(ip1, port1);
             }
-            //C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv
+            
             List<UInt16> data = userService1.ReadData();
 
             DataService dataService = new DataService();
             dataService.generateSecretShares(data);
 
+            communicationB.Connect(ip2, port2);
+
             communicationA.SendData(sessionId, dataService.serverAList);
+            communicationB.SendData(sessionId, dataService.serverBList);
 
             communicationA.Receive();
-            //commServerB.ReceiveRequest();
+            communicationB.Receive();
 
             Console.WriteLine("wait for results");
 
             communicationA.receiveDone.WaitOne();
-
-            Console.WriteLine("close socket");
-
-            //commServerB.WaitForReceive();
-
             communicationA.CloseSocket();
 
-            if (communicationA.dataResponse.Count > 0)
-            {
-                Console.WriteLine($"Server A list: {String.Join(", ", communicationA.dataResponse)}");
-                //Console.WriteLine($"Server B list: {String.Join(", ", commServerB.dataResponse)}");
+            communicationB.receiveDone.WaitOne();
+            communicationB.CloseSocket();
 
-                //Console.WriteLine(
-                //    $"Output list: {String.Join(", ", commServerA.dataResponse.Zip(commServerB.dataResponse, (x, y) => { return (UInt16)(x + y); }).ToList())}");
-                /*Console.WriteLine(
-                    $"Output list: {String.Join(", ", communicationA.dataResponse.ToList())}");*/
+            Console.WriteLine("sockets closed");
+
+            if (communicationA.dataResponse.Count > 0 && communicationB.dataResponse.Count > 0)
+            {
+                /*Console.WriteLine($"Server A list: {String.Join(", ", communicationA.dataResponse)}");
+                Console.WriteLine($"Server B list: {String.Join(", ", communicationB.dataResponse)}");*/
+
+                Console.WriteLine(
+                    $"Output list: {String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (UInt16)(x + y); }).ToList())}");
             }
 
             if (communicationA.response.Length > 0)
             {
                 Console.WriteLine(communicationA.response);
             }
-            //if (commServerB.response.Length > 0)
-            //{
-            //    Console.WriteLine(commServerB.response);
-            //}
+            if (communicationB.response.Length > 0)
+            {
+                Console.WriteLine(communicationB.response);
+            }
         }
-
-        /*private static void Start(string ip1, int port1)
-        {
-            communicationA = new CommunicationDataClient<UInt16>(ip1, port1);
-            string sessionId;
-            if (userService1.StartSession(out int operation, out uint numberOfUsers))
-            {
-                communicationA.Connect();
-                sessionId = communicationA.SendInitMessage(operation, (int)numberOfUsers);
-                Console.WriteLine($"Session id: {sessionId}");
-            }
-            else
-            {
-                sessionId = userService1.ReadSessionId();
-                communicationA.Connect();
-            }
-            //C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv
-            List<UInt16> data = userService1.ReadData();
-
-            DataService dataService = new DataService();
-            dataService.generateSecretShares(data);
-
-            communicationA.SendData(sessionId, dataService.serverAList);
-
-            
-
-            communicationA.ReceiveRequest();
-            //commServerB.ReceiveRequest();
-
-
-            communicationA.WaitForReceive();
-
-                //commServerB.WaitForReceive();
-
-                communicationA.CloseSocket();
-
-            if (debug)
-            {
-                Console.WriteLine($"Server A list: {String.Join(", ", communicationA.dataResponse)}");
-                //Console.WriteLine($"Server B list: {String.Join(", ", commServerB.dataResponse)}");
-
-                //Console.WriteLine(
-                //    $"Output list: {String.Join(", ", commServerA.dataResponse.Zip(commServerB.dataResponse, (x, y) => { return (UInt16)(x + y); }).ToList())}");
-                *//*Console.WriteLine(
-                    $"Output list: {String.Join(", ", communicationA.dataResponse.ToList())}");*//*
-            }
-            if (communicationA.response.Length > 0)
-            {
-                Console.WriteLine(communicationA.response);
-            }
-            //if (commServerB.response.Length > 0)
-            //{
-            //    Console.WriteLine(commServerB.response);
-            //}
-        }*/
 
         public bool ReadInput(string filePath)
         {
@@ -180,7 +112,7 @@
             else return true;
         }
 
-        public string StartSession(string ip1, int port1)
+       /* public string StartSession(string ip1, int port1)
         {
             commServerA = new CommunicationDataClient<UInt16>(ip1, port1);
             // TODO send request for session id
@@ -234,6 +166,6 @@
             //{
             //    Console.WriteLine(commServerB.response);
             //}
-        }
+        }*/
     }
 }

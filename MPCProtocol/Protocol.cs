@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net.Sockets;
 
 namespace MPCProtocol
 {
@@ -17,6 +18,14 @@ namespace MPCProtocol
         public const byte OPCODE_LSB = 2;
 
         public const byte NULL_TERMINATOR = 0xA;
+    }
+
+    public class StateObject
+    {
+        public Socket workSocket = null;
+        public const int BufferSize = 32768;
+        public byte[] buffer = new byte[BufferSize];
+        public StringBuilder sb = new StringBuilder();
     }
 
     public enum OPCODE_MPC : UInt16
