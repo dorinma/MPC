@@ -21,6 +21,7 @@ namespace MPCServer
         public static Dictionary<OPCODE_MPC, SERVER_STATE> statesMap = new Dictionary<OPCODE_MPC, SERVER_STATE>
         {
             { OPCODE_MPC.E_OPCODE_CLIENT_INIT, SERVER_STATE.FIRST_INIT },
+            { OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT, SERVER_STATE.FIRST_INIT },
             { OPCODE_MPC.E_OPCODE_CLIENT_DATA, SERVER_STATE.CONNECT_AND_DATA },
         };
 

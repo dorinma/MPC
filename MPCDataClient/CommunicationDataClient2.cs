@@ -91,7 +91,7 @@ namespace MPCDataClient
         {
             Console.WriteLine("Send data to server");
             Console.WriteLine($"data {data.Count}");
-            byte[] meesage = protocol.CreateDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(UInt16), data.ToArray());
+            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(UInt16), data.ToArray());
             Send(meesage);
         }
 
@@ -194,7 +194,7 @@ namespace MPCDataClient
                     }
                 case OPCODE_MPC.E_OPCODE_SERVER_DATA:
                     {
-                        dataResponse = MPCConvertor.BytesToList(Data, ProtocolConstants.SESSION_ID_SIZE + sizeof(UInt32));
+                        dataResponse = MPCConvertor.BytesToList(Data, 0);
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:

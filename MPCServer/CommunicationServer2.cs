@@ -14,6 +14,8 @@ namespace MPCServer
     {
         private ManualResetEvent acceptDone;
         private ManualResetEvent sendDone;
+        private ManualResetEvent connectServerDone;
+        private ManualResetEvent serversSend;
 
 
         private Socket listener;
@@ -25,13 +27,18 @@ namespace MPCServer
         private int connectedUsers;
         private string sessionId;
         private List<UInt16> values;
+        private string instance;
 
         private List<Socket> clientsSockets;
         private SERVER_STATE serverState;
-        
 
-        public CommunicationServer2()
+        private Socket memberServerSocket;
+
+
+        public CommunicationServer2(string instance)
         {
+            this.instance = instance;
+
             operation = 0;
             totalUsers = 0;
             connectedUsers = 0;
@@ -42,6 +49,9 @@ namespace MPCServer
 
             acceptDone = new ManualResetEvent(false);
             sendDone = new ManualResetEvent(false);
+            connectServerDone = new ManualResetEvent(false);
+            serversSend = new ManualResetEvent(false);
+
         }
 
         public void RestartServer()
@@ -55,15 +65,17 @@ namespace MPCServer
             clientsSockets = new List<Socket>();
             acceptDone.Reset();
             sendDone.Reset();
+            connectServerDone.Reset();
+            serversSend.Reset();
         }
 
         public void OpenSocket()
         {
             try
             {
-                Console.WriteLine("[INFO] Server started.");
+                Console.WriteLine($"[INFO] Server {instance} started.");
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                listener.Bind(new IPEndPoint(IPAddress.Any, 2022));
+                listener.Bind(new IPEndPoint(IPAddress.Any, instance == "A" ? 2022 : 2023));
                 listener.Listen(10);
 
             }
@@ -110,6 +122,23 @@ namespace MPCServer
             StateObject state = new StateObject();
             state.workSocket = handler;
             
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                new AsyncCallback(RecieveCallback), state);
+        }
+
+        public void AcceptCallback2(IAsyncResult ar)
+        {
+            // Get the socket that handles the client request.  
+            Socket listener = (Socket)ar.AsyncState;
+            Socket handler = listener.EndAccept(ar);
+
+            // Signal the main thread to continue.  
+            connectServerDone.Set();
+
+            // Create the state object.  
+            StateObject state = new StateObject();
+            state.workSocket = handler;
+
             handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                 new AsyncCallback(RecieveCallback), state);
         }
@@ -222,6 +251,11 @@ namespace MPCServer
                         //RespondServerDone(Data);
                         break;
                     }
+                case OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT:
+                    {
+                        HandleServerInit(Data, socket);
+                        break;
+                    }
                 default:
                     break;
             }
@@ -236,20 +270,38 @@ namespace MPCServer
                 return;
             }
 
-            if (!protocol.GetInitParams(Data, out int userOperation, out int participants))
+            if (!protocol.GetClientInitParams(Data, out int userOperation, out int participants))
             {
                 // Failed to parse parameters
                 SendError(socket, ServerConstants.MSG_VALIDATE_PARAMS_FAIL);
                 return;
             }
 
+            //send session id to second server
+
             operation = userOperation;
             totalUsers = participants;
             serverState = SERVER_STATE.CONNECT_AND_DATA;
+            SendSessionDetails();
             Console.WriteLine($"session id {sessionId}, participants {totalUsers}, servsr state {serverState}");
 
             byte[] message = protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId);
             Send(socket, message);
+        }
+
+        public void HandleServerInit(byte[] data, Socket serverSocket)
+        {
+            if (protocol.GetServerInitParams(data, out sessionId, out operation, out totalUsers))
+            {
+                // Failed to parse parameters
+                memberServerSocket = serverSocket;
+                serverState = SERVER_STATE.CONNECT_AND_DATA;
+                Console.WriteLine($"session id {sessionId}, participants {totalUsers}, servsr state {serverState}");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to parse server to server int message.");
+            }
         }
 
         private void HandleClientData(byte[] Data, Socket socket)
@@ -305,6 +357,61 @@ namespace MPCServer
         {
             byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_SERVER_DATA, sizeof(UInt16), data.ToArray());
             clientsSockets.ForEach(socket => Send(socket, message));
+        }
+
+        public void SendSessionDetails()
+        {
+            Console.WriteLine($"Send to other server: operation {operation}, total users {totalUsers}");
+            byte[] message = protocol.CreateSessionAndOperationMessage(OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT, sessionId, sizeof(int), new int[] { operation, totalUsers });
+            Send(memberServerSocket, message);
+            //serversSend.WaitOne();
+        }
+
+        public void ConnectServers(string serverIp, int serverPort)
+        {
+            // Connect to a remote device.  
+            try
+            {
+                // Establish the remote endpoint for the socket.  
+                IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
+
+                // Create a TCP/IP socket.  
+                memberServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                
+                if (instance == "A")
+                {
+                    // Connect to the remote endpoint.  
+                    memberServerSocket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), memberServerSocket);
+                    Console.WriteLine($"ip: {serverIp} port: {serverPort}");
+                    connectServerDone.WaitOne();
+                }        
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                Environment.Exit(-1);
+            }
+        }
+
+        private void ConnectCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Retrieve the socket from the state object.  
+                Socket client = (Socket)ar.AsyncState;
+
+                // Complete the connection.  
+                client.EndConnect(ar);
+
+                Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
+
+                // Signal that the connection has been made.  
+                connectServerDone.Set();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
     }
 }

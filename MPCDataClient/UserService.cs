@@ -105,6 +105,7 @@ namespace MPCDataClient
             string path = Console.ReadLine();
             path = @"C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv";
             //path = @"C:\Users\דורין\Downloads\";
+            path = "C:\\Users\\hodaya\\Desktop\\test.csv";
             try
             {
                 return ParseFile(path);

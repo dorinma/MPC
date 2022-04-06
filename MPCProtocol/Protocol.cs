@@ -27,7 +27,8 @@ namespace MPCProtocol
         E_OPCODE_SERVER_INIT    = 0x02,
         E_OPCODE_CLIENT_DATA    = 0x03,
         E_OPCODE_SERVER_MSG     = 0x04,  
-        E_OPCODE_SERVER_DATA     = 0x05 
+        E_OPCODE_SERVER_DATA     = 0x05, 
+        E_OPCODE_SERVER_TO_SERVER_INIT     = 0x06
     }
 
     public class Protocol
@@ -95,13 +96,25 @@ namespace MPCProtocol
             return messageBytes;
         }
 
-        public byte[] CreateDataMessage(OPCODE_MPC opcode, string sessionId, int elementSize, Array data)
+        public byte[] CreateSessionAndOperationMessage(OPCODE_MPC opcode, string sessionId, int elementSize, Array data)
         {
             var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
             byte[] sessionBytes = Encoding.Default.GetBytes(sessionId);
-            byte[] messageBytes = new byte[header.Length + sessionBytes.Length + sizeof(int) + elementSize * data.Length + 1];
+            byte[] messageBytes = new byte[header.Length + sessionBytes.Length + elementSize * data.Length + 1];
             Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
             Buffer.BlockCopy(sessionBytes, 0, messageBytes, header.Length, sessionBytes.Length); //session id
+            Buffer.BlockCopy(data, 0, messageBytes, header.Length + sessionBytes.Length, data.Length * elementSize); //data
+            messageBytes[messageBytes.Length - 1] = GetNullTerminator();
+            return messageBytes;
+        }
+
+        public byte[] CreateSessionAndDataMessage(OPCODE_MPC opcode, string sessionId, int elementSize, Array data)
+        {
+            var header = new byte[] { (byte)'M', (byte)'C', (byte)opcode, 0 };
+            byte[] sessionBytes = Encoding.Default.GetBytes(sessionId);
+            byte[] messageBytes = new byte[header .Length + sessionBytes.Length + sizeof(int) + elementSize * data.Length + 1];
+            Buffer.BlockCopy(header, 0, messageBytes, 0, header.Length); //header
+            Buffer.BlockCopy(sessionBytes, 0, messageBytes, header.Length, sessionBytes.Length); //elements count
             Buffer.BlockCopy(BitConverter.GetBytes(data.Length), 0, messageBytes, header.Length+sessionBytes.Length, sizeof(int)); //session id
             Buffer.BlockCopy(data, 0, messageBytes, header.Length + sessionBytes.Length + sizeof(int), data.Length * elementSize); //data
             messageBytes[messageBytes.Length - 1] = GetNullTerminator();
@@ -154,7 +167,7 @@ namespace MPCProtocol
             }
         }
         
-        public bool GetInitParams(byte[] Data, out int operation ,out int participants)
+        public bool GetClientInitParams(byte[] Data, out int operation ,out int participants)
         {
             try
             {
@@ -170,6 +183,23 @@ namespace MPCProtocol
             }
         }
 
+        public bool GetServerInitParams(byte[] data, out string sessionId, out int operation, out int participants)
+        {
+            try
+            {
+                sessionId = Encoding.Default.GetString(data, 0, ProtocolConstants.SESSION_ID_SIZE);
+                operation = BitConverter.ToInt32(data, ProtocolConstants.SESSION_ID_SIZE);
+                participants = BitConverter.ToInt32(data, ProtocolConstants.SESSION_ID_SIZE+sizeof(int));
+                return true;
+            }
+            catch
+            {
+                sessionId = string.Empty;
+                operation = 0;
+                participants = 0;
+                return false;
+            }
+        }
         // sessionId, elementsCounter(32b), data
         public bool GetDataParams(byte[] data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements)
         {

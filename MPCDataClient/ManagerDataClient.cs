@@ -52,7 +52,7 @@
             }
             catch (Exception e)
             {
-                Console.WriteLine("Invalid port number.");
+                Console.WriteLine($"Invalid port number. exception: {e.Message}");
                 Environment.Exit(-1);
             }
 
@@ -68,6 +68,7 @@
             {
                 communicationA.Connect(ip1, port1);
                 sessionId = communicationA.SendInitMessage(operation, (int)numberOfUsers);
+                communicationA.receiveDone.Reset();
                 Console.WriteLine($"Session id: {sessionId}");
             }
             else
@@ -86,7 +87,11 @@
             communicationA.Receive();
             //commServerB.ReceiveRequest();
 
+            Console.WriteLine("wait for results");
+
             communicationA.receiveDone.WaitOne();
+
+            Console.WriteLine("close socket");
 
             //commServerB.WaitForReceive();
 

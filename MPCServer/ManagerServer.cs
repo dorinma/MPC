@@ -15,11 +15,18 @@ namespace MPCServer
 
         public static void Main(string[] args)
         {
-            CommunicationServer2 comm = new CommunicationServer2();
-            comm.OpenSocket();
+            string instance = args[0];
+
+            string memberServerIP = args[1];
+            int memberServerPort = instance == "A" ? 2023 : instance == "B" ? 2022 : 0;
+
+            CommunicationServer2 commA = new CommunicationServer2(instance);
+            commA.ConnectServers(memberServerIP, memberServerPort);
+            commA.OpenSocket();
+
             while (true)
             {
-                List<UInt16> values = comm.StartServer();
+                List<UInt16> values = commA.StartServer();
                 // if return null -> restart server
                 if (isDebugMode)
                 {
@@ -33,17 +40,33 @@ namespace MPCServer
                 if (!isDebugMode)
                 {
                     string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
-                    comm.SendOutputMessage(msg);
+                    commA.SendOutputMessage(msg);
                 }
                 else
                 {
-                    Console.WriteLine("[DEBUG] Secret shares of output:");
-                    for (int i = 0; i < res.Count; i++) Console.WriteLine("\t" + res.ElementAt(i) + "\t");
+                    Console.WriteLine("\n[DEBUG] Secret shares of output:");
+                    Console.WriteLine("\nres:");
+
+                    for (int i = 0; i < res.Count; i++)
+                    {
+                        Console.WriteLine("\t" + res.ElementAt(i) + "\t");
+                    }
+
+                    Console.WriteLine("\nvalues:");
+
+                    for (int i = 0; i < values.Count; i++)
+                    {
+                        Console.WriteLine("\t" + values.ElementAt(i) + "\t");
+                    }
+
+
                     Console.WriteLine("");
-                    comm.SendOutputData(values);
+
+                    commA.SendOutputData(values);
                 }
 
-                comm.RestartServer();
+                commA.RestartServer();
+
                 /*List<UInt16> values = comm.StartServer();
                 // if return null -> restart server
                 if (isDebugMode)

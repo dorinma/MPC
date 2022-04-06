@@ -275,7 +275,7 @@ public class CommunicationDataClient<T>
                 }
             case OPCODE_MPC.E_OPCODE_SERVER_DATA:
                 {
-                    dataResponse = MPCConvertor.BytesToList(Data, ProtocolConstants.SESSION_ID_SIZE + sizeof(UInt32));
+                    dataResponse = MPCConvertor.BytesToList(Data, 0);
                     break;
                 }
             case OPCODE_MPC.E_OPCODE_ERROR:
