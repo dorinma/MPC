@@ -1,4 +1,6 @@
 ﻿using MPCProtocol;
+using MPCProtocol.Requests;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,17 +19,20 @@ namespace MPCServer
         private ManualResetEvent connectServerDone;
         private ManualResetEvent serversSend;
 
-
         private Socket listener;
         private static Protocol protocol = Protocol.Instance;
         private object usersLock = new object();
 
-        private int operation; // 1.merge 2.find the K'th element 3.sort
+        private string instance;
+
         private int totalUsers;
         private int connectedUsers;
         private string sessionId;
+
+        SortRandomRequest sortRandomRequest = default;
+        
+        private int operation; // 1.merge 2.find the K'th element 3.sort
         private List<UInt16> values;
-        private string instance;
 
         private List<Socket> clientsSockets;
         private SERVER_STATE serverState;
@@ -232,18 +237,28 @@ namespace MPCServer
             return ServerConstants.statesMap[opcode] == serverState;
         }
 
-        public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] Data, Socket socket)
+        public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] data, Socket socket)
         {
             switch (Opcode)
             {
+                case OPCODE_MPC.E_OPCODE_RANDOM_SORT:
+                    {
+                        HandleSortRandomness(data, socket);
+                        break;
+                    }
                 case OPCODE_MPC.E_OPCODE_CLIENT_INIT:
                     {
-                        HandleClientInit(Data, socket);
+                        HandleClientInit(data, socket);
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_CLIENT_DATA:
                     {
-                        HandleClientData(Data, socket);
+                        HandleClientData(data, socket);
+                        break;
+                    }                
+                case OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT:
+                    {
+                        HandleServerInit(data, socket);
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR: //todo is this needed? client will send error to server?
@@ -251,19 +266,27 @@ namespace MPCServer
                         //RespondServerDone(Data);
                         break;
                     }
-                case OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT:
-                    {
-                        HandleServerInit(Data, socket);
-                        break;
-                    }
                 default:
                     break;
             }
         }
 
+        private void HandleSortRandomness(byte[] data, Socket socket)
+        {
+            sortRandomRequest = JsonConvert.DeserializeObject<SortRandomRequest>(Encoding.Default.GetString(data)) ?? default;
+            if (sortRandomRequest != default) // send confirmation
+            { 
+                Send(socket, protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
+            }
+            else // Error - wrong format
+            {
+                SendError(socket, "Bad random sort request");
+            }
+        }
+
         private void HandleClientInit(byte[] Data, Socket socket)
         {
-            if (string.Empty != Interlocked.CompareExchange(ref sessionId, GenerateSessionId(), string.Empty))
+            if (string.Empty != Interlocked.CompareExchange(ref sessionId, Randomness.GenerateSessionId(), string.Empty))
             {
                 // Session is already in motion
                 SendError(socket, ServerConstants.MSG_SESSION_RUNNING);
@@ -278,11 +301,10 @@ namespace MPCServer
             }
 
             //send session id to second server
-
             operation = userOperation;
             totalUsers = participants;
             serverState = SERVER_STATE.CONNECT_AND_DATA;
-            SendSessionDetails();
+            SendSessionDetailsToServer();
             Console.WriteLine($"session id {sessionId}, participants {totalUsers}, servsr state {serverState}");
 
             byte[] message = protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId);
@@ -342,11 +364,6 @@ namespace MPCServer
             }
         }
 
-        private string GenerateSessionId()
-        {
-            return Guid.NewGuid().ToString().Substring(0, 8);
-        }
-
         public void SendOutputMessage(string data)
         {
             byte[] message = protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_MSG, data);
@@ -359,7 +376,7 @@ namespace MPCServer
             clientsSockets.ForEach(socket => Send(socket, message));
         }
 
-        public void SendSessionDetails()
+        public void SendSessionDetailsToServer()
         {
             Console.WriteLine($"Send to other server: operation {operation}, total users {totalUsers}");
             byte[] message = protocol.CreateSessionAndOperationMessage(OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT, sessionId, sizeof(int), new int[] { operation, totalUsers });

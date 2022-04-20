@@ -27,13 +27,20 @@ namespace MPCRandomnessClient
         public static void Main(string[] args)
         {
             //while with timer
+            communicationA = new CommunicationRandClient();
+            communicationB = new CommunicationRandClient();
             //sort
             CreateAndSendCircuits();
+            communicationA.Reset();
+            communicationB.Reset();
             //other circuits..
         }
 
         private static void CreateAndSendCircuits()
         {
+            string newSessionId = Randomness.GenerateSessionId();
+            communicationA.sessionId = newSessionId;
+            communicationB.sessionId = newSessionId;
             //dcf
             //create masks and shares
             ulong[] dcfMasks = CreateRandomMasks(dcfMasksCount);
@@ -60,14 +67,25 @@ namespace MPCRandomnessClient
 
             // send to servers
             //connect
-            communicationA = new CommunicationRandClient();
-            communicationB = new CommunicationRandClient();
-            /*communicationA.Connect(ip1, port1);
+            communicationA.Connect(ip1, port1);
             communicationB.Connect(ip2, port2);
             communicationA.connectDone.WaitOne();
-            communicationB.connectDone.WaitOne();*/
+            communicationB.connectDone.WaitOne();
             //send (need to verify that both server recieved correctly)
             communicationA.SendMasksAndKeys(n, dcfMasks, dcfKeysA, dpfMasks, dpfKeysA);
+            //recieve confirmation
+            communicationA.Receive();
+            communicationB.Receive();
+
+            communicationA.receiveDone.WaitOne();
+            communicationB.receiveDone.WaitOne();
+
+            if(!communicationA.serversVerified || !communicationB.serversVerified)
+            {
+                // retry ? 
+            }
+
+
         }
 
         private static ulong[] CreateRandomMasks(int count)

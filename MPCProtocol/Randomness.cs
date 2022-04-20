@@ -31,5 +31,10 @@ namespace MPCProtocol
 			}
 		}
 
+		public static string GenerateSessionId()
+		{
+			return Guid.NewGuid().ToString().Substring(0, 8);
+		}
+
 	}
 }

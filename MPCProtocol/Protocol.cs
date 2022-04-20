@@ -39,6 +39,7 @@ namespace MPCProtocol
         E_OPCODE_SERVER_DATA     = 0x05, 
         E_OPCODE_SERVER_TO_SERVER_INIT     = 0x06,
         E_OPCODE_RANDOM_SORT = 0x07,
+        E_OPCODE_SERVER_VERIFY = 0x08,
     }
 
     public class Protocol

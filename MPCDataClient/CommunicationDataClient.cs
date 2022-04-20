@@ -199,7 +199,7 @@ namespace MPCDataClient
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
-                        Console.WriteLine($"Recived error: {Encoding.Default.GetString(Data)}");
+                        Console.WriteLine($"Received error: {Encoding.Default.GetString(Data)}");
                         break;
                     }
                 default:

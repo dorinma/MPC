@@ -4,6 +4,9 @@ namespace MPCProtocol.Requests
 {
     public class SortRandomRequest
     {
+        [JsonProperty("sessionId", Required = Required.Always)]
+        public string sessionId { get; set; }
+
         [JsonProperty("n", Required = Required.Always)]
         public int n { get; set; }
 
