@@ -52,8 +52,8 @@ namespace MPC_UI
                     if (OperationMerge.IsSelected) oper = 1;
                     else if (OperationSort.IsSelected) oper = 2;
                     else oper = 3;
-                    managerDataClient.SendData(mainDataContext.IP1, mainDataContext.IP2, 
-                        mainDataContext.Port1, mainDataContext.Port2, oper, mainDataContext.SessionId);
+                    //managerDataClient.SendData(mainDataContext.IP1, mainDataContext.IP2, 
+                    //    mainDataContext.Port1, mainDataContext.Port2, oper, mainDataContext.SessionId);
                 }
                 else
                 {
@@ -68,7 +68,7 @@ namespace MPC_UI
 
         private void GetSessionId_Click(object sender, RoutedEventArgs e)
         {
-            mainDataContext.SessionId = managerDataClient.StartSession(mainDataContext.IP1, mainDataContext.Port1);
+            //mainDataContext.SessionId = managerDataClient.StartSession(mainDataContext.IP1, mainDataContext.Port1);
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
