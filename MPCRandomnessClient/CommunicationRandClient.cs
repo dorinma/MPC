@@ -185,7 +185,8 @@ namespace MPCRandomnessClient
             {
                 case OPCODE_MPC.E_OPCODE_SERVER_VERIFY:
                     {
-                        serversVerified = sessionId.Equals(Encoding.Default.GetString(data));
+                        var sessionReceived = Encoding.Default.GetString(data).Substring(0, ProtocolConstants.SESSION_ID_SIZE);
+                        serversVerified = sessionId.Equals(sessionReceived);
                         if (serversVerified)
                         {
                             Console.WriteLine($"Received confirmation, session id: {sessionId}");

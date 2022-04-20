@@ -9,7 +9,7 @@ namespace MPCRandomnessClient
 {
     public class ManagerRandomnessClient
     {
-        public const int n = 100; // n
+        public const int n = 10; // n
         public const int dcfMasksCount = n; // mask for each input element
         public const int dpfMasksCount = n; // mask for each element's index sum 
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
@@ -39,6 +39,7 @@ namespace MPCRandomnessClient
         private static void CreateAndSendCircuits()
         {
             string newSessionId = Randomness.GenerateSessionId();
+            Console.WriteLine($"New session is {newSessionId}");
             communicationA.sessionId = newSessionId;
             communicationB.sessionId = newSessionId;
             //dcf
@@ -67,22 +68,28 @@ namespace MPCRandomnessClient
 
             // send to servers
             //connect
-            communicationA.Connect(ip1, port1);
+            //communicationA.Connect(ip1, port1);
             communicationB.Connect(ip2, port2);
-            communicationA.connectDone.WaitOne();
+            //communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
             //send (need to verify that both server recieved correctly)
-            communicationA.SendMasksAndKeys(n, dcfMasks, dcfKeysA, dpfMasks, dpfKeysA);
+            //communicationA.SendMasksAndKeys(n, dcfMasks, dcfKeysA, dpfMasks, dpfKeysA);
+            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dpfSharesB, dpfKeysB);
             //recieve confirmation
-            communicationA.Receive();
+            //communicationA.Receive();
             communicationB.Receive();
 
-            communicationA.receiveDone.WaitOne();
+            //communicationA.receiveDone.WaitOne();
             communicationB.receiveDone.WaitOne();
 
             if(!communicationA.serversVerified || !communicationB.serversVerified)
             {
                 // retry ? 
+                Console.WriteLine("At least one server did not get the masks and keys correctly");
+            }
+            else
+            {
+                Console.WriteLine("Success");
             }
 
 
