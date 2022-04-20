@@ -66,7 +66,7 @@
             List<UInt16> data = userService1.ReadData();
 
             DataService dataService = new DataService();
-            dataService.generateSecretShares(data);
+            dataService.GenerateSecretShares(data);
 
             communicationB.Connect(ip2, port2);
 

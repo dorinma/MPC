@@ -22,7 +22,7 @@ namespace MPCDataClient
 		}
 
 
-		public void generateSecretShares(List<UInt16> input)
+		public void GenerateSecretShares(List<UInt16> input)
 		{
 			//Console.WriteLine("Start generating secret shares");
 			if (input == null) return;

@@ -18,7 +18,7 @@ namespace Tests.DataClientTest
         [MemberData(nameof(Data))]
         public void CanAddTheoryMemberDataProperty(List<UInt16> inputList)
         {
-            this.dataService.generateSecretShares(inputList);
+            this.dataService.GenerateSecretShares(inputList);
             Assert.Equal(inputList, SumList(dataService.serverAList, dataService.serverBList));
         }
 

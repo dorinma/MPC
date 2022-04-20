@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LogicCircuit\LogicCircuit.csproj" />
+    <ProjectReference Include="..\MPCProtocol\MPCProtocol.csproj" />
   </ItemGroup>
 
 </Project>

@@ -37,7 +37,8 @@ namespace MPCProtocol
         E_OPCODE_CLIENT_DATA    = 0x03,
         E_OPCODE_SERVER_MSG     = 0x04,  
         E_OPCODE_SERVER_DATA     = 0x05, 
-        E_OPCODE_SERVER_TO_SERVER_INIT     = 0x06
+        E_OPCODE_SERVER_TO_SERVER_INIT     = 0x06,
+        E_OPCODE_RANDOM_SORT = 0x07,
     }
 
     public class Protocol
@@ -84,15 +85,6 @@ namespace MPCProtocol
         public bool ValidateMessage(byte[] Data)
         {
             return Data[0] == 'M' && Data[1] == 'C';
-        }
-
-        public byte[] CreateHeaderDataMsg()
-        {
-            return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_CLIENT_DATA, 0 };
-        }
-        public byte[] CreateHeaderInitMsg()
-        {
-            return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_CLIENT_DATA, 0 };
         }
 
         public byte[] CreateArrayMessage(OPCODE_MPC opcode, int elementSize, Array data)
