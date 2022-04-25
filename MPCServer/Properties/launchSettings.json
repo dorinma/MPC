@@ -2,8 +2,8 @@
   "profiles": {
     "MPCServer": {
       "commandName": "Project",
-      //"commandLineArgs": "A 127.0.0.1 -d"
-      "commandLineArgs": "B 127.0.0.1 -d"
+      "commandLineArgs": "A 127.0.0.1 -d"
+      //"commandLineArgs": "B 127.0.0.1 -d"
     }
   }
 }

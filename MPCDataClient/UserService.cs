@@ -99,7 +99,7 @@ namespace MPCDataClient
             return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
         }
 
-        public List<UInt16> ReadData()
+        public List<ulong> ReadData()
         {
             Console.WriteLine("Insert data file path");
             string path = Console.ReadLine();
@@ -125,7 +125,7 @@ namespace MPCDataClient
             return null;
         }
 
-        public List<UInt16> ReadData(string filePath)
+        public ulong[] ReadData(string filePath)
         {
             try
             {
@@ -146,16 +146,16 @@ namespace MPCDataClient
             }
         }
 
-        public List<UInt16> ParseFile(string path)
+        public List<ulong> ParseFile(string path)
         {
-            List<UInt16> output = new List<UInt16>();
+            List<ulong> output = new List<ulong>();
             Stream fileStream = fileSystem.File.OpenRead(path);
             using (var reader = new StreamReader(fileStream))
             {
                 reader.ReadLine(); //skip column name
                 while (!reader.EndOfStream)
                 {
-                    output.Add(UInt16.Parse(reader.ReadLine()));
+                    output.Add(ulong.Parse(reader.ReadLine()));
                 }
             }
 

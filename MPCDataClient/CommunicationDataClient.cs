@@ -87,11 +87,11 @@ namespace MPCDataClient
             return sessionId;
         }
 
-        public void SendData(string sessionId, List<UInt16> data)
+        public void SendData(string sessionId, ulong[] data)
         {
             Console.WriteLine("Send data to server");
-            Console.WriteLine($"data {data.Count}");
-            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(UInt16), data.ToArray());
+            Console.WriteLine($"data {data.Length}");
+            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(ulong), data);
             Send(meesage);
         }
 

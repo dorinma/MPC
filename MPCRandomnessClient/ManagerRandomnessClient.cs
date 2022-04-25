@@ -44,10 +44,10 @@ namespace MPCRandomnessClient
             communicationB.sessionId = newSessionId;
             //dcf
             //create masks and shares
-            ulong[] dcfMasks = CreateRandomMasks(dcfMasksCount);
-            ulong[] dcfSharesA = new ulong[dcfMasksCount];
-            ulong[] dcfSharesB = new ulong[dcfMasksCount];
-            Randomness.SplitToSecretShares(dcfMasks, dcfSharesA, dcfSharesB);
+            ulong[] dcfMasks = Randomness.CreateRandomMasks(dcfMasksCount);
+            /*ulong[] dcfSharesA = new ulong[dcfMasksCount];
+            ulong[] dcfSharesB = new ulong[dcfMasksCount];*/
+            Randomness.SplitToSecretShares(dcfMasks, out ulong[] dcfSharesA, out ulong[] dcfSharesB);
             //generate keys
             ulong[] dcfKeysA = new ulong[dcfGatesCount];
             ulong[] dcfKeysB = new ulong[dcfGatesCount];
@@ -56,10 +56,10 @@ namespace MPCRandomnessClient
 
             //dpf
             //create masks and shares
-            ulong[] dpfMasks = CreateRandomMasks(dpfMasksCount);
-            ulong[] dpfSharesA = new ulong[dpfMasksCount];
-            ulong[] dpfSharesB = new ulong[dpfMasksCount];
-            Randomness.SplitToSecretShares(dpfMasks, dpfSharesA, dpfSharesB);
+            ulong[] dpfMasks = Randomness.CreateRandomMasks(dpfMasksCount);
+            /*ulong[] dpfSharesA = new ulong[dpfMasksCount];
+            ulong[] dpfSharesB = new ulong[dpfMasksCount];*/
+            Randomness.SplitToSecretShares(dpfMasks, out ulong[] dpfSharesA, out ulong[] dpfSharesB);
             //generate keys
             ulong[] dpfKeysA = new ulong[dpfGatesCount];
             ulong[] dpfKeysB = new ulong[dpfGatesCount];
@@ -68,18 +68,18 @@ namespace MPCRandomnessClient
 
             // send to servers
             //connect
-            //communicationA.Connect(ip1, port1);
+            communicationA.Connect(ip1, port1);
             communicationB.Connect(ip2, port2);
-            //communicationA.connectDone.WaitOne();
+            communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
             //send (need to verify that both server recieved correctly)
-            //communicationA.SendMasksAndKeys(n, dcfMasks, dcfKeysA, dpfMasks, dpfKeysA);
+            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dpfSharesA, dpfKeysA);
             communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dpfSharesB, dpfKeysB);
             //recieve confirmation
-            //communicationA.Receive();
+            communicationA.Receive();
             communicationB.Receive();
 
-            //communicationA.receiveDone.WaitOne();
+            communicationA.receiveDone.WaitOne();
             communicationB.receiveDone.WaitOne();
 
             if(!communicationA.serversVerified || !communicationB.serversVerified)
@@ -92,31 +92,15 @@ namespace MPCRandomnessClient
                 Console.WriteLine("Success");
             }
 
-
         }
 
-        private static ulong[] CreateRandomMasks(int count)
-        {
-            Random rnd = new Random();
-            ulong[] masks = new ulong[count];
-            for(int i = 0; i < count; i++)
-            {
-                masks[i] = rnd.NextUInt64();
-            }
-            return masks;
-            /*return Enumerable
-                .Repeat((ulong)default, masksCount)
-                .Select(i => rnd.NextUInt64())
-                .ToList();*/
-        }
-
-        private static void GenerateDcfKeys(ulong[] masks, ulong[] keysA, ulong[] keysB)
+        public static void GenerateDcfKeys(ulong[] masks, ulong[] keysA, ulong[] keysB)
         {
             int keyIndex;
             for(int i = 0; i < n; i++)
             {
                 for (int j = i+1; j < n; j++)
-                {
+                { 
                     externalSystemAdapter.GenerateDCF(masks[i]-masks[j], out ulong keyA, out ulong keyB); // mask1-mask2
                     keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
                     keysA[keyIndex] = keyA;
@@ -125,7 +109,7 @@ namespace MPCRandomnessClient
             }
         }
 
-        private static void GenerateDpfKeys(ulong[] masks, ulong[] keysA, ulong[] keysB)
+        public static void GenerateDpfKeys(ulong[] masks, ulong[] keysA, ulong[] keysB)
         {
             int keyIndex;
             for (int i = 0; i < n; i++)

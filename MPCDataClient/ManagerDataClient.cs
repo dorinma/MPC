@@ -1,5 +1,6 @@
 ﻿namespace MPCDataClient
-{ 
+{
+    using MPCProtocol;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -10,7 +11,7 @@
     {
         static bool debug = true;
         UserService userService;
-        List<UInt16> data;
+        ulong[] data;
         //CommunicationDataClient<UInt16> commServerA;
 
         private static UserService userService1 = new UserService();
@@ -63,15 +64,16 @@
                 communicationA.Connect(ip1, port1);
             }
             
-            List<UInt16> data = userService1.ReadData();
+            ulong[] data = userService1.ReadData().ToArray();
 
-            DataService dataService = new DataService();
-            dataService.GenerateSecretShares(data);
+            Randomness.SplitToSecretShares(data, out ulong[] serverAShares, out ulong[] serverBShares);
+            /*DataService dataService = new DataService();
+            dataService.GenerateSecretShares(data);*/
 
             communicationB.Connect(ip2, port2);
 
-            communicationA.SendData(sessionId, dataService.serverAList);
-            communicationB.SendData(sessionId, dataService.serverBList);
+            communicationA.SendData(sessionId, serverAShares);
+            communicationB.SendData(sessionId, serverBShares);
 
             communicationA.Receive();
             communicationB.Receive();
@@ -107,7 +109,7 @@
 
         public bool ReadInput(string filePath)
         {
-            data = userService.ReadData(filePath);
+            data = userService.ReadData(filePath).ToArray();
             if (data == null) return false;
             else return true;
         }

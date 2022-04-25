@@ -193,8 +193,6 @@ namespace MPCServer
 
                 // TODO continue listening if there are more numbers to send
                 
-                
-                Console.WriteLine("Add handler to list");
                 //handler.Close();
             }
         }
@@ -275,7 +273,7 @@ namespace MPCServer
         {
             sortRandomRequest = JsonConvert.DeserializeObject<SortRandomRequest>(Encoding.Default.GetString(data)) ?? default;
             if (sortRandomRequest != default) // send confirmation
-            { 
+            {
                 Send(socket, protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
             }
             else // Error - wrong format
