@@ -125,7 +125,7 @@ namespace MPCDataClient
             return null;
         }
 
-        public ulong[] ReadData(string filePath)
+        public List<ulong> ReadData(string filePath)
         {
             try
             {
