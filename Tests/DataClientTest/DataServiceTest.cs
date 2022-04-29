@@ -1,4 +1,5 @@
 using MPCDataClient;
+using MPCProtocol;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,28 +9,22 @@ namespace Tests.DataClientTest
 {
     public class DataServiceTest
     {
-        DataService dataService { get; set; }
-        public DataServiceTest()
-        {
-            this.dataService = new DataService();
-        }
-
         [Theory]
         [MemberData(nameof(Data))]
-        public void CanAddTheoryMemberDataProperty(List<UInt16> inputList)
+        public void CanAddTheoryMemberDataProperty(ulong[] inputList)
         {
-            this.dataService.GenerateSecretShares(inputList);
-            Assert.Equal(inputList, SumList(dataService.serverAList, dataService.serverBList));
+            Randomness.SplitToSecretShares(inputList, out ulong[] serverAList, out ulong[] serverBList);
+            Assert.Equal(inputList, SumList(serverAList, serverBList));
         }
 
-        private List<UInt16> SumList(List<UInt16> listA, List<UInt16> listB)
+        private ulong[] SumList(ulong[] listA, ulong[] listB)
         {
-            return (List<UInt16>)listA.Zip(listB, SumUints).ToList();
+            return listA.Zip(listB, SumUints).ToArray();
         }
 
-        private UInt16 SumUints(UInt16 a, UInt16 b)
+        private ulong SumUints(ulong a, ulong b)
         {
-            return (UInt16)(a + b);
+            return (ulong)(a + b);
         }
 
         public static IEnumerable<object[]> Data() {
@@ -40,12 +35,12 @@ namespace Tests.DataClientTest
 
             yield return new object[]
             {
-                new List<UInt16> { 1, 2, 3 }
+                new ulong[]{ 1, 2, 3 }
             };
 
             yield return new object[]
             {
-                new List<UInt16>()
+                new ulong[0]
             };
         }
     }

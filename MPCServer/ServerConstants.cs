@@ -10,10 +10,10 @@ namespace MPCServer
 {
     public enum SERVER_STATE
     {
-        OFFLINE = 1,
+        //OFFLINE = 1,
         FIRST_INIT = 2,
         CONNECT_AND_DATA = 3,
-        DATA = 4,
+        //DATA = 4,
         COMPUTATION = 5
     }
 
@@ -21,10 +21,10 @@ namespace MPCServer
     {
         public static Dictionary<OPCODE_MPC, SERVER_STATE> statesMap = new Dictionary<OPCODE_MPC, SERVER_STATE>
         {
-            { OPCODE_MPC.E_OPCODE_RANDOM_SORT, SERVER_STATE.FIRST_INIT },
             { OPCODE_MPC.E_OPCODE_CLIENT_INIT, SERVER_STATE.FIRST_INIT },
             { OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT, SERVER_STATE.FIRST_INIT },
-            { OPCODE_MPC.E_OPCODE_CLIENT_DATA, SERVER_STATE.CONNECT_AND_DATA },
+            { OPCODE_MPC.E_OPCODE_CLIENT_DATA, SERVER_STATE.CONNECT_AND_DATA},
+            { OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, SERVER_STATE.COMPUTATION}
         };
 
         public const string MSG_VALIDATE_PROTOCOL_FAIL = "Could not parse message.";

@@ -94,7 +94,7 @@
                 Console.WriteLine($"Server B list: {String.Join(", ", communicationB.dataResponse)}");*/
 
                 Console.WriteLine(
-                    $"Output list: {String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (UInt16)(x + y); }).ToList())}");
+                    $"Output list: {String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (ulong)(x + y); }).ToList())}");
             }
 
             if (communicationA.response.Length > 0)

@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32319.34
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32002.261
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCDataClient", "MPCDataClient\MPCDataClient.csproj", "{36F0EF9C-82BB-4742-8396-99528E593340}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCServer", "MPCServer\MPCServer.csproj", "{6408965D-BEBB-4CEE-93D9-9F3142F0CB94}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCRandomnessClient", "MPCRandomnessClient\MPCRandomnessClient.csproj", "{4D3383D3-9E0B-4330-99C3-39917C66E1C0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogicCircuit", "LogicCircuit\LogicCircuit.csproj", "{D7B50CDE-237B-457F-8373-4581C7486F6C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCProtocol", "MPCProtocol\MPCProtocol.csproj", "{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}"
 EndProject
@@ -35,10 +33,6 @@ Global
 		{4D3383D3-9E0B-4330-99C3-39917C66E1C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D3383D3-9E0B-4330-99C3-39917C66E1C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D3383D3-9E0B-4330-99C3-39917C66E1C0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D7B50CDE-237B-457F-8373-4581C7486F6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D7B50CDE-237B-457F-8373-4581C7486F6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D7B50CDE-237B-457F-8373-4581C7486F6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D7B50CDE-237B-457F-8373-4581C7486F6C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}.Release|Any CPU.ActiveCfg = Release|Any CPU

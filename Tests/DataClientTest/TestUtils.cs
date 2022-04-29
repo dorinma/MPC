@@ -8,13 +8,13 @@ namespace Tests.DataClientTest
 {
     public class TestUtils
     {
-        public static List<UInt16> GenerateRandomList(int size)
+        public static ulong[] GenerateRandomList(int size)
         {
             Random random = new Random();
-            var output = new List<UInt16>();
+            var output = new ulong[size];
             for (int i = 0; i < size; i++)
             {
-                output.Add((UInt16)random.Next(1000));
+                output[i] = ((ulong)random.Next(1000));
             }
             return output;
         }

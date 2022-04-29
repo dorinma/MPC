@@ -17,11 +17,11 @@ namespace MPCDataClient
         public ManualResetEvent receiveDone = new ManualResetEvent(false);
 
         private Socket client;
-        private static Protocol protocol = Protocol.Instance;
+        private static protocol protocol = protocol.Instance;
 
         public string sessionId { get; set; }
         public string response = string.Empty;
-        public List<UInt16> dataResponse = new List<UInt16>();
+        public List<ulong> dataResponse = new List<ulong>();
 
         public void Connect(string serverIp, int serverPort)
         {

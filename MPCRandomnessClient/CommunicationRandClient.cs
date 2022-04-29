@@ -18,7 +18,7 @@ namespace MPCRandomnessClient
         public ManualResetEvent sendDone = new ManualResetEvent(false);
         public ManualResetEvent receiveDone = new ManualResetEvent(false);
 
-        private static Protocol protocol = Protocol.Instance;
+        private static protocol protocol = protocol.Instance;
 
         private Socket socket;
         public string sessionId = string.Empty;

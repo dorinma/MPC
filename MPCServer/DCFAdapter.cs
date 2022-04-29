@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace MPCServer
 {
-    class DCFAdapter
+    public class DCFAdapter
     {
-        public UInt16 Eval(int serverIndex, UInt16 key, UInt16 input)
+        public ulong Eval(string serverIndex, ulong key, ulong input) // for future int insted of string server index
         {
             return 0;
         }

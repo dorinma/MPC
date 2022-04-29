@@ -8,7 +8,7 @@ namespace MPCServer
 {
     class DPFAdapter
     {
-        public UInt16 Eval(int serverIndex, UInt16 key, UInt16 inputSum, UInt16 maskedOrignalInput)
+        public ulong Eval(int serverIndex, ulong key, ulong inputSum, ulong maskedOrignalInput)
         {
             return 0;
         }

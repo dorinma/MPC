@@ -38,7 +38,7 @@ namespace Tests.DataClientTest
 
         [Theory]
         [MemberData(nameof(ValidFileContent))]
-        public void ParseFile_ShouldSuccess(List<UInt16> contentList)
+        public void ParseFile_ShouldSuccess(ulong[] contentList)
         {
             var filePath = "mock path";
             var fileContent = "title\n" + string.Join('\n', contentList);
@@ -103,7 +103,7 @@ namespace Tests.DataClientTest
         {            
             yield return new object[]
             {
-                new List<UInt16>{1, 2, 3, 4, 5}
+                new ulong[]{1, 2, 3, 4, 5}
             };
 
             yield return new object[]
@@ -113,7 +113,7 @@ namespace Tests.DataClientTest
 
             yield return new object[]
             {
-                new List<UInt16>()
+                new ulong[0]
             };
         }
 
