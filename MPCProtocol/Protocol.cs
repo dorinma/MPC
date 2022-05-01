@@ -209,7 +209,7 @@ namespace MPCProtocol
             }
         }
         // sessionId, elementsCounter(32b), data
-        public bool GetDataParams(byte[] data, out string Session, out UInt32 ElementsCounter, out List<ulong> Elements)
+        public bool GetDataParams(byte[] data, out string Session, out UInt32 ElementsCounter, out List<uint> Elements)
         {
             try
             {
@@ -230,7 +230,7 @@ namespace MPCProtocol
             }
         }
 
-        public bool GetExchangeData(byte[] data, out List<ulong> exchangeData)
+        public bool GetExchangeData(byte[] data, out List<uint> exchangeData)
         {
             try
             {

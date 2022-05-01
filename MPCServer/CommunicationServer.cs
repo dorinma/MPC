@@ -29,15 +29,15 @@ namespace MPCServer
         private int connectedUsers;
         private string sessionId;
 
-        private bool redyToCompute = false;
+        private bool readyToCompute = false;
 
         public SortRandomRequest sortRandomRequest = default;
         //Future code
         //pubkic Dictionary<OPERATION, SortRandomRequest> requeset;
 
         private int operation; // 1.merge 2.find the K'th element 3.sort
-        private List<ulong> values;
-        private List<ulong> exchangeData;
+        private List<uint> values;
+        private List<uint> exchangeData;
 
         private List<Socket> clientsSockets;
         private SERVER_STATE serverState;
@@ -49,7 +49,7 @@ namespace MPCServer
             operation = 0;
             totalUsers = 0;
             connectedUsers = 0;
-            values = new List<ulong>();
+            values = new List<uint>();
             sessionId = string.Empty;
             clientsSockets = new List<Socket>();
             serverState = SERVER_STATE.FIRST_INIT;
@@ -70,7 +70,7 @@ namespace MPCServer
             operation = 0;
             totalUsers = 0;
             connectedUsers = 0;
-            values = new List<ulong>();
+            values = new List<uint>();
             sessionId = string.Empty;
             serverState = SERVER_STATE.FIRST_INIT;
             clientsSockets = new List<Socket>();
@@ -78,7 +78,7 @@ namespace MPCServer
             sendDone.Reset();
             connectServerDone.Reset();
             serversSend.Reset();
-            redyToCompute = false; // TODO think about it..
+            readyToCompute = false; // TODO think about it..
         }
 
         public void OpenSocket()
@@ -107,11 +107,11 @@ namespace MPCServer
             acceptDone.WaitOne();
         }
 
-        public ulong[] StartServer()
+        public uint[] StartServer()
         {
             try
             {
-                while (serverState == SERVER_STATE.FIRST_INIT || connectedUsers < totalUsers || !redyToCompute)
+                while (serverState == SERVER_STATE.FIRST_INIT || connectedUsers < totalUsers || !readyToCompute)
                 {
                     WaitToRecive();
                 }
@@ -298,7 +298,8 @@ namespace MPCServer
                 if (sortRandomRequest != default) // send confirmation
                 {
                     Send(socket, protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
-                    redyToCompute = true;
+                    new DCFAdapter().Eval(instance, sortRandomRequest.dcfKeys[0], 5);
+                    readyToCompute = true;
                 }
                 else // Error - wrong format
                 {
@@ -352,7 +353,7 @@ namespace MPCServer
         private void HandleClientData(byte[] Data, Socket socket)
         {
             Console.WriteLine("habdle client data");
-            if (!protocol.GetDataParams(Data, out string session, out UInt32 elementsCounter, out List<ulong> elements))
+            if (!protocol.GetDataParams(Data, out string session, out UInt32 elementsCounter, out List<uint> elements))
             {
                 // failed to parse parameters
                 SendError(socket, ServerConstants.MSG_VALIDATE_PARAMS_FAIL);
@@ -393,9 +394,9 @@ namespace MPCServer
             clientsSockets.ForEach(socket => Send(socket, message));
         }
 
-        public void SendOutputData(ulong[] data)
+        public void SendOutputData(uint[] data)
         {
-            byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_SERVER_DATA, sizeof(ulong), data);
+            byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_SERVER_DATA, sizeof(uint), data);
             clientsSockets.ForEach(socket => Send(socket, message));
         }
 
@@ -473,14 +474,14 @@ namespace MPCServer
             }
         }
 
-        internal void SendServerData(ulong[] diffValues)
+        internal void SendServerData(uint[] diffValues)
         {
-            byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, sizeof(ulong), diffValues);
+            byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, sizeof(uint), diffValues);
             Send(memberServerSocket, message);
             Console.WriteLine($"Server {instance} Send to other server his diff values");
         }
 
-        internal ulong[] AReciveServerData()
+        internal uint[] AReciveServerData()
         {
             acceptDone.Reset();
             try
@@ -502,7 +503,7 @@ namespace MPCServer
             return exchangeData.ToArray();
         }
 
-        internal ulong[] BReciveServerData()
+        internal uint[] BReciveServerData()
         {
             WaitToRecive();
             Console.WriteLine("recive B done :)");

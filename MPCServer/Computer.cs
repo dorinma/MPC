@@ -10,13 +10,13 @@ namespace MPCServer
 {
     class Computer
     {
-        private ulong[] data;
+        private uint[] data;
         private SortRandomRequest sortRandomRequest;
         private string instance;
         private DCFAdapter dcfAdapter = new DCFAdapter();
         private CommunicationServer comm;
 
-        public Computer(ulong[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
+        public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
         {
             data = values;
             this.sortRandomRequest = sortRandomRequest;
@@ -24,7 +24,7 @@ namespace MPCServer
             this.comm = comm;
         }
 
-        public ulong[] Compute(OPERATION op) 
+        public uint[] Compute(OPERATION op) 
         {
             switch (op)
             {
@@ -37,7 +37,7 @@ namespace MPCServer
             return null;
         }
 
-        private ulong[] sortCompute()
+        private uint[] sortCompute()
         {
             //actually logic
 
@@ -45,11 +45,11 @@ namespace MPCServer
             // second level - sum results
 
             int numOfElement = data.Length;
-            ulong[] sumResults = new ulong[numOfElement];
+            uint[] sumResults = new uint[numOfElement];
 
             int n = sortRandomRequest.n;
-            ulong[] keys = sortRandomRequest.dcfKeys;
-            ulong[] diffValues = SumAerversShares(numOfElement);
+            byte[][] keys = sortRandomRequest.dcfKeys;
+            uint[] diffValues = SumAerversShares(numOfElement);
            
             int valuesIndex = 0;
 
@@ -58,7 +58,7 @@ namespace MPCServer
                 for(int j = i + 1; j < numOfElement; j++)
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-                    ulong outputShare = dcfAdapter.Eval(instance, keys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
+                    uint outputShare = dcfAdapter.Eval(instance, keys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
                     sumResults[i] -= instance == "A" ? outputShare : (outputShare - 1);
                     sumResults[j] += outputShare;
                     valuesIndex++;
@@ -75,9 +75,9 @@ namespace MPCServer
                 return data;
         }
 
-        private ulong[] SumEachPairValues(ulong[] diffValues, int numOfElement)
+        private uint[] SumEachPairValues(uint[] diffValues, int numOfElement)
         {
-            ulong[] masks = sortRandomRequest.dcfMasks;
+            uint[] masks = sortRandomRequest.dcfMasks;
             int currIndex = 0;
 
             for (int i = 0; i < numOfElement; i++)
@@ -91,11 +91,11 @@ namespace MPCServer
             return diffValues;
         }
 
-        private ulong[] SumAerversShares(int numOfElement)
+        private uint[] SumAerversShares(int numOfElement)
         {
             int nChoose2 = (numOfElement - 1) * numOfElement / 2;
-            ulong[] diffValues = new ulong[nChoose2];
-            ulong[] sharedData;
+            uint[] diffValues = new uint[nChoose2];
+            uint[] sharedData;
 
             if (instance == "A")
             {           
@@ -112,14 +112,14 @@ namespace MPCServer
             return sharedData;
         }
 
-        public void SendMaskValues(ulong pValue) { }
+        public void SendMaskValues(uint pValue) { }
 
-        public ulong ReceiveMaskedValues() 
+        public uint ReceiveMaskedValues() 
         {
             return 0;
         }
 
-        public void SetData(ulong[] pData)
+        public void SetData(uint[] pData)
         {
             data = pData;
         }

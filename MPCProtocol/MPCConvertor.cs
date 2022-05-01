@@ -8,20 +8,20 @@ namespace MPCProtocol
 {
     public class MPCConvertor
     {
-        public static List<ulong> BytesToList(byte[] Data, int StartOffset)
+        public static List<uint> BytesToList(byte[] Data, int StartOffset)
         {
-            List<ulong> output = new List<ulong>();
-            for (int i = StartOffset; i <= Data.Length - sizeof(ulong) && Data[i] != ProtocolConstants.NULL_TERMINATOR; i += sizeof(ulong))
+            List<uint> output = new List<uint>();
+            for (int i = StartOffset; i <= Data.Length - sizeof(uint) && Data[i] != ProtocolConstants.NULL_TERMINATOR; i += sizeof(uint))
             {
-                output.Add(BitConverter.ToUInt64(Data, i));
+                output.Add(BitConverter.ToUInt32(Data, i));
             }
             return output;
         }
 
-       /* public static ulong[] BytesToArray(byte[] Data, int StartOffset)
+       /* public static uint[] BytesToArray(byte[] Data, int StartOffset)
         {
-            ulong[] output = new ulong[Data.Length/sizeof(ulong)];
-            for (int i = StartOffset; i <= Data.Length - sizeof(ulong) && Data[i] != ProtocolConstants.NULL_TERMINATOR; i += sizeof(ulong))
+            uint[] output = new uint[Data.Length/sizeof(uint)];
+            for (int i = StartOffset; i <= Data.Length - sizeof(uint) && Data[i] != ProtocolConstants.NULL_TERMINATOR; i += sizeof(uint))
             {
                 output[i] = BitConverter.ToUInt64(Data, i);
             }

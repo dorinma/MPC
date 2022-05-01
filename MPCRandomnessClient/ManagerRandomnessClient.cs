@@ -9,13 +9,13 @@ namespace MPCRandomnessClient
 {
     public class ManagerRandomnessClient
     {
-        public const int n = 10; // n
+        public const int n = 2; // n
         public const int dcfMasksCount = n; // mask for each input element
         public const int dpfMasksCount = n; // mask for each element's index sum 
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
         public const int dpfGatesCount = n*n; // first layer (dcf gates) - last layer (dpf gates) - n*n 
 
-        private static ExternalSystemAdapter externalSystemAdapter = new ExternalSystemAdapter(0, 0, 0);
+        private static ExternalSystemAdapter externalSystemAdapter = new ExternalSystemAdapter();
 
         private static CommunicationRandClient communicationA;
         private static CommunicationRandClient communicationB;
@@ -44,25 +44,23 @@ namespace MPCRandomnessClient
             communicationB.sessionId = newSessionId;
             //dcf
             //create masks and shares
-            ulong[] dcfMasks = Randomness.CreateRandomMasks(dcfMasksCount);
-            /*ulong[] dcfSharesA = new ulong[dcfMasksCount];
-            ulong[] dcfSharesB = new ulong[dcfMasksCount];*/
-            Randomness.SplitToSecretShares(dcfMasks, out ulong[] dcfSharesA, out ulong[] dcfSharesB);
+            uint[] dcfMasks = Randomness.CreateRandomMasks(dcfMasksCount);
+            /*uint[] dcfSharesA = new uint[dcfMasksCount];
+            uint[] dcfSharesB = new uint[dcfMasksCount];*/
+            Randomness.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB);
             //generate keys
-            ulong[] dcfKeysA = new ulong[dcfGatesCount];
-            ulong[] dcfKeysB = new ulong[dcfGatesCount];
+            byte[][] dcfKeysA = new byte[dcfGatesCount][];
+            byte[][] dcfKeysB = new byte[dcfGatesCount][];
             
             GenerateDcfKeys(dcfMasks, dcfKeysA, dcfKeysB);
 
             //dpf
             //create masks and shares
-            ulong[] dpfMasks = Randomness.CreateRandomMasks(dpfMasksCount);
-            /*ulong[] dpfSharesA = new ulong[dpfMasksCount];
-            ulong[] dpfSharesB = new ulong[dpfMasksCount];*/
-            Randomness.SplitToSecretShares(dpfMasks, out ulong[] dpfSharesA, out ulong[] dpfSharesB);
+            uint[] dpfMasks = Randomness.CreateRandomMasks(dpfMasksCount);
+            Randomness.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
             //generate keys
-            ulong[] dpfKeysA = new ulong[dpfGatesCount];
-            ulong[] dpfKeysB = new ulong[dpfGatesCount];
+            byte[][] dpfKeysA = new byte[dpfGatesCount][];
+            byte[][] dpfKeysB = new byte[dpfGatesCount][];
 
             GenerateDpfKeys(dpfMasks, dpfKeysA, dpfKeysB);
 
@@ -94,14 +92,14 @@ namespace MPCRandomnessClient
 
         }
 
-        public static void GenerateDcfKeys(ulong[] masks, ulong[] keysA, ulong[] keysB)
+        public static void GenerateDcfKeys(uint[] masks, byte[][] keysA, byte[][] keysB)
         {
             int keyIndex;
             for(int i = 0; i < n; i++)
             {
                 for (int j = i+1; j < n; j++)
                 { 
-                    externalSystemAdapter.GenerateDCF(masks[i]-masks[j], out ulong keyA, out ulong keyB); // mask1-mask2
+                    externalSystemAdapter.GenerateDPF(5, out byte[] keyA, out byte[] keyB); // mask1-mask2
                     keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
                     keysA[keyIndex] = keyA;
                     keysB[keyIndex] = keyB;
@@ -109,14 +107,14 @@ namespace MPCRandomnessClient
             }
         }
 
-        public static void GenerateDpfKeys(ulong[] masks, ulong[] keysA, ulong[] keysB)
+        public static void GenerateDpfKeys(uint[] masks, byte[][] keysA, byte[][] keysB)
         {
             int keyIndex;
             for (int i = 0; i < n; i++)
             {
                 foreach (int index in Enumerable.Range(0, n))
                 {
-                    externalSystemAdapter.GenerateDPF((ulong)index + masks[i], out ulong keyA, out ulong keyB);
+                    externalSystemAdapter.GenerateDPF((uint)index + masks[i], out byte[] keyA, out byte[] keyB);
                     keyIndex = i * n + index;
                     keysA[keyIndex] = keyA;
                     keysB[keyIndex] = keyB;

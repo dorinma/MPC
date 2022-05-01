@@ -8,14 +8,14 @@ namespace MPCProtocol
 {
     public static class Randomness
     {
-        public static ulong NextUInt64(this Random rnd)
+        public static uint NextUInt64(this Random rnd)
         {
-            var buffer = new byte[sizeof(ulong)];
+            var buffer = new byte[sizeof(uint)];
             rnd.NextBytes(buffer);
-            return BitConverter.ToUInt64(buffer, 0);
+            return BitConverter.ToUInt32(buffer, 0);
         }
 
-		public static void SplitToSecretShares(ulong[] elements, out ulong[] sharesA, out ulong[] sharesB)
+		public static void SplitToSecretShares(uint[] elements, out uint[] sharesA, out uint[] sharesB)
 		{
 			if (elements == null)
             {
@@ -24,25 +24,25 @@ namespace MPCProtocol
 				return;
             }
 
-            sharesA = new ulong[elements.Length];
-            sharesB = new ulong[elements.Length];
+            sharesA = new uint[elements.Length];
+            sharesB = new uint[elements.Length];
 
 			Random rnd = new Random();
 			for(int i = 0; i < elements.Length; i++)
 			{ 
                 // element = shareA - shareB
                 // shareB = shareA - element
-				ulong firstShare = rnd.NextUInt64();
+				uint firstShare = rnd.NextUInt64();
 				sharesA[i] = firstShare;
 				sharesB[i] = firstShare - elements[i];
-				//sharesB[i] = (elements[i] - firstShare + ulong.MaxValue + 1);
+				//sharesB[i] = (elements[i] - firstShare + uint.MaxValue + 1);
 			}
 		}
 
-        public static ulong[] CreateRandomMasks(int count)
+        public static uint[] CreateRandomMasks(int count)
         {
             Random rnd = new Random();
-            ulong[] masks = new ulong[count];
+            uint[] masks = new uint[count];
             for (int i = 0; i < count; i++)
             {
                 masks[i] = rnd.NextUInt64();

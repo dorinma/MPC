@@ -11,7 +11,7 @@ namespace MPCServer
     public class ManagerServer
     {
         static bool isDebugMode = true;
-        static ulong[] values;
+        static uint[] values;
         static CommunicationServer comm = new CommunicationServer();
         static string instance;
 
@@ -36,7 +36,7 @@ namespace MPCServer
                     for (int i = 0; i < values.Length; i++) Console.Write("\t" + values[i] + "\t");
                     Console.WriteLine("");
                 }
-                ulong[] res = Compute(OPERATION.E_OPER_SORT);
+                uint[] res = Compute(OPERATION.E_OPER_SORT);
 
                 if (!isDebugMode)
                 {
@@ -96,20 +96,20 @@ namespace MPCServer
             }
         }
 
-        public static ulong[] Compute(OPERATION op) 
+        public static uint[] Compute(OPERATION op) 
         {
             //swich case per operation 
             //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
             Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm);
             //Future code
             //Computer computer = new Computer(values, comm.requeset[op]);
-            ulong[] res = computer.Compute(op);
+            uint[] res = computer.Compute(op);
             return res;
         }
 
         public void SendResult() { }
 
-        public ulong[] SumOutputs() 
+        public uint[] SumOutputs() 
         {
             return null;
         }
