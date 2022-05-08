@@ -89,7 +89,7 @@ namespace MPCRandomnessClient
             {
                 Console.WriteLine("Success");
             }
-
+            int i = 8;
         }
 
         public static void GenerateDcfKeys(uint[] masks, byte[][] keysA, byte[][] keysB)
@@ -99,7 +99,16 @@ namespace MPCRandomnessClient
             {
                 for (int j = i+1; j < n; j++)
                 { 
-                    externalSystemAdapter.GenerateDPF(5, out byte[] keyA, out byte[] keyB); // mask1-mask2
+                    externalSystemAdapter.GenerateDCF(5, out byte[] keyA, out byte[] keyB); // mask1-mask2
+                    // ---------------------------
+                    uint a = 3437318326;
+                    uint b = 857648971;
+                    uint c = a + b;
+                    uint shareA = externalSystemAdapter.EvalDcf("A", keyA, 6);
+                    uint shareB = externalSystemAdapter.EvalDcf("B", keyB, 6);
+
+                    var x = shareA + shareB;
+                    // ---------------------------
                     keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
                     keysA[keyIndex] = keyA;
                     keysB[keyIndex] = keyB;
