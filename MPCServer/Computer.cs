@@ -5,15 +5,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace MPCServer
 {
-    class Computer
+        class Computer
     {
         private ulong[] data;
         private SortRandomRequest sortRandomRequest;
         private string instance;
         private DCFAdapter dcfAdapter = new DCFAdapter();
+        private DPFAdapter dpfAdapter = new DPFAdapter();
         private CommunicationServer comm;
 
         public Computer(ulong[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
@@ -35,7 +37,7 @@ namespace MPCServer
             }
 
             return null;
-        }
+        } 
 
         private ulong[] sortCompute()
         {
@@ -45,83 +47,129 @@ namespace MPCServer
             // second level - sum results
 
             int numOfElement = data.Length;
-            ulong[] sumResults = new ulong[numOfElement];
+            ulong[] sharesIndexes = new ulong[numOfElement];
 
             int n = sortRandomRequest.n;
-            ulong[] keys = sortRandomRequest.dcfKeys;
-            ulong[] diffValues = SumAerversShares(numOfElement);
-           
+            ulong[] dcfKeys = sortRandomRequest.dcfKeys;
+            ulong[] sumValuesMasks = SumServersShares(numOfElement);
+
+            ulong[] diffValues = SumEachPairValues(sumValuesMasks, numOfElement);
+
             int valuesIndex = 0;
 
             for (int i = 0; i < numOfElement; i++)
             {
-                for(int j = i + 1; j < numOfElement; j++)
+                for (int j = i + 1; j < numOfElement; j++)
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-                    ulong outputShare = dcfAdapter.Eval(instance, keys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
-                    sumResults[i] -= instance == "A" ? outputShare : (outputShare - 1);
-                    sumResults[j] += outputShare;
+                    ulong outputShare = dcfAdapter.Eval(instance, dcfKeys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
+                    sharesIndexes[i] -= instance == "A" ? outputShare : (outputShare - 1);
+                    sharesIndexes[j] += outputShare;
                     valuesIndex++;
                 }
             }
 
-            Console.WriteLine("shock but success");
-         
-            // third level - compare eatch value result to all possible indexes and placing in the returned list
+            //DEBUG
+            Console.WriteLine("Sum Results");
+            for (int i = 0; i < sharesIndexes.Length; i++)
+            {
+                Console.WriteLine("\t" + sharesIndexes[i] + "\t");
+            }
 
-            if (data.Length == 1)
-                return data;
-            else
-                return data;
+            // third level - compare eatch value result to all possible indexes and placing in the returned list
+            ulong[] sortList = new ulong[numOfElement];
+            ulong[] dpfKeys = sortRandomRequest.dpfKeys;
+            ulong[] sumIndexesMasks = sumIndexesWithMasks(sharesIndexes);
+
+            for (int i = 0; i < numOfElement; i++)
+            {
+                for (int j = 0; j < numOfElement; j++)
+                {
+                    sortList[j] += dpfAdapter.Eval(instance, dpfKeys[i], sumIndexesMasks[i] - (ulong)j, sumValuesMasks[i]);
+                }
+            }
+            return sortList;
         }
 
-        private ulong[] SumEachPairValues(ulong[] diffValues, int numOfElement)
+        private ulong[] SumEachPairValues(ulong[] sumValuesMasks, int numOfElement)
         {
-            ulong[] masks = sortRandomRequest.dcfMasks;
+            int nChoose2 = (numOfElement - 1) * numOfElement / 2;
+            ulong[] diffValues = new ulong[nChoose2];
+
             int currIndex = 0;
 
             for (int i = 0; i < numOfElement; i++)
             {
                 for (int j = i + 1; j < numOfElement; j++)
                 {
-                    diffValues[currIndex] += data[i] + masks[i] - (data[j] + masks[j]);
+                    diffValues[currIndex] += (sumValuesMasks[i] - sumValuesMasks[j]);
                     currIndex++;
                 }
             }
             return diffValues;
         }
 
-        private ulong[] SumAerversShares(int numOfElement)
+        private ulong[] SumEachValueWithMask(ulong[] sumValuesMasks)
         {
-            int nChoose2 = (numOfElement - 1) * numOfElement / 2;
-            ulong[] diffValues = new ulong[nChoose2];
-            ulong[] sharedData;
+            ulong[] masks = sortRandomRequest.dcfMasks;
+
+            for (int i = 0; i < sumValuesMasks.Length; i++)
+            {
+                sumValuesMasks[i] += data[i] + masks[i];
+            }
+            return sumValuesMasks;
+        }
+
+        private ulong[] SumServersShares(int numOfElement)
+        {
+            ulong[] sumValuesMasks = new ulong[numOfElement];
+            ulong[] x = new ulong[numOfElement];
 
             if (instance == "A")
-            {           
-                diffValues = SumEachPairValues(diffValues, numOfElement);
-                comm.SendServerData(diffValues);
-                sharedData = comm.AReciveServerData();
+            {
+                x = SumEachValueWithMask(x);
+                comm.SendServerData(x);
+                sumValuesMasks = comm.AReciveServerData();
             }
             else
             {
-                diffValues = comm.BReciveServerData();
-                sharedData = SumEachPairValues(diffValues, numOfElement);
-                comm.SendServerData(diffValues); 
+                x = comm.BReciveServerData();
+                sumValuesMasks = SumEachValueWithMask(x);
+                comm.SendServerData(sumValuesMasks);
             }
-            return sharedData;
+
+            return sumValuesMasks;
         }
 
-        public void SendMaskValues(ulong pValue) { }
-
-        public ulong ReceiveMaskedValues() 
+        private ulong[] sumIndexesWithMasks(ulong[] sharesIndexes)
         {
-            return 0;
+            ulong[] totalSumIndexesWithMasks = new ulong[sharesIndexes.Length];
+
+            if (instance == "A")
+            {
+                ulong[] sumIndexesWithMasks = sumIndexesMasks(sharesIndexes);
+                comm.SendServerData(sumIndexesWithMasks);
+                totalSumIndexesWithMasks = comm.AReciveServerData();
+            }
+            else
+            {
+                totalSumIndexesWithMasks = comm.BReciveServerData();
+                totalSumIndexesWithMasks = sumIndexesMasks(totalSumIndexesWithMasks);
+                comm.SendServerData(totalSumIndexesWithMasks);
+            }
+
+            return totalSumIndexesWithMasks;
         }
 
-        public void SetData(ulong[] pData)
+        private ulong[] sumIndexesMasks(ulong[] sharesIndexes)
         {
-            data = pData;
+            ulong[] sharesWithMasks = new ulong[sharesIndexes.Length];
+
+            for (int i = 0; i < sharesIndexes.Length; i++)
+            {
+                sharesWithMasks[i] += sharesWithMasks[i] + sortRandomRequest.dpfMasks[i];
+            }
+            return sharesWithMasks;
         }
 
     }

@@ -74,7 +74,7 @@ namespace MPCRandomnessClient
             }
         }
 
-        public void SendMasksAndKeys(int n, ulong[] dcfMasks, ulong[] dcfKeys, ulong[] dpfMasks, ulong[] dpfKeys)
+        public void SendMasksAndKeys(int n, ulong[] dcfMasks, ulong[] dcfKeys, ulong[] dpfMasks, ulong[] mBetaDpf, ulong[] dpfKeys)
         {
             SortRandomRequest sortRequest = new SortRandomRequest
             {
@@ -83,6 +83,7 @@ namespace MPCRandomnessClient
                 dcfMasks = dcfMasks,
                 dcfKeys = dcfKeys,
                 dpfMasks = dpfMasks,
+                mBetaDpf = mBetaDpf,
                 dpfKeys = dpfKeys
             };
 

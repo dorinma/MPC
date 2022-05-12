@@ -19,6 +19,9 @@ namespace MPCProtocol.Requests
         [JsonProperty("dpfMasks", Required = Required.Always)]
         public ulong[] dpfMasks { get; set; }
 
+        [JsonProperty("mBetaDpf", Required = Required.Always)]
+        public ulong[] mBetaDpf { get; set; }
+
         [JsonProperty("dpfKeys", Required = Required.Always)]
         public ulong[] dpfKeys { get; set; }
     }

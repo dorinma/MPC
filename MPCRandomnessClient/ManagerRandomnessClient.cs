@@ -15,7 +15,7 @@ namespace MPCRandomnessClient
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
         public const int dpfGatesCount = n*n; // first layer (dcf gates) - last layer (dpf gates) - n*n 
 
-        private static ExternalSystemAdapter externalSystemAdapter = new ExternalSystemAdapter(0, 0, 0);
+        private static ExternalSystemAdapter externalSystemAdapter = new ExternalSystemAdapter(0, 0);
 
         private static CommunicationRandClient communicationA;
         private static CommunicationRandClient communicationB;
@@ -51,20 +51,23 @@ namespace MPCRandomnessClient
             //generate keys
             ulong[] dcfKeysA = new ulong[dcfGatesCount];
             ulong[] dcfKeysB = new ulong[dcfGatesCount];
+
             
             GenerateDcfKeys(dcfMasks, dcfKeysA, dcfKeysB);
 
             //dpf
             //create masks and shares
             ulong[] dpfMasks = Randomness.CreateRandomMasks(dpfMasksCount);
+            ulong[] mBetaDpf = Randomness.CreateRandomMasks(dpfMasksCount);
             /*ulong[] dpfSharesA = new ulong[dpfMasksCount];
             ulong[] dpfSharesB = new ulong[dpfMasksCount];*/
             Randomness.SplitToSecretShares(dpfMasks, out ulong[] dpfSharesA, out ulong[] dpfSharesB);
+            Randomness.SplitToSecretShares(mBetaDpf, out ulong[] mBetaDpfA, out ulong[] mBetaDpfB);
             //generate keys
             ulong[] dpfKeysA = new ulong[dpfGatesCount];
             ulong[] dpfKeysB = new ulong[dpfGatesCount];
 
-            GenerateDpfKeys(dpfMasks, dpfKeysA, dpfKeysB);
+            GenerateDpfKeys(dpfMasks, mBetaDpf, dpfKeysA, dpfKeysB);
 
             // send to servers
             //connect
@@ -73,8 +76,8 @@ namespace MPCRandomnessClient
             communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
             //send (need to verify that both server recieved correctly)
-            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dpfSharesA, dpfKeysA);
-            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dpfSharesB, dpfKeysB);
+            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dpfSharesA, mBetaDpfA, dpfKeysA);
+            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dpfSharesB, mBetaDpfA, dpfKeysB);
             //recieve confirmation
             communicationA.Receive();
             communicationB.Receive();
@@ -101,7 +104,7 @@ namespace MPCRandomnessClient
             {
                 for (int j = i+1; j < n; j++)
                 { 
-                    externalSystemAdapter.GenerateDCF(masks[i]-masks[j], out ulong keyA, out ulong keyB); // mask1-mask2
+                    externalSystemAdapter.GenerateDCF(masks[i]-masks[j], 1, out ulong keyA, out ulong keyB); // mask1-mask2
                     keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
                     keysA[keyIndex] = keyA;
                     keysB[keyIndex] = keyB;
@@ -109,18 +112,13 @@ namespace MPCRandomnessClient
             }
         }
 
-        public static void GenerateDpfKeys(ulong[] masks, ulong[] keysA, ulong[] keysB)
+        public static void GenerateDpfKeys(ulong[] masks, ulong[] mBetaDpf, ulong[] keysA, ulong[] keysB)
         {
-            int keyIndex;
             for (int i = 0; i < n; i++)
             {
-                foreach (int index in Enumerable.Range(0, n))
-                {
-                    externalSystemAdapter.GenerateDPF((ulong)index + masks[i], out ulong keyA, out ulong keyB);
-                    keyIndex = i * n + index;
-                    keysA[keyIndex] = keyA;
-                    keysB[keyIndex] = keyB;
-                }
+                externalSystemAdapter.GenerateDPF(masks[i], 0 - mBetaDpf[i], out ulong keyA, out ulong keyB);
+                keysA[i] = keyA;
+                keysB[i] = keyB;
             }
         }
     }

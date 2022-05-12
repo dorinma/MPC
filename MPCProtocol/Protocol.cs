@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net.Sockets;
+using Newtonsoft.Json;
 
 namespace MPCProtocol
 {

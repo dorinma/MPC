@@ -43,6 +43,10 @@ namespace MPCProtocol
         {
             Random rnd = new Random();
             ulong[] masks = new ulong[count];
+
+            // todo delete
+            return masks;
+            
             for (int i = 0; i < count; i++)
             {
                 masks[i] = rnd.NextUInt64();
