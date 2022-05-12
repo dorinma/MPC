@@ -21,7 +21,7 @@ namespace MPCDataClient
 
         public string sessionId { get; set; }
         public string response = string.Empty;
-        public List<ulong> dataResponse = new List<ulong>();
+        public List<uint> dataResponse = new List<uint>();
 
         public void Connect(string serverIp, int serverPort)
         {
@@ -87,11 +87,11 @@ namespace MPCDataClient
             return sessionId;
         }
 
-        public void SendData(string sessionId, ulong[] data)
+        public void SendData(string sessionId, uint[] data)
         {
             Console.WriteLine("Send data to server");
             Console.WriteLine($"data {data.Length}");
-            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(ulong), data);
+            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(uint), data);
             Send(meesage);
         }
 

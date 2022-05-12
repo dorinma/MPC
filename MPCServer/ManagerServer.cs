@@ -107,13 +107,15 @@ namespace MPCServer
         {
             comm.sortRandomRequest.dpfMasks = comm.sortRandomRequest.dpfMasks.Skip(numOfElement).ToArray();
             comm.sortRandomRequest.dpfKeys = comm.sortRandomRequest.dpfKeys.Skip(numOfElement).ToArray();
+            comm.sortRandomRequest.dpfAesKeys = comm.sortRandomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
             comm.sortRandomRequest.dcfMasks = comm.sortRandomRequest.dcfMasks.Skip(numOfElement).ToArray();
 
-            ulong[] oldDcfKeys = comm.sortRandomRequest.dpfKeys;
+            string[] oldDcfKeys = comm.sortRandomRequest.dcfKeys;
+            string[] oldAesDcfKeys = comm.sortRandomRequest.dcfAesKeys;
             int oldDcfKeysSize = comm.sortRandomRequest.dcfKeys.Length;
             int[] isUsedIndex = new int[oldDcfKeysSize];
             int newDcfKeysSize = oldDcfKeysSize - (numOfElement * (numOfElement - 1) / 2); // num of comparisons
-            ulong[] newDcfKeys = new ulong[newDcfKeysSize];
+            string[] newDcfKeys = new string[newDcfKeysSize];
             int index = 0;
 
             for (int i = 0; i < numOfElement; i++)

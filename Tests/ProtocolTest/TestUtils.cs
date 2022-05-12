@@ -12,7 +12,7 @@ namespace Tests.ProtocolTest
             var output = new ulong[size];
             for (int i = 0; i < size; i++)
             {
-                output[i] = random.NextUInt64();
+                output[i] = random.NextUInt32();
             }
             return output;
         }

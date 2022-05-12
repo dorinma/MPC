@@ -11,7 +11,7 @@
     {
         static bool debug = true;
         UserService userService;
-        ulong[] data;
+        uint[] data;
         //CommunicationDataClient<UInt16> commServerA;
 
         private static UserService userService1 = new UserService();
@@ -64,9 +64,9 @@
                 communicationA.Connect(ip1, port1);
             }
             
-            ulong[] data = userService1.ReadData().ToArray();
+            uint[] data = userService1.ReadData().ToArray();
 
-            Randomness.SplitToSecretShares(data, out ulong[] serverAShares, out ulong[] serverBShares);
+            Randomness.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
             /*DataService dataService = new DataService();
             dataService.GenerateSecretShares(data);*/
 
@@ -94,7 +94,7 @@
                 Console.WriteLine($"Server B list: {String.Join(", ", communicationB.dataResponse)}");*/
 
                 Console.WriteLine(
-                    $"Output list: {String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (ulong)(x + y); }).ToList())}");
+                    $"Output list: {String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList())}");
             }
 
             if (communicationA.response.Length > 0)

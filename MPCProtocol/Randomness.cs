@@ -8,14 +8,14 @@ namespace MPCProtocol
 {
     public static class Randomness
     {
-        public static uint NextUInt64(this Random rnd)
+        public static uint NextUInt32(this Random rnd)
         {
             var buffer = new byte[sizeof(uint)];
             rnd.NextBytes(buffer);
             return BitConverter.ToUInt32(buffer, 0);
         }
 
-		public static void SplitToSecretShares(uint[] elements, out uint[] sharesA, out uint[] sharesB)
+        public static void SplitToSecretShares(uint[] elements, out uint[] sharesA, out uint[] sharesB)
 		{
 			if (elements == null)
             {
@@ -32,7 +32,7 @@ namespace MPCProtocol
 			{ 
                 // element = shareA - shareB
                 // shareB = shareA - element
-				uint firstShare = rnd.NextUInt64();
+				uint firstShare = rnd.NextUInt32();
 				sharesA[i] = firstShare;
 				sharesB[i] = firstShare - elements[i];
 				//sharesB[i] = (elements[i] - firstShare + uint.MaxValue + 1);
@@ -45,7 +45,7 @@ namespace MPCProtocol
             uint[] masks = new uint[count];
             for (int i = 0; i < count; i++)
             {
-                masks[i] = rnd.NextUInt64();
+                masks[i] = rnd.NextUInt32();
             }
             return masks;
         }

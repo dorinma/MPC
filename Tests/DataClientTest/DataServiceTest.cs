@@ -11,20 +11,20 @@ namespace Tests.DataClientTest
     {
         [Theory]
         [MemberData(nameof(Data))]
-        public void CanAddTheoryMemberDataProperty(ulong[] inputList)
+        public void CanAddTheoryMemberDataProperty(uint[] inputList)
         {
-            Randomness.SplitToSecretShares(inputList, out ulong[] serverAList, out ulong[] serverBList);
+            Randomness.SplitToSecretShares(inputList, out uint[] serverAList, out uint[] serverBList);
             Assert.Equal(inputList, SumList(serverAList, serverBList));
         }
 
-        private ulong[] SumList(ulong[] listA, ulong[] listB)
+        private uint[] SumList(uint[] listA, uint[] listB)
         {
             return listA.Zip(listB, SumUints).ToArray();
         }
 
-        private ulong SumUints(ulong a, ulong b)
+        private uint SumUints(uint a, uint b)
         {
-            return (ulong)(a + b);
+            return (uint)(a + b);
         }
 
         public static IEnumerable<object[]> Data() {
@@ -35,12 +35,12 @@ namespace Tests.DataClientTest
 
             yield return new object[]
             {
-                new ulong[]{ 1, 2, 3 }
+                new uint[]{ 1, 2, 3 }
             };
 
             yield return new object[]
             {
-                new ulong[0]
+                new uint[0]
             };
         }
     }

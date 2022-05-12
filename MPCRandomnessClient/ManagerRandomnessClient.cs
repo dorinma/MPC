@@ -9,7 +9,7 @@ namespace MPCRandomnessClient
 {
     public class ManagerRandomnessClient
     {
-        public const int n = 2; // n
+        public const int n = 3; // n
         public const int dcfMasksCount = n; // mask for each input element
         public const int dpfMasksCount = n; // mask for each element's index sum 
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
@@ -58,10 +58,11 @@ namespace MPCRandomnessClient
             uint[] dpfMasks = Randomness.CreateRandomMasks(dpfMasksCount);
             Randomness.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
             //generate keys
-            byte[][] dpfKeysA = new byte[dpfGatesCount][];
-            byte[][] dpfKeysB = new byte[dpfGatesCount][];
+            string[] dpfKeysA = new string[dpfGatesCount];
+            string[] dpfKeysB = new string[dpfGatesCount];
+            string[] dpfAesKeys = new string[dpfGatesCount];
 
-            GenerateDpfKeys(dpfMasks, mBetaDpf, dpfKeysA, dpfKeysB);
+            GenerateDpfKeys(dpfMasks, dcfMasks, dpfKeysA, dpfKeysB, dpfAesKeys);
 
             // send to servers
             //connect
@@ -70,8 +71,8 @@ namespace MPCRandomnessClient
             communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
             //send (need to verify that both server recieved correctly)
-            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dcfAesKeys, dpfSharesA, dpfKeysA);
-            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dcfAesKeys, dpfSharesB, dpfKeysB);
+            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dcfAesKeys, dpfSharesA, dpfKeysA, dpfAesKeys);
+            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dcfAesKeys, dpfSharesB, dpfKeysB, dpfAesKeys);
             //recieve confirmation
             communicationA.Receive();
             communicationB.Receive();
@@ -107,13 +108,14 @@ namespace MPCRandomnessClient
             }
         }
 
-        public static void GenerateDpfKeys(uint[] masks, uint[] outputMasks, string[] keysA, string[] keysB)
+        public static void GenerateDpfKeys(uint[] masks, uint[] outputMasks, string[] keysA, string[] keysB, string[] aesKeys)
         {
             for (int i = 0; i < n; i++)
             {
                 externalSystemAdapter.GenerateDPF(masks[i], 0 - outputMasks[i], out string keyA, out string keyB, out string aesKey);
                 keysA[i] = keyA;
                 keysB[i] = keyB;
+                aesKeys[i] = aesKey;
             }
         }
     }

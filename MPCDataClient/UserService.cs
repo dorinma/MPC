@@ -99,13 +99,13 @@ namespace MPCDataClient
             return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
         }
 
-        public List<ulong> ReadData()
+        public List<uint> ReadData()
         {
             Console.WriteLine("Insert data file path");
             string path = Console.ReadLine();
-            path = @"C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv";
+            path = @"C:\Users\eden\Desktop\BGU\Project\MPC\inputFile.csv";
             //path = @"C:\Users\דורין\Downloads\";
-            path = "C:\\Users\\hodaya\\Desktop\\test.csv";
+            //path = "C:\\Users\\hodaya\\Desktop\\test.csv";
             try
             {
                 return ParseFile(path);
@@ -125,7 +125,7 @@ namespace MPCDataClient
             return null;
         }
 
-        public List<ulong> ReadData(string filePath)
+        public List<uint> ReadData(string filePath)
         {
             try
             {
@@ -146,16 +146,16 @@ namespace MPCDataClient
             }
         }
 
-        public List<ulong> ParseFile(string path)
+        public List<uint> ParseFile(string path)
         {
-            List<ulong> output = new List<ulong>();
+            List<uint> output = new List<uint>();
             Stream fileStream = fileSystem.File.OpenRead(path);
             using (var reader = new StreamReader(fileStream))
             {
                 reader.ReadLine(); //skip column name
                 while (!reader.EndOfStream)
                 {
-                    output.Add(ulong.Parse(reader.ReadLine()));
+                    output.Add(uint.Parse(reader.ReadLine()));
                 }
             }
 

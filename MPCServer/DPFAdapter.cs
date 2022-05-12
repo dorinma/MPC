@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace MPCServer
 {
-    class DPFAdapter
+    public class DPFAdapter
     {
-        public ulong Eval(string serverIndex, ulong key, ulong inputSum, ulong maskedOrignalInput)
+        public uint Eval(string serverIndex, string key, string aesKey, uint inputSum, uint maskedOrignalInput)
         {
             return 0;
         }

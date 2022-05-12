@@ -22,10 +22,10 @@ namespace MPCProtocol.Requests
         [JsonProperty("dpfMasks", Required = Required.Always)]
         public uint[] dpfMasks { get; set; }
 
-        [JsonProperty("mBetaDpf", Required = Required.Always)]
-        public ulong[] mBetaDpf { get; set; }
-
         [JsonProperty("dpfKeys", Required = Required.Always)]
-        public byte[][] dpfKeys { get; set; }
+        public string[] dpfKeys { get; set; }
+
+        [JsonProperty("dpfAesKeys", Required = Required.Always)]
+        public string[] dpfAesKeys { get; set; }
     }
 }

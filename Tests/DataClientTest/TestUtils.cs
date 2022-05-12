@@ -14,7 +14,7 @@ namespace Tests.DataClientTest
             var output = new ulong[size];
             for (int i = 0; i < size; i++)
             {
-                output[i] = ((ulong)random.Next(1000));
+                output[i] = ((uint)random.Next(1000));
             }
             return output;
         }

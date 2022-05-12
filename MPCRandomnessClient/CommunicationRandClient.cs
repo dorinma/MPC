@@ -74,7 +74,7 @@ namespace MPCRandomnessClient
             }
         }
 
-        public void SendMasksAndKeys(int n, uint[] dcfMasks, string[] dcfKeys, string[] dcfAesKeys, uint[] dpfMasks, byte[][] dpfKeys)
+        public void SendMasksAndKeys(int n, uint[] dcfMasks, string[] dcfKeys, string[] dcfAesKeys, uint[] dpfMasks, string[] dpfKeys, string[] dpfAesKeys)
         {
             SortRandomRequest sortRequest = new SortRandomRequest
             {
@@ -84,7 +84,8 @@ namespace MPCRandomnessClient
                 dcfKeys = dcfKeys,
                 dcfAesKeys = dcfAesKeys,
                 dpfMasks = dpfMasks,
-                dpfKeys = dpfKeys
+                dpfKeys = dpfKeys,
+                dpfAesKeys = dpfAesKeys
             };
 
             string message = JsonConvert.SerializeObject(sortRequest);

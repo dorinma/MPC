@@ -9,26 +9,26 @@ namespace Tests.ProtocolTest
     {
         [Theory]
         [MemberData(nameof(ListsToSplit))]
-        public void SplitToSecretShares_Success(ulong[] inputList)
+        public void SplitToSecretShares_Success(uint[] inputList)
         {
-            Randomness.SplitToSecretShares(inputList, out ulong[] sharesA, out ulong[] sharesB);
+            Randomness.SplitToSecretShares(inputList, out uint[] sharesA, out uint[] sharesB);
             Assert.Equal(inputList, SumList(sharesA, sharesB));
         }
 
         [Fact]
         public void SplitToSecretShares_Faliure()
         {
-            Randomness.SplitToSecretShares(null, out ulong[] sharesA, out ulong[] sharesB); //assert not throw
+            Randomness.SplitToSecretShares(null, out uint[] sharesA, out uint[] sharesB); //assert not throw
         }
 
-        private ulong[] SumList(ulong[] listA, ulong[] listB)
+        private uint[] SumList(uint[] listA, uint[] listB)
         {
-            return (ulong[])listA.Zip(listB, SumUints).ToArray();
+            return (uint[])listA.Zip(listB, SumUints).ToArray();
         }
 
-        private ulong SumUints(ulong a, ulong b)
+        private uint SumUints(uint a, uint b)
         {
-            return (ulong)(a - b);
+            return (uint)(a - b);
         }
 
         public static IEnumerable<object[]> ListsToSplit()
@@ -40,12 +40,12 @@ namespace Tests.ProtocolTest
 
             yield return new object[]
             {
-                new ulong[] { 1, 2, 3 }
+                new uint[] { 1, 2, 3 }
             };
 
             yield return new object[]
             {
-                new ulong[0]
+                new uint[0]
             };
         }
     }

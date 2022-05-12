@@ -79,14 +79,15 @@ namespace MPCServer
 
             // third level - compare eatch value result to all possible indexes and placing in the returned list
             uint[] sortList = new uint[numOfElement];
-            uint[] dpfKeys = sortRandomRequest.dpfKeys;
+            string[] dpfKeys = sortRandomRequest.dpfKeys;
+            string[] dpfAesKeys = sortRandomRequest.dpfAesKeys;
             uint[] sumIndexesMasks = sumIndexesWithMasks(sharesIndexes);
 
             for (int i = 0; i < numOfElement; i++)
             {
                 for (int j = 0; j < numOfElement; j++)
                 {
-                    sortList[j] += dpfAdapter.Eval(instance, dpfKeys[i], sumIndexesMasks[i] - (uint)j, sumValuesMasks[i]);
+                    sortList[j] += dpfAdapter.Eval(instance, dpfKeys[i], dpfAesKeys[i], sumIndexesMasks[i] - (uint)j, sumValuesMasks[i]);
                 }
             }
             return sortList;
