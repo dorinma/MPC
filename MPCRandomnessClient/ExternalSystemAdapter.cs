@@ -62,7 +62,7 @@ namespace MPCRandomnessClient
             key2 = PointersToBytes(keys.keyB, keys.aesKeys, dcfKeySize, aesKeysSize);*/
         }
 
-        public void GenerateDPF(uint maskedFixedPoint, out byte[] keyA, out byte[] keyB)
+        public void GenerateDPF(uint maskedFixedPoint, uint beta, out string keyA, out string keyB)
         {
             keyA = null;
             keyB = null;

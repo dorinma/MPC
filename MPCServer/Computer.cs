@@ -5,15 +5,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace MPCServer
 {
-    class Computer
+        class Computer
     {
         private uint[] data;
         private SortRandomRequest sortRandomRequest;
         private string instance;
         private DCFAdapter dcfAdapter = new DCFAdapter();
+        private DPFAdapter dpfAdapter = new DPFAdapter();
         private CommunicationServer comm;
 
         public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
@@ -35,7 +37,7 @@ namespace MPCServer
             }
 
             return null;
-        }
+        } 
 
         private uint[] sortCompute()
         {
@@ -45,84 +47,130 @@ namespace MPCServer
             // second level - sum results
 
             int numOfElement = data.Length;
-            uint[] sumResults = new uint[numOfElement];
+            uint[] sharesIndexes = new uint[numOfElement];
 
             int n = sortRandomRequest.n;
-            string[] keys = sortRandomRequest.dcfKeys;
+            string[] dcfKeys = sortRandomRequest.dcfKeys;
             string[] dcfAesKeys = sortRandomRequest.dcfAesKeys;
-            uint[] diffValues = SumAerversShares(numOfElement);
-           
+            uint[] sumValuesMasks = SumServersShares(numOfElement);
+
+            uint[] diffValues = SumEachPairValues(sumValuesMasks, numOfElement);
+
             int valuesIndex = 0;
 
             for (int i = 0; i < numOfElement; i++)
             {
-                for(int j = i + 1; j < numOfElement; j++)
+                for (int j = i + 1; j < numOfElement; j++)
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-                    uint outputShare = dcfAdapter.EvalDCF(instance, keys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
-                    sumResults[i] -= instance == "A" ? outputShare : (outputShare - 1);
-                    sumResults[j] += outputShare;
+                    uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
+                    sharesIndexes[i] -= instance == "A" ? outputShare : (outputShare - 1);
+                    sharesIndexes[j] += outputShare;
                     valuesIndex++;
                 }
             }
 
-            Console.WriteLine("shock but success");
-         
-            // third level - compare eatch value result to all possible indexes and placing in the returned list
+            //DEBUG
+            Console.WriteLine("Sum Results");
+            for (int i = 0; i < sharesIndexes.Length; i++)
+            {
+                Console.WriteLine("\t" + sharesIndexes[i] + "\t");
+            }
 
-            if (data.Length == 1)
-                return data;
-            else
-                return data;
+            // third level - compare eatch value result to all possible indexes and placing in the returned list
+            uint[] sortList = new uint[numOfElement];
+            uint[] dpfKeys = sortRandomRequest.dpfKeys;
+            uint[] sumIndexesMasks = sumIndexesWithMasks(sharesIndexes);
+
+            for (int i = 0; i < numOfElement; i++)
+            {
+                for (int j = 0; j < numOfElement; j++)
+                {
+                    sortList[j] += dpfAdapter.Eval(instance, dpfKeys[i], sumIndexesMasks[i] - (uint)j, sumValuesMasks[i]);
+                }
+            }
+            return sortList;
         }
 
-        private uint[] SumEachPairValues(uint[] diffValues, int numOfElement)
+        private uint[] SumEachPairValues(uint[] sumValuesMasks, int numOfElement)
         {
-            uint[] masks = sortRandomRequest.dcfMasks;
+            int nChoose2 = (numOfElement - 1) * numOfElement / 2;
+            uint[] diffValues = new uint[nChoose2];
+
             int currIndex = 0;
 
             for (int i = 0; i < numOfElement; i++)
             {
                 for (int j = i + 1; j < numOfElement; j++)
                 {
-                    diffValues[currIndex] += data[i] + masks[i] - (data[j] + masks[j]);
+                    diffValues[currIndex] += (sumValuesMasks[i] - sumValuesMasks[j]);
                     currIndex++;
                 }
             }
             return diffValues;
         }
 
-        private uint[] SumAerversShares(int numOfElement)
+        private uint[] SumEachValueWithMask(uint[] sumValuesMasks)
         {
-            int nChoose2 = (numOfElement - 1) * numOfElement / 2;
-            uint[] diffValues = new uint[nChoose2];
-            uint[] sharedData;
+            uint[] masks = sortRandomRequest.dcfMasks;
+
+            for (int i = 0; i < sumValuesMasks.Length; i++)
+            {
+                sumValuesMasks[i] += data[i] + masks[i];
+            }
+            return sumValuesMasks;
+        }
+
+        private uint[] SumServersShares(int numOfElement)
+        {
+            uint[] sumValuesMasks = new uint[numOfElement];
+            uint[] x = new uint[numOfElement];
 
             if (instance == "A")
-            {           
-                diffValues = SumEachPairValues(diffValues, numOfElement);
-                comm.SendServerData(diffValues);
-                sharedData = comm.AReciveServerData();
+            {
+                x = SumEachValueWithMask(x);
+                comm.SendServerData(x);
+                sumValuesMasks = comm.AReciveServerData();
             }
             else
             {
-                diffValues = comm.BReciveServerData();
-                sharedData = SumEachPairValues(diffValues, numOfElement);
-                comm.SendServerData(diffValues); 
+                x = comm.BReciveServerData();
+                sumValuesMasks = SumEachValueWithMask(x);
+                comm.SendServerData(sumValuesMasks);
             }
-            return sharedData;
+
+            return sumValuesMasks;
         }
 
-        public void SendMaskValues(uint pValue) { }
-
-        public uint ReceiveMaskedValues() 
+        private uint[] sumIndexesWithMasks(uint[] sharesIndexes)
         {
-            return 0;
+            uint[] totalSumIndexesWithMasks = new uint[sharesIndexes.Length];
+
+            if (instance == "A")
+            {
+                uint[] sumIndexesWithMasks = sumIndexesMasks(sharesIndexes);
+                comm.SendServerData(sumIndexesWithMasks);
+                totalSumIndexesWithMasks = comm.AReciveServerData();
+            }
+            else
+            {
+                totalSumIndexesWithMasks = comm.BReciveServerData();
+                totalSumIndexesWithMasks = sumIndexesMasks(totalSumIndexesWithMasks);
+                comm.SendServerData(totalSumIndexesWithMasks);
+            }
+
+            return totalSumIndexesWithMasks;
         }
 
-        public void SetData(uint[] pData)
+        private uint[] sumIndexesMasks(uint[] sharesIndexes)
         {
-            data = pData;
+            uint[] sharesWithMasks = new uint[sharesIndexes.Length];
+
+            for (int i = 0; i < sharesIndexes.Length; i++)
+            {
+                sharesWithMasks[i] += sharesWithMasks[i] + sortRandomRequest.dpfMasks[i];
+            }
+            return sharesWithMasks;
         }
 
     }

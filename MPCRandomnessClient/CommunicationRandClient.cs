@@ -80,7 +80,7 @@ namespace MPCRandomnessClient
             {
                 sessionId = sessionId,
                 n = n,
-                dcfMasks = dcfMasks,
+                dcfMasks = dcfMasks, //also masks for the dpf output
                 dcfKeys = dcfKeys,
                 dcfAesKeys = dcfAesKeys,
                 dpfMasks = dpfMasks,
@@ -92,9 +92,6 @@ namespace MPCRandomnessClient
         }
         private void Send(byte[] byteData)
         {
-            // Convert the string data to byte data using ASCII encoding.  
-            //byte[] byteData = Encoding.ASCII.GetBytes(data);
-
             // Begin sending the data to the remote device.  
             socket.BeginSend(byteData, 0, byteData.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }

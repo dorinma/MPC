@@ -8,7 +8,7 @@ namespace MPCServer
 {
     class DPFAdapter
     {
-        public ulong Eval(int serverIndex, ulong key, ulong inputSum, ulong maskedOrignalInput)
+        public ulong Eval(string serverIndex, ulong key, ulong inputSum, ulong maskedOrignalInput)
         {
             return 0;
         }

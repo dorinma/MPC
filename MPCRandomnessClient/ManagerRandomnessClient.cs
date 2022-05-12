@@ -61,7 +61,7 @@ namespace MPCRandomnessClient
             byte[][] dpfKeysA = new byte[dpfGatesCount][];
             byte[][] dpfKeysB = new byte[dpfGatesCount][];
 
-            GenerateDpfKeys(dpfMasks, dpfKeysA, dpfKeysB);
+            GenerateDpfKeys(dpfMasks, mBetaDpf, dpfKeysA, dpfKeysB);
 
             // send to servers
             //connect
@@ -98,7 +98,7 @@ namespace MPCRandomnessClient
             {
                 for (int j = i+1; j < n; j++)
                 {
-                    externalSystemAdapter.GenerateDCF(5, out string keyA, out string keyB, out string aesKey); // mask1-mask2
+                    externalSystemAdapter.GenerateDCF(masks[i]-masks[j], out string keyA, out string keyB, out string aesKey); // mask1-mask2
                     keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
                     keysA[keyIndex] = keyA;
                     keysB[keyIndex] = keyB;
@@ -107,18 +107,13 @@ namespace MPCRandomnessClient
             }
         }
 
-        public static void GenerateDpfKeys(uint[] masks, byte[][] keysA, byte[][] keysB)
+        public static void GenerateDpfKeys(uint[] masks, uint[] outputMasks, string[] keysA, string[] keysB)
         {
-            int keyIndex;
             for (int i = 0; i < n; i++)
             {
-                foreach (int index in Enumerable.Range(0, n))
-                {
-                    externalSystemAdapter.GenerateDPF((uint)index + masks[i], out byte[] keyA, out byte[] keyB);
-                    keyIndex = i * n + index;
-                    keysA[keyIndex] = keyA;
-                    keysB[keyIndex] = keyB;
-                }
+                externalSystemAdapter.GenerateDPF(masks[i], 0 - outputMasks[i], out string keyA, out string keyB, out string aesKey);
+                keysA[i] = keyA;
+                keysB[i] = keyB;
             }
         }
     }

@@ -2,7 +2,7 @@
   "profiles": {
     "MPCServer": {
       "commandName": "Project",
-      "commandLineArgs": "A 127.0.0.1 -d"
+      "commandLineArgs": "127.0.0.1 -d"
     }
   }
 }

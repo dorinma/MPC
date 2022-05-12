@@ -15,6 +15,7 @@ namespace MPCServer
     public class CommunicationServer
     {
         private ManualResetEvent acceptDone;
+        private ManualResetEvent reciveDone;
         private ManualResetEvent sendDone;
         private ManualResetEvent connectServerDone;
         private ManualResetEvent serversSend;
@@ -28,8 +29,6 @@ namespace MPCServer
         private int totalUsers;
         private int connectedUsers;
         private string sessionId;
-
-        private bool readyToCompute = false;
 
         public SortRandomRequest sortRandomRequest = default;
         //Future code
@@ -52,12 +51,13 @@ namespace MPCServer
             values = new List<uint>();
             sessionId = string.Empty;
             clientsSockets = new List<Socket>();
-            serverState = SERVER_STATE.FIRST_INIT;
+            serverState = SERVER_STATE.OFFLINE;
 
             acceptDone = new ManualResetEvent(false);
             sendDone = new ManualResetEvent(false);
             connectServerDone = new ManualResetEvent(false);
             serversSend = new ManualResetEvent(false);
+            reciveDone = new ManualResetEvent(false);
         }
 
         public void setInstance(string instance)
@@ -78,7 +78,7 @@ namespace MPCServer
             sendDone.Reset();
             connectServerDone.Reset();
             serversSend.Reset();
-            readyToCompute = false; // TODO think about it..
+            reciveDone.Reset();
         }
 
         public void OpenSocket()
@@ -111,12 +111,11 @@ namespace MPCServer
         {
             try
             {
-                while (serverState == SERVER_STATE.FIRST_INIT || connectedUsers < totalUsers || !readyToCompute)
+                while (serverState == SERVER_STATE.OFFLINE || serverState == SERVER_STATE.FIRST_INIT || connectedUsers < totalUsers)
                 {
                     WaitToRecive();
                 }
                 Console.WriteLine("exit while");
-                //endSession.waitOne 
                 return values.ToArray();
             }
             catch (Exception e)
@@ -142,23 +141,6 @@ namespace MPCServer
             handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                 new AsyncCallback(RecieveCallback), state);
         }
-
-        /*public void AcceptCallback2(IAsyncResult ar)
-        {
-            // Get the socket that handles the client request.  
-            Socket listener = (Socket)ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
-
-            // Signal the main thread to continue.  
-            connectServerDone.Set();
-
-            // Create the state object.  
-            StateObject state = new StateObject();
-            state.workSocket = handler;
-
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(RecieveCallback), state);
-        }*/
 
         public void RecieveCallback(IAsyncResult ar)
         {
@@ -186,9 +168,6 @@ namespace MPCServer
                 }
 
                 AnalyzeMessage(opcode, MsgData, handler);
-
-                /*clientsSockets.Add(handler);
-                connectedUsers++;*/
 
                 handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(RecieveCallback), state);
@@ -244,11 +223,7 @@ namespace MPCServer
 
         private bool ValidateServerState(OPCODE_MPC opcode)
         {
-            if (opcode != OPCODE_MPC.E_OPCODE_RANDOM_SORT)
-            {
-                return ServerConstants.statesMap[opcode] == serverState;
-            }
-            return true;
+            return ServerConstants.statesMap[opcode] == serverState;
         }
 
         public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] data, Socket socket)
@@ -292,19 +267,16 @@ namespace MPCServer
 
         private void HandleSortRandomness(byte[] data, Socket socket)
         {
-            if (serverState != SERVER_STATE.COMPUTATION)
+            sortRandomRequest = JsonConvert.DeserializeObject<SortRandomRequest>(Encoding.Default.GetString(data)) ?? default;
+            if (sortRandomRequest != default) // send confirmation
             {
-                sortRandomRequest = JsonConvert.DeserializeObject<SortRandomRequest>(Encoding.Default.GetString(data)) ?? default;
-                if (sortRandomRequest != default) // send confirmation
-                {
-                    Send(socket, protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
-                    new DCFAdapter().Eval(instance, sortRandomRequest.dcfKeys[0], 5);
-                    readyToCompute = true;
-                }
-                else // Error - wrong format
-                {
-                    SendError(socket, "Bad random sort request");
-                }
+                Send(socket, protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
+                //new DCFAdapter().Eval(instance, sortRandomRequest.dcfKeys[0], 5);
+                serverState = SERVER_STATE.FIRST_INIT;
+            }
+            else // Error - wrong format
+            {
+                SendError(socket, "Bad random sort request");
             }
         }
 
@@ -460,17 +432,19 @@ namespace MPCServer
             if (protocol.GetExchangeData(data, out exchangeData))
             {
                 Console.WriteLine($"Exchange Data success");
-                acceptDone.Set();
                 if (instance == "B")
                 {
                     memberServerSocket = socket;
+                    acceptDone.Set();
+                }
+                else
+                {
+                    reciveDone.Set();
                 }
             }
-            else
+            else // Error - wrong format
             {
-                // Failed to parse parameters
-                Console.WriteLine($"Failed to parse server to server int message.");
-                return;
+                SendError(socket, "Bad exchangeData");
             }
         }
 
@@ -483,7 +457,7 @@ namespace MPCServer
 
         internal uint[] AReciveServerData()
         {
-            acceptDone.Reset();
+            reciveDone.Reset();
             try
             {
                 // Create the state object.  
@@ -497,7 +471,7 @@ namespace MPCServer
             {
                 Console.WriteLine(e.ToString());
             }
-            acceptDone.WaitOne();
+            reciveDone.WaitOne();
 
             Console.WriteLine("recive A done :)");
             return exchangeData.ToArray();
@@ -505,7 +479,10 @@ namespace MPCServer
 
         internal uint[] BReciveServerData()
         {
+            Console.WriteLine("recive ...");
+
             WaitToRecive();
+
             Console.WriteLine("recive B done :)");
             return exchangeData.ToArray();
         }
