@@ -48,7 +48,8 @@ namespace MPCServer
             uint[] sumResults = new uint[numOfElement];
 
             int n = sortRandomRequest.n;
-            byte[][] keys = sortRandomRequest.dcfKeys;
+            string[] keys = sortRandomRequest.dcfKeys;
+            string[] dcfAesKeys = sortRandomRequest.dcfAesKeys;
             uint[] diffValues = SumAerversShares(numOfElement);
            
             int valuesIndex = 0;
@@ -58,7 +59,7 @@ namespace MPCServer
                 for(int j = i + 1; j < numOfElement; j++)
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-                    uint outputShare = dcfAdapter.Eval(instance, keys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
+                    uint outputShare = dcfAdapter.EvalDCF(instance, keys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
                     sumResults[i] -= instance == "A" ? outputShare : (outputShare - 1);
                     sumResults[j] += outputShare;
                     valuesIndex++;

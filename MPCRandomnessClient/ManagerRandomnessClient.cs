@@ -45,14 +45,13 @@ namespace MPCRandomnessClient
             //dcf
             //create masks and shares
             uint[] dcfMasks = Randomness.CreateRandomMasks(dcfMasksCount);
-            /*uint[] dcfSharesA = new uint[dcfMasksCount];
-            uint[] dcfSharesB = new uint[dcfMasksCount];*/
             Randomness.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB);
             //generate keys
-            byte[][] dcfKeysA = new byte[dcfGatesCount][];
-            byte[][] dcfKeysB = new byte[dcfGatesCount][];
+            string[] dcfKeysA = new string[dcfGatesCount];
+            string[] dcfKeysB = new string[dcfGatesCount];
+            string[] dcfAesKeys = new string[dcfGatesCount];
             
-            GenerateDcfKeys(dcfMasks, dcfKeysA, dcfKeysB);
+            GenerateDcfKeys(dcfMasks, dcfKeysA, dcfKeysB, dcfAesKeys);
 
             //dpf
             //create masks and shares
@@ -71,8 +70,8 @@ namespace MPCRandomnessClient
             communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
             //send (need to verify that both server recieved correctly)
-            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dpfSharesA, dpfKeysA);
-            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dpfSharesB, dpfKeysB);
+            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dcfAesKeys, dpfSharesA, dpfKeysA);
+            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dcfAesKeys, dpfSharesB, dpfKeysB);
             //recieve confirmation
             communicationA.Receive();
             communicationB.Receive();
@@ -92,26 +91,18 @@ namespace MPCRandomnessClient
             int i = 8;
         }
 
-        public static void GenerateDcfKeys(uint[] masks, byte[][] keysA, byte[][] keysB)
+        public static void GenerateDcfKeys(uint[] masks, string[] keysA, string[] keysB, string[] aesKeys)
         {
             int keyIndex;
             for(int i = 0; i < n; i++)
             {
                 for (int j = i+1; j < n; j++)
-                { 
-                    externalSystemAdapter.GenerateDCF(5, out byte[] keyA, out byte[] keyB); // mask1-mask2
-                    // ---------------------------
-                    uint a = 3437318326;
-                    uint b = 857648971;
-                    uint c = a + b;
-                    uint shareA = externalSystemAdapter.EvalDcf("A", keyA, 6);
-                    uint shareB = externalSystemAdapter.EvalDcf("B", keyB, 6);
-
-                    var x = shareA + shareB;
-                    // ---------------------------
+                {
+                    externalSystemAdapter.GenerateDCF(5, out string keyA, out string keyB, out string aesKey); // mask1-mask2
                     keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
                     keysA[keyIndex] = keyA;
                     keysB[keyIndex] = keyB;
+                    aesKeys[keyIndex] = aesKey;
                 }
             }
         }

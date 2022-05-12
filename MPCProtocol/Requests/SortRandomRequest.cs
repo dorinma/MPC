@@ -14,7 +14,10 @@ namespace MPCProtocol.Requests
         public uint[] dcfMasks { get; set; }
 
         [JsonProperty("dcfKeys", Required = Required.Always)]
-        public byte[][] dcfKeys { get; set; }
+        public string[] dcfKeys { get; set; }
+
+        [JsonProperty("dcfAesKeys", Required = Required.Always)]
+        public string[] dcfAesKeys { get; set; }
 
         [JsonProperty("dpfMasks", Required = Required.Always)]
         public uint[] dpfMasks { get; set; }

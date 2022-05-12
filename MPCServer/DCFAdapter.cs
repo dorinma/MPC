@@ -9,6 +9,16 @@ namespace MPCServer
         [DllImport(@"C:\Users\דורין\Desktop\ExtLibs\MPC_master\MPC\MPCRandomnessClient\ExtLibs\sycret.dll")]
         private static extern UInt32 eval_(IntPtr key, IntPtr aesKeys, UInt32 alpha, byte partyId);
 
+        // ------------------------------
+        private const string dllPath = @"C:\Users\eden\Desktop\BGU\Project\MPC\MPCRandomnessClient\ExtLibs\sycret.dll";
+
+        [DllImport(dllPath)]
+        private static extern UInt32 eval_dcf2(IntPtr key, IntPtr aesKeys, UInt32 alpha, byte partyId);
+
+
+        [DllImport(dllPath)]
+        private static extern UInt32 eval_dpf_test(UInt32 alpha, byte partyId);
+        // ------------------------------
 
         private const int keySize = 596;
         private const int aesKeysSize = 64;
@@ -20,12 +30,31 @@ namespace MPCServer
             return pointer;
 
         }
-        public uint Eval(string serverIndex, byte[] keyBytes, uint alpha) // for future int insted of string server index
+        /*public uint Eval(string serverIndex, string key, string aesKeys, uint alpha) // for future int insted of string server index
         {
             byte index = serverIndex.Equals("A") ? (byte)0 : (byte)1;
             IntPtr keyPointer = BytesToPointer(keyBytes, 0, keySize);
             IntPtr aesKeysPointer = BytesToPointer(keyBytes, keySize, aesKeysSize);
             uint share = eval_(keyPointer, aesKeysPointer, alpha, index);
+            return share;
+        }*/
+
+        public uint EvalDCF(string serverIndex, string key, string aesKey, uint alpha) // for future int insted of string server index
+        {
+            var index = serverIndex.Equals("A") ? (byte)0 : (byte)1;
+            IntPtr keyPointer = (IntPtr)Marshal.StringToHGlobalAnsi(key);
+            IntPtr aesPointer = (IntPtr)Marshal.StringToHGlobalAnsi(aesKey);
+            UInt32 share = eval_dcf2(keyPointer, aesPointer, alpha, index);
+            Marshal.FreeHGlobal(keyPointer);
+            Marshal.FreeHGlobal(aesPointer);
+            return share;
+        }
+
+        public uint EvalTest(string serverIndex, uint alpha) // for future int insted of string server index
+        {
+            byte index = serverIndex.Equals("A") ? (byte)0 : (byte)1;
+            
+            uint share = eval_dpf_test(alpha, index);
             return share;
         }
 
