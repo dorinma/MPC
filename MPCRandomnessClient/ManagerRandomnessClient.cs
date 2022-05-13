@@ -15,8 +15,8 @@ namespace MPCRandomnessClient
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
         public const int dpfGatesCount = n*n; // first layer (dcf gates) - last layer (dpf gates) - n*n 
 
-        private static DcfAdapter dcfAdapter = new DcfAdapter();
-        private static DpfAdapter dpfAdapter = new DpfAdapter();
+        private static DcfAdapterRandClient dcfAdapter = new DcfAdapterRandClient();
+        private static DpfAdapterRandClient dpfAdapter = new DpfAdapterRandClient();
 
         private static CommunicationRandClient communicationA;
         private static CommunicationRandClient communicationB;

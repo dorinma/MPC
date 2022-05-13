@@ -16,7 +16,7 @@
         }
 
         [DllImport(dllPath)]
-        private static extern Keys gen_dcf2(UInt32 alpha);
+        private static extern Keys gen_dcf(UInt32 alpha);
 
         [DllImport(dllPath)]
         private static extern void free_string(IntPtr pointerToFree);
