@@ -5,7 +5,8 @@ namespace MPCRandomnessClient
 {
     public class ExternalSystemAdapter
     {
-        private const string dllPath = @"C:\Users\eden\Desktop\BGU\Project\MPC\MPCRandomnessClient\ExtLibs\sycret.dll";
+        //private const string dllPath = @"C:\Users\eden\Desktop\BGU\Project\MPC\MPCRandomnessClient\ExtLibs\sycret.dll";
+        private const string dllPath = @"C:\Users\hodaya\Desktop\MPC project\MPC\MPCRandomnessClient\ExtLibs\sycret.dll";
         [StructLayout(LayoutKind.Sequential)]
         public struct Keys
         {

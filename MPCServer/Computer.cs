@@ -113,6 +113,7 @@ namespace MPCServer
 
         private uint[] SumEachValueWithMask(uint[] sumValuesMasks)
         {
+            //uint[] sumValuesMasks = new uint[numOfElement];
             uint[] masks = sortRandomRequest.dcfMasks;
 
             for (int i = 0; i < sumValuesMasks.Length; i++)
@@ -124,23 +125,23 @@ namespace MPCServer
 
         private uint[] SumServersShares(int numOfElement)
         {
+            uint[] totalsumValuesMasks = new uint[numOfElement];
             uint[] sumValuesMasks = new uint[numOfElement];
-            uint[] x = new uint[numOfElement];
 
             if (instance == "A")
             {
-                x = SumEachValueWithMask(x);
-                comm.SendServerData(x);
-                sumValuesMasks = comm.AReciveServerData();
+                uint[] sumValuesMasksA = SumEachValueWithMask(sumValuesMasks);
+                comm.SendServerData(sumValuesMasksA);
+                totalsumValuesMasks = comm.AReciveServerData();
             }
             else
             {
-                x = comm.BReciveServerData();
-                sumValuesMasks = SumEachValueWithMask(x);
-                comm.SendServerData(sumValuesMasks);
+                uint[] sumValuesMasksB = comm.BReciveServerData();
+                totalsumValuesMasks = SumEachValueWithMask(sumValuesMasksB);
+                comm.SendServerData(totalsumValuesMasks);
             }
 
-            return sumValuesMasks;
+            return totalsumValuesMasks;
         }
 
         private uint[] sumIndexesWithMasks(uint[] sharesIndexes)
