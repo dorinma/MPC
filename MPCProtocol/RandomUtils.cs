@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MPCProtocol
 {
-    public static class Randomness
+    public static class RandomUtils
     {
         public static uint NextUInt32(this Random rnd)
         {

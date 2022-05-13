@@ -282,7 +282,7 @@ namespace MPCServer
 
         private void HandleClientInit(byte[] Data, Socket socket)
         {
-            if (string.Empty != Interlocked.CompareExchange(ref sessionId, Randomness.GenerateSessionId(), string.Empty))
+            if (string.Empty != Interlocked.CompareExchange(ref sessionId, RandomUtils.GenerateSessionId(), string.Empty))
             {
                 // Session is already in motion
                 SendError(socket, ServerConstants.MSG_SESSION_RUNNING);
