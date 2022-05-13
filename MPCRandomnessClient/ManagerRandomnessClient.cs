@@ -15,7 +15,8 @@ namespace MPCRandomnessClient
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
         public const int dpfGatesCount = n*n; // first layer (dcf gates) - last layer (dpf gates) - n*n 
 
-        private static ExternalSystemAdapter externalSystemAdapter = new ExternalSystemAdapter();
+        private static DcfAdapter dcfAdapter = new DcfAdapter();
+        private static DpfAdapter dpfAdapter = new DpfAdapter();
 
         private static CommunicationRandClient communicationA;
         private static CommunicationRandClient communicationB;
@@ -99,7 +100,7 @@ namespace MPCRandomnessClient
             {
                 for (int j = i+1; j < n; j++)
                 {
-                    externalSystemAdapter.GenerateDCF(masks[i]-masks[j], out string keyA, out string keyB, out string aesKey); // mask1-mask2
+                    dcfAdapter.GenerateDCF(masks[i]-masks[j], out string keyA, out string keyB, out string aesKey); // mask1-mask2
                     keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
                     keysA[keyIndex] = keyA;
                     keysB[keyIndex] = keyB;
@@ -112,7 +113,7 @@ namespace MPCRandomnessClient
         {
             for (int i = 0; i < n; i++)
             {
-                externalSystemAdapter.GenerateDPF(masks[i], 0 - outputMasks[i], out string keyA, out string keyB, out string aesKey);
+                dpfAdapter.GenerateDPF(masks[i], 0 - outputMasks[i], out string keyA, out string keyB, out string aesKey);
                 keysA[i] = keyA;
                 keysB[i] = keyB;
                 aesKeys[i] = aesKey;
