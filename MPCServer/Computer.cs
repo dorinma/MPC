@@ -14,8 +14,8 @@ namespace MPCServer
         private uint[] data;
         private SortRandomRequest sortRandomRequest;
         private string instance;
-        private DCFAdapter dcfAdapter = new DCFAdapter();
-        private DPFAdapter dpfAdapter = new DPFAdapter();
+        private DcfAdapterServer dcfAdapter = new DcfAdapterServer();
+        private DpfAdapterServer dpfAdapter = new DpfAdapterServer();
         private CommunicationServer comm;
 
         public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
