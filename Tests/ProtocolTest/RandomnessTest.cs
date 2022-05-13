@@ -11,14 +11,14 @@ namespace Tests.ProtocolTest
         [MemberData(nameof(ListsToSplit))]
         public void SplitToSecretShares_Success(uint[] inputList)
         {
-            Randomness.SplitToSecretShares(inputList, out uint[] sharesA, out uint[] sharesB);
+            RandomUtils.SplitToSecretShares(inputList, out uint[] sharesA, out uint[] sharesB);
             Assert.Equal(inputList, SumList(sharesA, sharesB));
         }
 
         [Fact]
         public void SplitToSecretShares_Faliure()
         {
-            Randomness.SplitToSecretShares(null, out uint[] sharesA, out uint[] sharesB); //assert not throw
+            RandomUtils.SplitToSecretShares(null, out uint[] sharesA, out uint[] sharesB); //assert not throw
         }
 
         private uint[] SumList(uint[] listA, uint[] listB)
