@@ -10,7 +10,7 @@ namespace MPCServer
         private static extern UInt32 eval_(IntPtr key, IntPtr aesKeys, UInt32 alpha, byte partyId);
 
         // ------------------------------
-        private const string dllPath = @"C:\Users\eden\Desktop\BGU\Project\MPC\MPCRandomnessClient\ExtLibs\sycret.dll";
+        private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
 
         [DllImport(dllPath)]
         private static extern UInt32 eval_dcf2(IntPtr key, IntPtr aesKeys, UInt32 alpha, byte partyId);

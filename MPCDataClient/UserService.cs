@@ -103,7 +103,7 @@ namespace MPCDataClient
         {
             Console.WriteLine("Insert data file path");
             string path = Console.ReadLine();
-            path = @"C:\Users\eden\Desktop\BGU\Project\MPC\inputFile.csv";
+            path = @"..\\..\\..\\..\\inputFile.csv";
             //path = @"C:\Users\דורין\Downloads\";
             //path = "C:\\Users\\hodaya\\Desktop\\test.csv";
             try
