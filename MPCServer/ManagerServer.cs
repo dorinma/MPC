@@ -1,5 +1,5 @@
-﻿using MPCProtocol;
-using MPCProtocol.Requests;
+﻿using MPCTools;
+using MPCTools.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;

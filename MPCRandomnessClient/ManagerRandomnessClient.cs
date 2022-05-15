@@ -1,4 +1,4 @@
-﻿using MPCProtocol;
+﻿using MPCTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,7 +63,7 @@ namespace MPCRandomnessClient
             string[] dpfKeysB = new string[dpfGatesCount];
             string[] dpfAesKeys = new string[dpfGatesCount];
 
-            GenerateDpfKeys(dpfMasks, dcfMasks, dpfKeysA, dpfKeysB, dpfAesKeys);
+            GenerateDpfKeys(dpfMasks, outputMasks: dcfMasks, dpfKeysA, dpfKeysB, dpfAesKeys);
 
             // send to servers
             //connect

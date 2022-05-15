@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MPCProtocol
+namespace MPCTools
 {
     public static class RandomUtils
     {
@@ -37,6 +37,8 @@ namespace MPCProtocol
 				sharesB[i] = firstShare - elements[i];
 				//sharesB[i] = (elements[i] - firstShare + uint.MaxValue + 1);
 			}
+            Console.WriteLine("hiiiiiiiiiiiiiiiiii");
+            Console.WriteLine(elements.ToString());
 		}
 
         public static uint[] CreateRandomMasks(int count)

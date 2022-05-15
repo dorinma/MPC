@@ -7,7 +7,7 @@ using System.Text;
 using System.Net.Sockets;
 using Newtonsoft.Json;
 
-namespace MPCProtocol
+namespace MPCTools
 {
     public class ProtocolConstants
     {

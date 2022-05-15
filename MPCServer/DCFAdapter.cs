@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Runtime.InteropServices;
 
 namespace MPCServer
@@ -29,14 +29,14 @@ namespace MPCServer
             return pointer;
 
         }
-        /*public uint Eval(string serverIndex, string key, string aesKeys, uint alpha) // for future int insted of string server index
+        *//*public uint Eval(string serverIndex, string key, string aesKeys, uint alpha) // for future int insted of string server index
         {
             byte index = serverIndex.Equals("A") ? (byte)0 : (byte)1;
             IntPtr keyPointer = BytesToPointer(keyBytes, 0, keySize);
             IntPtr aesKeysPointer = BytesToPointer(keyBytes, keySize, aesKeysSize);
             uint share = eval_(keyPointer, aesKeysPointer, alpha, index);
             return share;
-        }*/
+        }*//*
 
         public uint EvalDCF(string serverIndex, string key, string aesKey, uint alpha) // for future int insted of string server index
         {
@@ -85,3 +85,4 @@ namespace MPCServer
         }
     }
 }
+*/

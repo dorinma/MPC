@@ -16,16 +16,20 @@
         }
 
         [DllImport(dllPath)]
-        private static extern Keys gen_dcf(UInt32 alpha);
+        private static extern Keys gen_dpf(UInt32 alpha);
 
         [DllImport(dllPath)]
         private static extern void free_string(IntPtr pointerToFree);
 
-        public void GenerateDPF(uint maskedFixedPoint, uint beta, out string keyA, out string keyB, out string aesKey)
+        public void GenerateDPF(uint mask, uint beta, out string keyA, out string keyB, out string aesKey)
         {
-            keyA = string.Empty;
-            keyB = string.Empty;
-            aesKey = string.Empty;
+            Keys keys = gen_dpf(mask);
+            aesKey = Marshal.PtrToStringAnsi(keys.aesKeys);
+            keyA = Marshal.PtrToStringAnsi(keys.keyA);
+            keyB = Marshal.PtrToStringAnsi(keys.keyB);
+            free_string(keys.aesKeys);
+            free_string(keys.keyA);
+            free_string(keys.keyB);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace MPCProtocol.Requests
+namespace MPCTools.Requests
 {
     public class SortRandomRequest
     {

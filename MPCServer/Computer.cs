@@ -1,5 +1,5 @@
-﻿using MPCProtocol;
-using MPCProtocol.Requests;
+﻿using MPCTools;
+using MPCTools.Requests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace MPCServer
 {
-        class Computer
+    public class Computer
     {
         private uint[] data;
         private SortRandomRequest sortRandomRequest;
@@ -17,6 +17,7 @@ namespace MPCServer
         private DcfAdapterServer dcfAdapter = new DcfAdapterServer();
         private DpfAdapterServer dpfAdapter = new DpfAdapterServer();
         private CommunicationServer comm;
+
 
         public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
         {
@@ -26,7 +27,7 @@ namespace MPCServer
             this.comm = comm;
         }
 
-        public uint[] Compute(OPERATION op) 
+        public uint[] Compute(OPERATION op)
         {
             switch (op)
             {
@@ -37,7 +38,7 @@ namespace MPCServer
             }
 
             return null;
-        } 
+        }
 
         private uint[] sortCompute()
         {
@@ -79,7 +80,7 @@ namespace MPCServer
             {
                 for (int j = 0; j < numOfElement; j++)
                 {
-                    sortList[j] += dpfAdapter.Eval(instance, dpfKeys[i], dpfAesKeys[i], sumIndexesMasks[i] - (uint)j, sumValuesMasks[i]);
+                    sortList[j] += dpfAdapter.EvalDPF(instance, dpfKeys[i], dpfAesKeys[i], sumIndexesMasks[i] - (uint)j, sumValuesMasks[i]);
                 }
             }
             return sortList;
@@ -125,7 +126,7 @@ namespace MPCServer
             return diffValues;
         }
 
-        private uint[] SumEachSharesWithMask(uint[] sumSharesMasks, uint[] sharesValue, uint[] masks)
+        public uint[] SumEachSharesWithMask(uint[] sumSharesMasks, uint[] sharesValue, uint[] masks)
         {
             for (int i = 0; i < sumSharesMasks.Length; i++)
             {

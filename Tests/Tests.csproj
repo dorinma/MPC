@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MPCDataClient\MPCDataClient.csproj" />
+    <ProjectReference Include="..\MPCRandomnessClient\MPCRandomnessClient.csproj" />
+    <ProjectReference Include="..\MPCServer\MPCServer.csproj" />
   </ItemGroup>
 
 </Project>
