@@ -47,9 +47,10 @@ namespace MPCServer
             // first level - dcf between each pair values
             int numOfElement = data.Length;
             int n = sortRandomRequest.n;
+
             // todo check n > numofelement
 
-            uint[] sumValuesMasks = SumServersShares(numOfElement);
+            uint[] sumValuesMasks = SumServersPartsWithMasks(numOfElement, data, sortRandomRequest.dcfMasks);
 
             uint[] diffValues = DiffEachPairValues(sumValuesMasks, numOfElement);
 
@@ -63,7 +64,14 @@ namespace MPCServer
             }
 
             // second level - sum results
-            uint[] sumIndexesMasks = sumIndexesWithMasks(sharesIndexes);
+            uint[] sumIndexesMasks = SumServersPartsWithMasks(sharesIndexes.Length, sharesIndexes, sortRandomRequest.dpfMasks);
+
+            //DEBUG
+            Console.WriteLine("sum Indexes");
+            for (int i = 0; i < sumIndexesMasks.Length; i++)
+            {
+                Console.WriteLine("\t" + sumIndexesMasks[i] + "\t");
+            }
 
             // third level - compare eatch value result to all possible indexes and placing in the returned list
             uint[] sortList = ComputeResultsShares(sumIndexesMasks, sumValuesMasks, n);
@@ -126,54 +134,33 @@ namespace MPCServer
             return diffValues;
         }
 
-        public uint[] SumEachSharesWithMask(uint[] sumSharesMasks, uint[] sharesValue, uint[] masks)
+        public void SumEachSharesWithMask(uint[] sumSharesMasks, uint[] sharesValue, uint[] masks)
         {
             for (int i = 0; i < sumSharesMasks.Length; i++)
             {
-                sumSharesMasks[i] += sharesValue[i] + masks[i];
+                sumSharesMasks[i] += (sharesValue[i] + masks[i]);
             }
-            return sumSharesMasks;
         }
 
-        private uint[] SumServersShares(int numOfElement)
+        private uint[] SumServersPartsWithMasks(int numOfElement, uint[] partServer, uint[] masks) 
         {
-            uint[] totalsumValuesMasks = new uint[numOfElement];
-            uint[] sumValuesMasks = new uint[numOfElement];
+            uint[] totalMaskedSum;
 
             if (instance == "A")
             {
-                uint[] sumValuesMasksA = SumEachSharesWithMask(sumValuesMasks, data, sortRandomRequest.dcfMasks);
-                comm.SendServerData(sumValuesMasksA);
-                totalsumValuesMasks = comm.AReciveServerData();
+                uint[] maskedSum = new uint[numOfElement]; //init with 0
+                SumEachSharesWithMask(maskedSum, partServer, masks);
+                comm.SendServerData(maskedSum);
+                totalMaskedSum = comm.AReciveServerData();
             }
             else
             {
-                uint[] sumValuesMasksB = comm.BReciveServerData();
-                totalsumValuesMasks = SumEachSharesWithMask(sumValuesMasks, data, sortRandomRequest.dcfMasks);
-                comm.SendServerData(totalsumValuesMasks);
+                totalMaskedSum = comm.BReciveServerData();
+                SumEachSharesWithMask(totalMaskedSum, partServer, masks);
+                comm.SendServerData(totalMaskedSum);
             }
 
-            return totalsumValuesMasks;
-        }
-
-        private uint[] sumIndexesWithMasks(uint[] sharesIndexes)
-        {
-            uint[] totalSumIndexesWithMasks = new uint[sharesIndexes.Length];
-
-            if (instance == "A")
-            {
-                uint[] sumIndexesWithMasks = SumEachSharesWithMask(sharesIndexes, sharesIndexes, sortRandomRequest.dpfMasks);
-                comm.SendServerData(sumIndexesWithMasks);
-                totalSumIndexesWithMasks = comm.AReciveServerData();
-            }
-            else
-            {
-                uint[] sumIndexesWithMasksA = comm.BReciveServerData();
-                totalSumIndexesWithMasks = SumEachSharesWithMask(sumIndexesWithMasksA, sharesIndexes, sortRandomRequest.dpfMasks);
-                comm.SendServerData(totalSumIndexesWithMasks);
-            }
-
-            return totalSumIndexesWithMasks;
+            return totalMaskedSum;
         }
 
     }

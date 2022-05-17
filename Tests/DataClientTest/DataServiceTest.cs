@@ -13,7 +13,7 @@ namespace Tests.DataClientTest
         [MemberData(nameof(Data))]
         public void CanAddTheoryMemberDataProperty(uint[] inputList)
         {
-            RandomUtils.SplitToSecretShares(inputList, out uint[] serverAList, out uint[] serverBList);
+            RandomUtils.SplitToSecretShares(inputList, out uint[] serverAList, out uint[] serverBList, false);
             Assert.Equal(inputList, SumList(serverAList, serverBList));
         }
 

@@ -15,7 +15,7 @@ namespace MPCTools
             return BitConverter.ToUInt32(buffer, 0);
         }
 
-        public static void SplitToSecretShares(uint[] elements, out uint[] sharesA, out uint[] sharesB)
+        public static void SplitToSecretShares(uint[] elements, out uint[] sharesA, out uint[] sharesB, bool op_plus)
 		{
 			if (elements == null)
             {
@@ -28,17 +28,19 @@ namespace MPCTools
             sharesB = new uint[elements.Length];
 
 			Random rnd = new Random();
-			for(int i = 0; i < elements.Length; i++)
-			{ 
-                // element = shareA - shareB
-                // shareB = shareA - element
-				uint firstShare = rnd.NextUInt32();
-				sharesA[i] = firstShare;
-				sharesB[i] = firstShare - elements[i];
-				//sharesB[i] = (elements[i] - firstShare + uint.MaxValue + 1);
-			}
-            Console.WriteLine("hiiiiiiiiiiiiiiiiii");
-            Console.WriteLine(elements.ToString());
+            for (int i = 0; i < elements.Length; i++)
+            {
+                uint firstShare = rnd.NextUInt32();
+                sharesA[i] = firstShare;
+                if (op_plus)
+                {
+                    sharesB[i] = elements[i] -firstShare;
+                }
+                else
+                {
+                    sharesB[i] = firstShare - elements[i];
+                }
+            }
 		}
 
         public static uint[] CreateRandomMasks(int count)
