@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
+using Tests.ToolsTest;
 using Xunit;
 
 namespace Tests.DataClientTest
@@ -57,7 +58,7 @@ namespace Tests.DataClientTest
             var mockPath = "mock path";
             var fileSystemMock = new MockFileSystem();
             fileSystemMock.AddFile(mockPath, new MockFileData(fileContent));
-            var userService = new UserService(fileSystemMock);;
+            var userService = new UserService(fileSystemMock);
             Assert.ThrowsAny<Exception>(() => userService.ParseFile(pathToSend ?? mockPath));
 
         }
@@ -131,7 +132,7 @@ namespace Tests.DataClientTest
 
             yield return new object[]
             {
-                "title\n1\n656000\n2" //contains element value that is bigger than type allows
+                $"title\n1\n{(ulong)uint.MaxValue+1}\n2" //contains element value that is bigger than type allows
             };
 
             yield return new object[]

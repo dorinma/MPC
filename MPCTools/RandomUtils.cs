@@ -34,11 +34,12 @@ namespace MPCTools
                 sharesA[i] = firstShare;
                 if (op_plus)
                 {
-                    sharesB[i] = elements[i] -firstShare;
+                    sharesB[i] = elements[i] - firstShare;
                 }
                 else
                 {
-                    sharesB[i] = firstShare - elements[i];
+                    sharesB[i] = elements[i] - firstShare;
+                    //sharesB[i] = firstShare - elements[i];
                 }
             }
 		}

@@ -91,7 +91,6 @@ namespace MPCRandomnessClient
             {
                 Console.WriteLine("Success");
             }
-            int i = 8;
         }
 
         public static void GenerateDcfKeys(uint[] masks, string[] keysA, string[] keysB, string[] aesKeys)
