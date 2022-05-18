@@ -81,13 +81,13 @@ namespace MPCServer
             reciveDone.Reset();
         }
 
-        public void OpenSocket()
+        public void OpenSocket(int port)
         {
             try
             {
                 Console.WriteLine($"[INFO] Server {instance} started.");
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                listener.Bind(new IPEndPoint(IPAddress.Any, instance == "A" ? 2022 : 2023));
+                listener.Bind(new IPEndPoint(IPAddress.Any, port));
                 listener.Listen(10);
 
             }
@@ -99,12 +99,7 @@ namespace MPCServer
 
         private void WaitToRecive()
         {
-            acceptDone.Reset();
-
-            Console.WriteLine("Waiting for a connection...");
-            listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
-
-            acceptDone.WaitOne();
+            
         }
 
         public uint[] StartServer()
@@ -113,7 +108,12 @@ namespace MPCServer
             {
                 while (serverState == SERVER_STATE.OFFLINE || serverState == SERVER_STATE.FIRST_INIT || connectedUsers < totalUsers)
                 {
-                    WaitToRecive();
+                    acceptDone.Reset();
+
+                    Console.WriteLine("Waiting for a connection...");
+                    listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+
+                    acceptDone.WaitOne();
                 }
                 Console.WriteLine("exit while");
                 return values.ToArray();
@@ -128,8 +128,9 @@ namespace MPCServer
         public void AcceptCallback(IAsyncResult ar)
         {
             // Get the socket that handles the client request.  
-            Socket listener = (Socket)ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
+            Socket acceptListener = (Socket)ar.AsyncState; //maybe same listener
+            Socket handler = acceptListener.EndAccept(ar);
+            //handler.RemoteEndPoint.
 
             // Signal the main thread to continue.  
             acceptDone.Set();
@@ -161,7 +162,7 @@ namespace MPCServer
 
                 protocol.ParseData(state.buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
                 Console.WriteLine($"opcode {opcode}");
-                if (!ValidateServerState(opcode))
+                if (opcode != OPCODE_MPC.E_OPCODE_ERROR && !ValidateServerState(opcode))
                 {
                     SendError(handler, ServerConstants.MSG_VALIDATE_SERVER_STATE_FAIL);
                     return; // todo check
@@ -169,7 +170,7 @@ namespace MPCServer
 
                 AnalyzeMessage(opcode, MsgData, handler);
 
-                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+               handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(RecieveCallback), state);
             }
             else
@@ -271,7 +272,6 @@ namespace MPCServer
             if (sortRandomRequest != default) // send confirmation
             {
                 Send(socket, protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
-                //new DCFAdapter().Eval(instance, sortRandomRequest.dcfKeys[0], 5);
                 serverState = SERVER_STATE.FIRST_INIT;
             }
             else // Error - wrong format
@@ -310,14 +310,14 @@ namespace MPCServer
         public void HandleServerInit(byte[] data, Socket serverSocket)
         {
             if (protocol.GetServerInitParams(data, out sessionId, out operation, out totalUsers))
-            {
-                // Failed to parse parameters
-                memberServerSocket = serverSocket;
+            {             
+                memberServerSocket = serverSocket; // server B save server A's socket
                 serverState = SERVER_STATE.CONNECT_AND_DATA;
                 Console.WriteLine($"session id {sessionId}, participants {totalUsers}, servsr state {serverState}");
             }
             else
             {
+                // Failed to parse parameters
                 Console.WriteLine($"Failed to parse server to server int message.");
             }
         }
@@ -390,14 +390,11 @@ namespace MPCServer
 
                 // Create a TCP/IP socket.  
                 memberServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                
-                if (instance == "A")
-                {
-                    // Connect to the remote endpoint.  
-                    memberServerSocket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), memberServerSocket);
-                    Console.WriteLine($"ip: {serverIp} port: {serverPort}");
-                    connectServerDone.WaitOne();
-                }        
+
+                // Connect to the remote endpoint.  
+                memberServerSocket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), memberServerSocket);
+                Console.WriteLine($"ip: {serverIp} port: {serverPort}");
+                connectServerDone.WaitOne();
             }
             catch (Exception e)
             {
@@ -432,15 +429,7 @@ namespace MPCServer
             if (protocol.GetExchangeData(data, out exchangeData))
             {
                 Console.WriteLine($"Exchange Data success");
-                if (instance == "B")
-                {
-                    memberServerSocket = socket;
-                    acceptDone.Set();
-                }
-                else
-                {
-                    reciveDone.Set();
-                }
+                reciveDone.Set();
             }
             else // Error - wrong format
             {
@@ -455,7 +444,7 @@ namespace MPCServer
             Console.WriteLine($"Server {instance} Send to other server his diff values");
         }
 
-        internal uint[] AReciveServerData()
+        internal uint[] ReciveServerData()
         {
             reciveDone.Reset();
             try
@@ -473,19 +462,8 @@ namespace MPCServer
             }
             reciveDone.WaitOne();
 
-            Console.WriteLine("recive A done :)");
+            Console.WriteLine("recive done :)");
             return exchangeData.ToArray();
         }
-
-        internal uint[] BReciveServerData()
-        {
-            Console.WriteLine("recive ...");
-
-            WaitToRecive();
-
-            Console.WriteLine("recive B done :)");
-            return exchangeData.ToArray();
-        }
-
     }
 }
