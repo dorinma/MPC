@@ -96,7 +96,7 @@ namespace MPCServer
         {
             //swich case per operation 
             //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm);
+            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer());
             //Future code
             //Computer computer = new Computer(values, comm.requeset[op]);
             uint[] res = computer.Compute(op);

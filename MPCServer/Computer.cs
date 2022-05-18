@@ -14,17 +14,19 @@ namespace MPCServer
         private uint[] data;
         private SortRandomRequest sortRandomRequest;
         private string instance;
-        private DcfAdapterServer dcfAdapter = new DcfAdapterServer();
-        private DpfAdapterServer dpfAdapter = new DpfAdapterServer();
+        private IDcfAdapterServer dcfAdapter;
+        private IDpfAdapterServer dpfAdapter;
         private CommunicationServer comm;
 
 
-        public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
+        public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter)
         {
             data = values;
             this.sortRandomRequest = sortRandomRequest;
             this.instance = instance;
             this.comm = comm;
+            this.dcfAdapter = dcfAdapter;
+            this.dpfAdapter = dpfAdapter;
         }
 
         public uint[] Compute(OPERATION op)
@@ -94,7 +96,7 @@ namespace MPCServer
             return sortList;
         }
 
-        private uint[] ComputeIndexesShares(uint[] diffValues, int numOfElement, int n)
+        public uint[] ComputeIndexesShares(uint[] diffValues, int numOfElement, int n)
         {
             uint[] sharesIndexes = new uint[numOfElement];
             string[] dcfKeys = sortRandomRequest.dcfKeys;
@@ -116,7 +118,7 @@ namespace MPCServer
             return sharesIndexes;
         }
 
-        private uint[] DiffEachPairValues(uint[] sumValuesMasks, int numOfElement)
+        public uint[] DiffEachPairValues(uint[] sumValuesMasks, int numOfElement)
         {
             int numOfElementChoose2 = (numOfElement - 1) * numOfElement / 2;
             uint[] diffValues = new uint[numOfElementChoose2];

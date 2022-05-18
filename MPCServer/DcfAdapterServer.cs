@@ -3,7 +3,12 @@
     using System;
     using System.Runtime.InteropServices;
 
-    public class DcfAdapterServer
+    public interface IDcfAdapterServer
+    {
+        uint EvalDCF(string serverIndex, string key, string aesKey, uint alpha);
+    }
+
+    public class DcfAdapterServer : IDcfAdapterServer
     {
         private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
         [DllImport(dllPath)]
@@ -20,4 +25,6 @@
             return share;
         }
     }
+
+    
 }

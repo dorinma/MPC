@@ -3,7 +3,12 @@ using System.Runtime.InteropServices;
 
 namespace MPCServer
 {
-    public class DpfAdapterServer
+    public interface IDpfAdapterServer
+    {
+        uint EvalDPF(string serverIndex, string key, string aesKey, uint inputSum, uint maskedInput);
+    }
+
+    public class DpfAdapterServer : IDpfAdapterServer
     {
         private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
         [DllImport(dllPath)]
@@ -19,5 +24,5 @@ namespace MPCServer
             Marshal.FreeHGlobal(aesPointer);
             return share;
         }
-    }
+    }   
 }
