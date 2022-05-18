@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32002.261
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32319.34
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCDataClient", "MPCDataClient\MPCDataClient.csproj", "{36F0EF9C-82BB-4742-8396-99528E593340}"
 EndProject
@@ -12,6 +12,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPCTools", "MPCTools\MPCTools.csproj", "{D3CFF9FE-9623-4201-8C82-9DD494F52F8D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MPC_UI", "MPC_UI\MPC_UI.csproj", "{F0A06C5F-0B4A-49E0-B2EA-54452C3A583F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4D3383D3-9E0B-4330-99C3-39917C66E1C0} = {4D3383D3-9E0B-4330-99C3-39917C66E1C0}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{3982EAB5-CBAB-471B-A37E-FB4FD1ACAEFD}"
 EndProject
