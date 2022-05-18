@@ -153,11 +153,11 @@ namespace MPCServer
                 uint[] maskedSum = new uint[numOfElement]; //init with 0
                 SumEachSharesWithMask(maskedSum, partServer, masks);
                 comm.SendServerData(maskedSum);
-                totalMaskedSum = comm.AReciveServerData();
+                totalMaskedSum = comm.ReciveServerData();
             }
             else
             {
-                totalMaskedSum = comm.BReciveServerData();
+                totalMaskedSum = comm.ReciveServerData();
                 SumEachSharesWithMask(totalMaskedSum, partServer, masks);
                 comm.SendServerData(totalMaskedSum);
             }

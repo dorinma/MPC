@@ -15,7 +15,7 @@ namespace MPCTools
             return BitConverter.ToUInt32(buffer, 0);
         }
 
-        public static void SplitToSecretShares(uint[] elements, out uint[] sharesA, out uint[] sharesB, bool op_plus)
+        public static void SplitToSecretShares(uint[] elements, out uint[] sharesA, out uint[] sharesB)
 		{
 			if (elements == null)
             {
@@ -32,15 +32,7 @@ namespace MPCTools
             {
                 uint firstShare = rnd.NextUInt32();
                 sharesA[i] = firstShare;
-                if (op_plus)
-                {
-                    sharesB[i] = elements[i] - firstShare;
-                }
-                else
-                {
-                    sharesB[i] = elements[i] - firstShare;
-                    //sharesB[i] = firstShare - elements[i];
-                }
+                sharesB[i] = elements[i] - firstShare;
             }
 		}
 

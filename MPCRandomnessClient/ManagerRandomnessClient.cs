@@ -46,7 +46,7 @@ namespace MPCRandomnessClient
             //dcf
             //create masks and shares
             uint[] dcfMasks = RandomUtils.CreateRandomMasks(dcfMasksCount);
-            RandomUtils.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB, true);
+            RandomUtils.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB);
             //generate keys
             string[] dcfKeysA = new string[dcfGatesCount];
             string[] dcfKeysB = new string[dcfGatesCount];
@@ -57,7 +57,7 @@ namespace MPCRandomnessClient
             //dpf
             //create masks and shares
             uint[] dpfMasks = RandomUtils.CreateRandomMasks(dpfMasksCount);
-            RandomUtils.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB, true);
+            RandomUtils.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
 
             //generate keys
             string[] dpfKeysA = new string[dpfGatesCount];

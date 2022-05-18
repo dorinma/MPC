@@ -53,8 +53,8 @@ namespace MPCDataClient
         public int ReadOperation()
         {
             int operation;
-            Console.WriteLine("Insert the number of operation you want to perform:\n1. merge\n2. find the K'th element\n3. sort");
-            while (!TryParseOperation(Console.ReadLine(), out operation))
+            Console.WriteLine("Insert the number of operation you want to perform:\n1. sort");
+            while (!TryParseOperation(Console.ReadLine(), out operation) || operation > 1)
             {
                 Console.WriteLine("Invalid operation number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");

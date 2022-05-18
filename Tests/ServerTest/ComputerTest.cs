@@ -36,6 +36,7 @@ namespace Tests.ServerTest
             Assert.Equal(outputA, expectedOutput);
         }
 
+<<<<<<< HEAD
         [Theory]
         [MemberData(nameof(SumEachSharesWithMask_InvalidInputs))]
         public void SumEachSharesWithMask_ShouldFail(uint[] sharesValueA, uint[] masksA) 
@@ -56,6 +57,15 @@ namespace Tests.ServerTest
 
             Assert.Equal(expectedIndexes, TestUtils.SumLists(sharesA, sharesB));
            /* Mock<IDcfAdapterServer> dcfMock = new Mock<IDcfAdapterServer>();
+=======
+        [Fact]
+        public void test()
+        { 
+            uint[] values = new uint[] { 1, 5, 10 }; //TestUtils.GenerateRandomList(10);
+            uint[] masks = new uint[] { 2, 3, 4 };//TestUtils.GenerateRandomList(10);
+            RandomUtils.SplitToSecretShares(values, out uint[] valuesA, out uint[] valuesB);
+            RandomUtils.SplitToSecretShares(masks, out uint[] masksA, out uint[] masksB);
+>>>>>>> 055df7fbb0e0b4233fae010d86df4cca94174652
             Computer computerA = InitEmptyComuter("A");
             uint[] outputA = new uint[sharesValueA.Length];
             Assert.ThrowsAny<Exception>(() => computerA.SumEachSharesWithMask(outputA, sharesValueA, masksA));*/
@@ -64,11 +74,18 @@ namespace Tests.ServerTest
 
         public static IEnumerable<object[]> SumEachSharesWithMask_ValidInputs()
         {
+<<<<<<< HEAD
             uint[] values = TestUtils.GenerateRandomList(100);
             uint[] masks = TestUtils.GenerateRandomList(100);
             RandomUtils.SplitToSecretShares(values, out uint[] valuesA, out uint[] valuesB, true);
             RandomUtils.SplitToSecretShares(masks, out uint[] masksA, out uint[] masksB, true);
 
+=======
+            uint[] values = TestUtils.GenerateRandomList(10);
+            uint[] masks = TestUtils.GenerateRandomList(10);
+            RandomUtils.SplitToSecretShares(values, out uint[] valuesA, out uint[] valuesB);
+            RandomUtils.SplitToSecretShares(masks, out uint[] masksA, out uint[] masksB);
+>>>>>>> 055df7fbb0e0b4233fae010d86df4cca94174652
             yield return new object[]
             {
                 valuesA,

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.Sockets;
+using System.Net;
 
 namespace MPCServer
 {
@@ -36,10 +38,14 @@ namespace MPCServer
 
             string memberServerIP = args[0];
             int memberServerPort = instance == "A" ? 2023 : instance == "B" ? 2022 : 0;
-
             comm.setInstance(instance);
-            comm.ConnectServers(memberServerIP, memberServerPort);
-            comm.OpenSocket();
+
+            if (instance == "A")
+            {
+                comm.ConnectServers(memberServerIP, memberServerPort);
+            }
+
+            comm.OpenSocket(instance == "A" ? 2022 : 2023);
 
             while (true)
             {

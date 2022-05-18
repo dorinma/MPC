@@ -66,7 +66,7 @@
             
             uint[] data = userService1.ReadData().ToArray();
 
-            RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares, false);
+            RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
             /*DataService dataService = new DataService();
             dataService.GenerateSecretShares(data);*/
 
