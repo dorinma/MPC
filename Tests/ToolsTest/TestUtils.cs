@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Tests.ProtocolTest
+namespace Tests.ToolsTest
 {
 
     public class TestUtils
@@ -26,7 +26,8 @@ namespace Tests.ProtocolTest
 
         public static uint SumUints(uint a, uint b)
         {
-            return (uint)(a - b);
+            return (uint)(a + b);
         }
+
     }
 }
