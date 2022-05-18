@@ -93,6 +93,67 @@ namespace MPCRandomnessClient
             }
         }
 
+        public bool Run(string ip_1, string ip_2, int port_1, int port_2)
+        {
+            bool res = true;
+            communicationA = new CommunicationRandClient();
+            communicationB = new CommunicationRandClient();
+
+            //sort
+            string newSessionId = RandomUtils.GenerateSessionId();
+            Console.WriteLine($"New session is {newSessionId}");
+            communicationA.sessionId = newSessionId;
+            communicationB.sessionId = newSessionId;
+
+            //dcf
+            //create masks and shares
+            uint[] dcfMasks = RandomUtils.CreateRandomMasks(dcfMasksCount);
+            RandomUtils.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB);
+            //generate keys
+            string[] dcfKeysA = new string[dcfGatesCount];
+            string[] dcfKeysB = new string[dcfGatesCount];
+            string[] dcfAesKeys = new string[dcfGatesCount];
+
+            GenerateDcfKeys(dcfMasks, dcfKeysA, dcfKeysB, dcfAesKeys);
+
+            //dpf
+            //create masks and shares
+            uint[] dpfMasks = RandomUtils.CreateRandomMasks(dpfMasksCount);
+            RandomUtils.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
+
+            //generate keys
+            string[] dpfKeysA = new string[dpfGatesCount];
+            string[] dpfKeysB = new string[dpfGatesCount];
+            string[] dpfAesKeys = new string[dpfGatesCount];
+
+            GenerateDpfKeys(dpfMasks, outputMasks: dcfMasks, dpfKeysA, dpfKeysB, dpfAesKeys);
+
+            // send to servers
+            //connect
+            communicationA.Connect(ip_1, port_1);
+            communicationB.Connect(ip_2, port_2);
+            communicationA.connectDone.WaitOne();
+            communicationB.connectDone.WaitOne();
+            //send 
+            communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dcfAesKeys, dpfSharesA, dpfKeysA, dpfAesKeys);
+            communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dcfAesKeys, dpfSharesB, dpfKeysB, dpfAesKeys);
+            //recieve confirmation
+            communicationA.Receive();
+            communicationB.Receive();
+
+            communicationA.receiveDone.WaitOne();
+            communicationB.receiveDone.WaitOne();
+
+            if (!communicationA.serversVerified || !communicationB.serversVerified)
+            {
+                res = false;
+            }
+
+            communicationA.Reset();
+            communicationB.Reset();
+            return res;
+        }
+
         public static void GenerateDcfKeys(uint[] masks, string[] keysA, string[] keysB, string[] aesKeys)
         {
             int keyIndex;
