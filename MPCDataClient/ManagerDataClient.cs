@@ -46,6 +46,40 @@
             Start(ip1, port1, ip2, port2);
         }
 
+        public string InitConnectionNewSession(string ip, int port, int operation, int numberOfUsers)
+        {
+            communicationA = new CommunicationDataClient();
+            string sessionId;
+            communicationA.Connect(ip, port);
+            sessionId = communicationA.SendInitMessage(operation, numberOfUsers);
+            communicationA.receiveDone.Reset();
+
+            return sessionId;
+        }
+
+        public void Run(string ip, int port, string sessionId, uint[] data)
+        {
+            communicationB = new CommunicationDataClient();
+
+            RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares, false);
+            
+            communicationB.Connect(ip, port);
+
+            communicationA.SendData(sessionId, serverAShares);
+            communicationB.SendData(sessionId, serverBShares);
+
+            communicationA.Receive();
+            communicationB.Receive();
+
+            //Wait for resaults
+            communicationA.receiveDone.WaitOne();
+            communicationA.CloseSocket();
+
+            communicationB.receiveDone.WaitOne();
+            communicationB.CloseSocket();
+
+        }
+
         private static void Start(string ip1, int port1, string ip2, int port2)
         {
             communicationA = new CommunicationDataClient();
@@ -107,11 +141,11 @@
             }
         }
 
-        public bool ReadInput(string filePath)
+        public uint[] ReadInput(string filePath)
         {
             data = userService.ReadData(filePath).ToArray();
-            if (data == null) return false;
-            else return true;
+            //if (data == null) return false;
+            return data;
         }
 
        /* public string StartSession(string ip1, int port1)

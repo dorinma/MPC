@@ -18,6 +18,7 @@ namespace MPC_UI
 
         MainDataContext mainDataContext;
         MPCDataClient.ManagerDataClient managerDataClient;
+        //private bool isFirstClient = false;
 
         public MainWindow()
         {
@@ -44,16 +45,13 @@ namespace MPC_UI
 
         private void Send_Click(object sender, RoutedEventArgs e)
         {
-            if (mainDataContext.SessionId != "" && ValidateInput())
+            if (ValidateInput())
             {
-                if (managerDataClient.ReadInput(inFile.Text))
+                uint[] data = managerDataClient.ReadInput(inFile.Text);
+                if (data != null)
                 {
-                    int oper = 0;
-                    if (OperationMerge.IsSelected) oper = 1;
-                    else if (OperationSort.IsSelected) oper = 2;
-                    else oper = 3;
-                    managerDataClient.SendData(mainDataContext.IP1, mainDataContext.IP2, 
-                        mainDataContext.Port1, mainDataContext.Port2, oper, mainDataContext.SessionId);
+                    managerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data);
+                    MessageBox.Show("Computation is done.");
                 }
                 else
                 {
@@ -66,9 +64,32 @@ namespace MPC_UI
             }
         }
 
-        private void GetSessionId_Click(object sender, RoutedEventArgs e)
+        private void StartNewSession_Click(object sender, RoutedEventArgs e)
         {
-            mainDataContext.SessionId = managerDataClient.StartSession(mainDataContext.IP1, mainDataContext.Port1);
+            if (ValidateInputFirstInit())
+            {
+                mainDataContext.SessionId = managerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1, 
+                    Operation.SelectedIndex, mainDataContext.ParticipantsNum);
+                sessionId.Text = mainDataContext.SessionId; //assume valid session id
+                //isFirstClient = true;
+            }
+            else
+            {
+                MessageBox.Show("Please make sure information is valid.");
+            }
+        }
+
+
+        private void NewSession_Checked(object sender, RoutedEventArgs e)
+        {
+            ParticipantsNum.IsReadOnly = false;
+            sessionId.IsReadOnly = true;
+        }
+        
+        private void ExistingSession_Checked(object sender, RoutedEventArgs e)
+        {
+            //ParticipantsNum.IsReadOnly = true;
+            //sessionId.IsReadOnly = false;
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
@@ -77,12 +98,19 @@ namespace MPC_UI
             e.Handled = regex.IsMatch(e.Text);
         }
 
+        private bool ValidateInputFirstInit()
+        {
+            return ValidateIP(mainDataContext.IP1)
+               && ValidatePort(mainDataContext.Port1)
+               && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 100; //TODO how many??
+        }
+
         private bool ValidateInput()
         {
             return ValidateIP(mainDataContext.IP1) && ValidateIP(mainDataContext.IP2)
                 && ValidatePort(mainDataContext.Port1) && ValidatePort(mainDataContext.Port2)
                 && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 100 //TODO how many??
-                && inFile.Text != "";
+                && mainDataContext.SessionId != "" && inFile.Text != "";
         }
 
         private bool ValidateIP(string ip)
