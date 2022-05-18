@@ -42,7 +42,7 @@ namespace MPCServer
             return null;
         }
 
-        private uint[] sortCompute()
+        public uint[] sortCompute()
         {
             //actually logic
 

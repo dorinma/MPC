@@ -25,9 +25,7 @@ namespace Tests.ServerTest
             dpfAesKeys = new string[10]
         };
 
-        public ComputerTest()
-        {
-        }
+        public ComputerTest() { }
 
         public Computer InitComuter(string instance, SortRandomRequest randomRequest = default, IDcfAdapterServer dcfAdapter = default, IDpfAdapterServer dpfAdapter = default)
         {
@@ -110,7 +108,7 @@ namespace Tests.ServerTest
         private void SetupDpfMock(Mock<IDpfAdapterServer> dpfMock)
         {
             var rand = new Random();
-            uint firstShare = 5;// rand.NextUInt32();
+            uint firstShare = rand.NextUInt32();
             dpfMock.Setup(mock => mock.EvalDPF("A", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
                 .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : firstShare);
             dpfMock.Setup(mock => mock.EvalDPF("B", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
