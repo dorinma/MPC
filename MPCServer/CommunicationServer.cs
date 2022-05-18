@@ -149,6 +149,7 @@ namespace MPCServer
             Socket handler = state.workSocket;
 
             // Read data from the client socket.  
+            
             int read = handler.EndReceive(ar);
 
             // Data was read from the client socket.  
@@ -446,24 +447,30 @@ namespace MPCServer
 
         internal uint[] ReciveServerData()
         {
-            reciveDone.Reset();
-            try
+            if (exchangeData == null)
             {
-                // Create the state object.  
-                StateObject state = new StateObject();
-                state.workSocket = memberServerSocket;
+                reciveDone.Reset();
+                try
+                {
+                    // Create the state object.  
+                    StateObject state = new StateObject();
+                    state.workSocket = memberServerSocket;
 
-                // Begin receiving the data from the remote device.  
-                memberServerSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(RecieveCallback), state);
+                    // Begin receiving the data from the remote device.  
+                    memberServerSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(RecieveCallback), state);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+                reciveDone.WaitOne();
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-            reciveDone.WaitOne();
+
+            uint[] currExchangeData = exchangeData.ToArray();
+            exchangeData = null;
 
             Console.WriteLine("recive done :)");
-            return exchangeData.ToArray();
+            return currExchangeData;
         }
     }
 }
