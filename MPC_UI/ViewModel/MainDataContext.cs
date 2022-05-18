@@ -18,9 +18,9 @@ namespace MPC_UI.ViewModel
         {
             //TODO reset all params. Data only for developing.
             ip1 = "127.0.0.1";
-            ip2 = "0.0.0.0";
+            ip2 = "127.0.0.1";
             port1 = 2022;
-            port2 = 0;
+            port2 = 2023;
             participants = 1;
         }
 

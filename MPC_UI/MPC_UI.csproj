@@ -10,6 +10,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MPCDataClient\MPCDataClient.csproj" />
+    <ProjectReference Include="..\MPCRandomnessClient\MPCRandomnessClient.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Out\" />
   </ItemGroup>
 
 </Project>

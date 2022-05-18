@@ -18,7 +18,9 @@ namespace MPC_UI
 
         MainDataContext mainDataContext;
         MPCDataClient.ManagerDataClient managerDataClient;
+        MPCRandomnessClient.ManagerRandomnessClient managerRandomnessClient;
         //private bool isFirstClient = false;
+        private bool isDebugMode = true;
 
         public MainWindow()
         {
@@ -28,6 +30,7 @@ namespace MPC_UI
             DataContext = mainDataContext;
 
             managerDataClient = new MPCDataClient.ManagerDataClient();
+            managerRandomnessClient = new MPCRandomnessClient.ManagerRandomnessClient();
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
@@ -45,13 +48,26 @@ namespace MPC_UI
 
         private void Send_Click(object sender, RoutedEventArgs e)
         {
+            if (mainDataContext.SessionId == "")
+                GenerateSession();
             if (ValidateInput())
             {
                 uint[] data = managerDataClient.ReadInput(inFile.Text);
                 if (data != null)
                 {
-                    managerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data);
-                    MessageBox.Show("Computation is done.");
+                    string res = managerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data, isDebugMode);
+                    if (isDebugMode)
+                    {
+                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(@"..\\..\\..\\Out", "ComputationOutput.txt")))
+                        {
+                            outputFile.WriteLine(res);
+                            MessageBox.Show("Computation is done, output is saved to Out folder.");
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Computation is done.");
+                    }
                 }
                 else
                 {
@@ -65,6 +81,11 @@ namespace MPC_UI
         }
 
         private void StartNewSession_Click(object sender, RoutedEventArgs e)
+        {
+            GenerateSession();
+        }
+
+        private void GenerateSession()
         {
             if (ValidateInputFirstInit())
             {
@@ -82,14 +103,38 @@ namespace MPC_UI
 
         private void NewSession_Checked(object sender, RoutedEventArgs e)
         {
-            ParticipantsNum.IsReadOnly = false;
+            ParticipantsNum.IsEnabled = true;
             sessionId.IsReadOnly = true;
+            //isFirstClient = true;
         }
         
         private void ExistingSession_Checked(object sender, RoutedEventArgs e)
         {
-            //ParticipantsNum.IsReadOnly = true;
-            //sessionId.IsReadOnly = false;
+            ParticipantsNum.IsEnabled = false;
+            sessionId.IsReadOnly = false;
+            //isFirstClient = false;
+        }
+
+        private void refreshRnd_Click(object sender, RoutedEventArgs e)
+        {
+            if (ValidateCommInfo())
+            {
+                if (managerRandomnessClient.Run(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2)) 
+                    MessageBox.Show("New randomness has been generated.");
+                else MessageBox.Show("Could not generate new randomness.");
+            }
+            else MessageBox.Show("Please insert valid IPs & ports.");
+        }
+
+        private void DebugMode_Checked(object sender, RoutedEventArgs e)
+        {
+            isDebugMode = true;
+        }
+
+        private void DebugMode_Unchecked(object sender, RoutedEventArgs e)
+        {
+            //TODO ignoring for now until sending it in communication
+            //isDebugMode = false;
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
@@ -107,10 +152,15 @@ namespace MPC_UI
 
         private bool ValidateInput()
         {
-            return ValidateIP(mainDataContext.IP1) && ValidateIP(mainDataContext.IP2)
-                && ValidatePort(mainDataContext.Port1) && ValidatePort(mainDataContext.Port2)
+            return ValidateCommInfo()
                 && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 100 //TODO how many??
-                && mainDataContext.SessionId != "" && inFile.Text != "";
+                && inFile.Text != "";
+        }
+
+        private bool ValidateCommInfo()
+        {
+            return ValidateIP(mainDataContext.IP1) && ValidateIP(mainDataContext.IP2)
+                && ValidatePort(mainDataContext.Port1) && ValidatePort(mainDataContext.Port2);
         }
 
         private bool ValidateIP(string ip)
@@ -123,5 +173,6 @@ namespace MPC_UI
         {
             return port > -1 && port < MAX_PORTS;
         }
+
     }
 }

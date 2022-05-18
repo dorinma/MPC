@@ -57,7 +57,7 @@
             return sessionId;
         }
 
-        public void Run(string ip, int port, string sessionId, uint[] data)
+        public string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
         {
             communicationB = new CommunicationDataClient();
 
@@ -77,6 +77,12 @@
 
             communicationB.receiveDone.WaitOne();
             communicationB.CloseSocket();
+
+            if(debugMode)
+            {
+                return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
+            }
+            return "";
 
         }
 
