@@ -11,13 +11,8 @@ namespace Tests.ToolsTest
         [MemberData(nameof(ListsToSplit))]
         public void SplitToSecretShares_Success(uint[] inputList)
         {
-<<<<<<< HEAD
-            RandomUtils.SplitToSecretShares(inputList, out uint[] sharesA, out uint[] sharesB, true);
-            Assert.Equal(inputList, TestUtils.SumLists(sharesA, sharesB));
-=======
             RandomUtils.SplitToSecretShares(inputList, out uint[] sharesA, out uint[] sharesB);
-            Assert.Equal(inputList, TestUtils.SumList(sharesA, sharesB));
->>>>>>> 055df7fbb0e0b4233fae010d86df4cca94174652
+            Assert.Equal(inputList, TestUtils.SumLists(sharesA, sharesB));
         }
 
         [Fact]

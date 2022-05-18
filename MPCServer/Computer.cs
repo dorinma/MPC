@@ -81,7 +81,7 @@ namespace MPCServer
             return sortList;
         }
 
-        private uint[] ComputeResultsShares(uint[] sumIndexesMasks, uint[] sumValuesMasks, int numOfElement)
+        public uint[] ComputeResultsShares(uint[] sumIndexesMasks, uint[] sumValuesMasks, int numOfElement)
         {
             uint[] sortList = new uint[numOfElement];
             string[] dpfKeys = sortRandomRequest.dpfKeys;
@@ -108,7 +108,7 @@ namespace MPCServer
                 for (int j = i + 1; j < numOfElement; j++)
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-                    uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
+                    uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
                     sharesIndexes[i] -= instance == "A" ? outputShare : (outputShare - 1);
                     sharesIndexes[j] += outputShare;
                     valuesIndex++;
