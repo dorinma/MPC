@@ -1,12 +1,12 @@
-using MPCDataClient;
-using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Tests.DataClientTest
+namespace Tests.RandomnessClientTest
 {
-    public class DataServiceTest
+    public class ManagerRandomnessClientTest
     {
         DataService dataService { get; set; }
         public DataServiceTest()
@@ -18,7 +18,7 @@ namespace Tests.DataClientTest
         [MemberData(nameof(Data))]
         public void CanAddTheoryMemberDataProperty(List<UInt16> inputList)
         {
-            this.dataService.generateSecretShares(inputList);
+            this.dataService.GenerateSecretShares(inputList);
             Assert.Equal(inputList, SumList(dataService.serverAList, dataService.serverBList));
         }
 
@@ -32,7 +32,8 @@ namespace Tests.DataClientTest
             return (UInt16)(a + b);
         }
 
-        public static IEnumerable<object[]> Data() {
+        public static IEnumerable<object[]> Data()
+        {
             yield return new object[]
             {
                 TestUtils.GenerateRandomList(10000)
@@ -50,3 +51,4 @@ namespace Tests.DataClientTest
         }
     }
 }
+*/

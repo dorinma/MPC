@@ -5,10 +5,24 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\back1.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MPCDataClient\MPCDataClient.csproj" />
+    <ProjectReference Include="..\MPCRandomnessClient\MPCRandomnessClient.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Out\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\back1.jpg" />
   </ItemGroup>
 
 </Project>

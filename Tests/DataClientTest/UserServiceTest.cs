@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
+using Tests.ToolsTest;
 using Xunit;
 
 namespace Tests.DataClientTest
@@ -38,7 +39,7 @@ namespace Tests.DataClientTest
 
         [Theory]
         [MemberData(nameof(ValidFileContent))]
-        public void ParseFile_ShouldSuccess(List<UInt16> contentList)
+        public void ParseFile_ShouldSuccess(uint[] contentList)
         {
             var filePath = "mock path";
             var fileContent = "title\n" + string.Join('\n', contentList);
@@ -57,7 +58,7 @@ namespace Tests.DataClientTest
             var mockPath = "mock path";
             var fileSystemMock = new MockFileSystem();
             fileSystemMock.AddFile(mockPath, new MockFileData(fileContent));
-            var userService = new UserService(fileSystemMock);;
+            var userService = new UserService(fileSystemMock);
             Assert.ThrowsAny<Exception>(() => userService.ParseFile(pathToSend ?? mockPath));
 
         }
@@ -103,7 +104,7 @@ namespace Tests.DataClientTest
         {            
             yield return new object[]
             {
-                new List<UInt16>{1, 2, 3, 4, 5}
+                new uint[]{1, 2, 3, 4, 5}
             };
 
             yield return new object[]
@@ -113,7 +114,7 @@ namespace Tests.DataClientTest
 
             yield return new object[]
             {
-                new List<UInt16>()
+                new uint[0]
             };
         }
 
@@ -131,7 +132,7 @@ namespace Tests.DataClientTest
 
             yield return new object[]
             {
-                "title\n1\n656000\n2" //contains element value that is bigger than type allows
+                $"title\n1\n{(ulong)uint.MaxValue+1}\n2" //contains element value that is bigger than type allows
             };
 
             yield return new object[]

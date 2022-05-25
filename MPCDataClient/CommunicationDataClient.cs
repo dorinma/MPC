@@ -1,4 +1,4 @@
-﻿using MPCProtocol;
+﻿using MPCTools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,11 +17,11 @@ namespace MPCDataClient
         public ManualResetEvent receiveDone = new ManualResetEvent(false);
 
         private Socket client;
-        private static Protocol protocol = Protocol.Instance;
+        private static protocol protocol = protocol.Instance;
 
         public string sessionId { get; set; }
         public string response = string.Empty;
-        public List<UInt16> dataResponse = new List<UInt16>();
+        public List<uint> dataResponse = new List<uint>();
 
         public void Connect(string serverIp, int serverPort)
         {
@@ -36,8 +36,8 @@ namespace MPCDataClient
 
                 // Connect to the remote endpoint.  
                 client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
-                Console.WriteLine($"ip: {serverIp} port: {serverPort}");
                 connectDone.WaitOne();
+                Console.WriteLine($"Connected to server with ip: {serverIp}, port: {serverPort}");
             }
             catch (Exception e)
             {
@@ -56,8 +56,6 @@ namespace MPCDataClient
                 // Complete the connection.  
                 client.EndConnect(ar);
 
-                Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
-
                 // Signal that the connection has been made.  
                 connectDone.Set();
             }
@@ -69,9 +67,6 @@ namespace MPCDataClient
 
         private void Send(byte[] byteData)
         {
-            // Convert the string data to byte data using ASCII encoding.  
-            //byte[] byteData = Encoding.ASCII.GetBytes(data);
-
             // Begin sending the data to the remote device.  
             client.BeginSend(byteData, 0, byteData.Length, SocketFlags.None, new AsyncCallback(SendCallback), client);
         }
@@ -80,18 +75,14 @@ namespace MPCDataClient
         {
             byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_CLIENT_INIT, sizeof(int), new List<int> { operation, numberOfUsers }.ToArray());
             Send(message);
-            //client.BeginSend(message, 0, message.Length, 0, new AsyncCallback(SendCallback), client);
-            //sendDone.WaitOne();
             Receive();
             receiveDone.WaitOne();
             return sessionId;
         }
 
-        public void SendData(string sessionId, List<UInt16> data)
+        public void SendData(string sessionId, uint[] data)
         {
-            Console.WriteLine("Send data to server");
-            Console.WriteLine($"data {data.Count}");
-            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(UInt16), data.ToArray());
+            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(uint), data);
             Send(meesage);
         }
 
@@ -105,7 +96,6 @@ namespace MPCDataClient
 
                 // Complete sending the data to the remote device.  
                 int bytesSent = client.EndSend(ar);
-                Console.WriteLine("Sent {0} bytes to server.", bytesSent);
 
                 // Signal that all bytes have been sent.  
                 //sendDone.Set();
@@ -137,7 +127,6 @@ namespace MPCDataClient
         {
             try
             {
-                Console.WriteLine("recieve callback client");
                 // Retrieve the state object and the client socket
                 // from the asynchronous state object.  
                 StateObject state = (StateObject)ar.AsyncState;
@@ -154,7 +143,6 @@ namespace MPCDataClient
                     }
 
                     protocol.ParseData(state.buffer, out OPCODE_MPC Opcode, out Byte[] MsgData);
-                    Console.WriteLine($"opcode {Opcode}");
                     AnalyzeMessage(Opcode, MsgData);
                     receiveDone.Set();
                     //  Get the rest of the data.  
@@ -184,7 +172,7 @@ namespace MPCDataClient
                 case OPCODE_MPC.E_OPCODE_SERVER_INIT:
                     {
                         sessionId = Encoding.Default.GetString(Data).Substring(0, ProtocolConstants.SESSION_ID_SIZE);
-                        Console.WriteLine($"recieved session id - {sessionId}");
+                        //Console.WriteLine($"recieved session id - {sessionId}");
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_SERVER_MSG:
@@ -199,7 +187,7 @@ namespace MPCDataClient
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
-                        Console.WriteLine($"Recived error: {Encoding.Default.GetString(Data)}");
+                        Console.WriteLine($"Received error: {Encoding.Default.GetString(Data)}");
                         break;
                     }
                 default:

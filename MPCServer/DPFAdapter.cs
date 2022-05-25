@@ -7,9 +7,9 @@ using System.Collections;
 
 namespace MPCServer
 {
-    class DPFAdapter
+    public class DPFAdapter
     {
-        public UInt16 Eval(int serverIndex, UInt16 key, UInt16 inputSum, UInt16 maskedOrignalInput)
+        public uint Eval(string serverIndex, string key, string aesKey, uint inputSum, uint maskedOrignalInput)
         {
             return 0;
         }

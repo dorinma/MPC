@@ -1,9 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +25,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MPCDataClient\MPCDataClient.csproj" />
+    <ProjectReference Include="..\MPCRandomnessClient\MPCRandomnessClient.csproj" />
+    <ProjectReference Include="..\MPCServer\MPCServer.csproj" />
+    <ProjectReference Include="..\MPCTools\MPCTools.csproj" />
   </ItemGroup>
 
 </Project>

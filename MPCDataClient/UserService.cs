@@ -33,7 +33,6 @@ namespace MPCDataClient
                 {
                     Environment.Exit(-1);
                 }
-                Console.Write("Number of action: ");
             }
 
             if (action == 1)
@@ -53,8 +52,8 @@ namespace MPCDataClient
         public int ReadOperation()
         {
             int operation;
-            Console.WriteLine("Insert the number of operation you want to perform:\n1. merge\n2. find the K'th element\n3. sort");
-            while (!TryParseOperation(Console.ReadLine(), out operation))
+            Console.WriteLine("Insert the number of operation you want to perform:\n1. sort");
+            while (!TryParseOperation(Console.ReadLine(), out operation) || operation > 1)
             {
                 Console.WriteLine("Invalid operation number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
@@ -63,9 +62,7 @@ namespace MPCDataClient
                 {
                     Environment.Exit(-1);
                 }
-                Console.Write("Number of operation: ");
             }
-
             return operation;
         }
 
@@ -99,13 +96,11 @@ namespace MPCDataClient
             return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
         }
 
-        public List<UInt16> ReadData()
+        public List<uint> ReadData()
         {
-            Console.WriteLine("Insert data file path");
+            Console.WriteLine("\nInsert data file path");
             string path = Console.ReadLine();
-            path = @"C:\Users\t-edentanami\OneDrive - Microsoft\Desktop\MPC project\Code\MPC\inputFile.csv";
-            //path = @"C:\Users\דורין\Downloads\";
-            path = "C:\\Users\\hodaya\\Desktop\\test.csv";
+            //path = @"..\\..\\..\\..\\inputFile.csv";
             try
             {
                 return ParseFile(path);
@@ -125,7 +120,7 @@ namespace MPCDataClient
             return null;
         }
 
-        public List<UInt16> ReadData(string filePath)
+        public List<uint> ReadData(string filePath)
         {
             try
             {
@@ -146,16 +141,16 @@ namespace MPCDataClient
             }
         }
 
-        public List<UInt16> ParseFile(string path)
+        public List<uint> ParseFile(string path)
         {
-            List<UInt16> output = new List<UInt16>();
+            List<uint> output = new List<uint>();
             Stream fileStream = fileSystem.File.OpenRead(path);
             using (var reader = new StreamReader(fileStream))
             {
                 reader.ReadLine(); //skip column name
                 while (!reader.EndOfStream)
                 {
-                    output.Add(UInt16.Parse(reader.ReadLine()));
+                    output.Add(uint.Parse(reader.ReadLine()));
                 }
             }
 

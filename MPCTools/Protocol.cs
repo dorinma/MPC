@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net.Sockets;
+using Newtonsoft.Json;
 
-namespace MPCProtocol
+namespace MPCTools
 {
     public class ProtocolConstants
     {
@@ -23,7 +24,7 @@ namespace MPCProtocol
     public class StateObject
     {
         public Socket workSocket = null;
-        public const int BufferSize = 32768;
+        public const int BufferSize = 500000;
         public byte[] buffer = new byte[BufferSize];
         public StringBuilder sb = new StringBuilder();
     }
@@ -37,12 +38,20 @@ namespace MPCProtocol
         E_OPCODE_CLIENT_DATA    = 0x03,
         E_OPCODE_SERVER_MSG     = 0x04,  
         E_OPCODE_SERVER_DATA     = 0x05, 
-        E_OPCODE_SERVER_TO_SERVER_INIT     = 0x06
+        E_OPCODE_SERVER_TO_SERVER_INIT     = 0x06,
+        E_OPCODE_RANDOM_SORT = 0x07,
+        E_OPCODE_SERVER_VERIFY = 0x08,
+        E_OPCODE_EXCHANGE_DATA = 0x09,
     }
 
-    public class Protocol
+    public enum OPERATION : UInt16
     {
-        private static Protocol instance = null;
+        E_OPER_SORT = 0X01
+    }
+
+    public class protocol
+    {
+        private static protocol instance = null;
 
         protected AsyncOperation operation;
 
@@ -52,17 +61,17 @@ namespace MPCProtocol
         public event ServerDone Event_ServerDone;
         public event Init Event_Init;
 
-        private Protocol()
+        private protocol()
         {
         }
 
-        public static Protocol Instance
+        public static protocol Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new Protocol();
+                    instance = new protocol();
                 }
                 return instance;
             }
@@ -84,15 +93,6 @@ namespace MPCProtocol
         public bool ValidateMessage(byte[] Data)
         {
             return Data[0] == 'M' && Data[1] == 'C';
-        }
-
-        public byte[] CreateHeaderDataMsg()
-        {
-            return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_CLIENT_DATA, 0 };
-        }
-        public byte[] CreateHeaderInitMsg()
-        {
-            return new byte[] { (byte)'M', (byte)'C', (byte)OPCODE_MPC.E_OPCODE_CLIENT_DATA, 0 };
         }
 
         public byte[] CreateArrayMessage(OPCODE_MPC opcode, int elementSize, Array data)
@@ -210,7 +210,7 @@ namespace MPCProtocol
             }
         }
         // sessionId, elementsCounter(32b), data
-        public bool GetDataParams(byte[] data, out string Session, out UInt32 ElementsCounter, out List<UInt16> Elements)
+        public bool GetDataParams(byte[] data, out string Session, out UInt32 ElementsCounter, out List<uint> Elements)
         {
             try
             {
@@ -230,5 +230,20 @@ namespace MPCProtocol
                 return false;
             }
         }
+
+        public bool GetExchangeData(byte[] data, out uint[] exchangeData)
+        {
+            try
+            {
+                exchangeData = MPCConvertor.BytesToList(data, 0).ToArray();
+                return true;
+            }
+            catch
+            {
+                exchangeData = null;
+                return false;
+            }
+        }
+
     }
 }
