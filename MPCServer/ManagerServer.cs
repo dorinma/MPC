@@ -95,7 +95,8 @@ namespace MPCServer
         public static uint[] Compute(OPERATION op) 
         {
             //swich case per operation 
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm);
+            //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
+            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer());
             //Future code
             //Computer computer = new Computer(values, comm.requeset[op]);
             uint[] res = computer.Compute(op);

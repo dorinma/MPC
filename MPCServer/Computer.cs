@@ -14,17 +14,19 @@ namespace MPCServer
         private uint[] data;
         private SortRandomRequest sortRandomRequest;
         private string instance;
-        private DcfAdapterServer dcfAdapter = new DcfAdapterServer();
-        private DpfAdapterServer dpfAdapter = new DpfAdapterServer();
+        private IDcfAdapterServer dcfAdapter;
+        private IDpfAdapterServer dpfAdapter;
         private CommunicationServer comm;
 
 
-        public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm)
+        public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter)
         {
             data = values;
             this.sortRandomRequest = sortRandomRequest;
             this.instance = instance;
             this.comm = comm;
+            this.dcfAdapter = dcfAdapter;
+            this.dpfAdapter = dpfAdapter;
         }
 
         public uint[] Compute(OPERATION op)
@@ -40,7 +42,7 @@ namespace MPCServer
             return null;
         }
 
-        private uint[] sortCompute()
+        public uint[] sortCompute()
         {
             //actually logic
 
@@ -79,7 +81,7 @@ namespace MPCServer
             return sortList;
         }
 
-        private uint[] ComputeResultsShares(uint[] sumIndexesMasks, uint[] sumValuesMasks, int numOfElement)
+        public uint[] ComputeResultsShares(uint[] sumIndexesMasks, uint[] sumValuesMasks, int numOfElement)
         {
             uint[] sortList = new uint[numOfElement];
             string[] dpfKeys = sortRandomRequest.dpfKeys;
@@ -94,7 +96,7 @@ namespace MPCServer
             return sortList;
         }
 
-        private uint[] ComputeIndexesShares(uint[] diffValues, int numOfElement, int n)
+        public uint[] ComputeIndexesShares(uint[] diffValues, int numOfElement, int n)
         {
             uint[] sharesIndexes = new uint[numOfElement];
             string[] dcfKeys = sortRandomRequest.dcfKeys;
@@ -106,7 +108,7 @@ namespace MPCServer
                 for (int j = i + 1; j < numOfElement; j++)
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-                    uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // if values[i] < values[j] returened 1
+                    uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
                     sharesIndexes[i] -= instance == "A" ? outputShare : (outputShare - 1);
                     sharesIndexes[j] += outputShare;
                     valuesIndex++;
@@ -116,7 +118,7 @@ namespace MPCServer
             return sharesIndexes;
         }
 
-        private uint[] DiffEachPairValues(uint[] sumValuesMasks, int numOfElement)
+        public uint[] DiffEachPairValues(uint[] sumValuesMasks, int numOfElement)
         {
             int numOfElementChoose2 = (numOfElement - 1) * numOfElement / 2;
             uint[] diffValues = new uint[numOfElementChoose2];

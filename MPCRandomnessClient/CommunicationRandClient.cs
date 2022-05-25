@@ -72,20 +72,8 @@ namespace MPCRandomnessClient
             }
         }
 
-        public void SendMasksAndKeys(int n, uint[] dcfMasks, string[] dcfKeys, string[] dcfAesKeys, uint[] dpfMasks, string[] dpfKeys, string[] dpfAesKeys)
+        public void SendMasksAndKeys(SortRandomRequest sortRequest)
         {
-            SortRandomRequest sortRequest = new SortRandomRequest
-            {
-                sessionId = sessionId,
-                n = n,
-                dcfMasks = dcfMasks, //also masks for the dpf output
-                dcfKeys = dcfKeys,
-                dcfAesKeys = dcfAesKeys,
-                dpfMasks = dpfMasks,
-                dpfKeys = dpfKeys,
-                dpfAesKeys = dpfAesKeys
-            };
-
             string message = JsonConvert.SerializeObject(sortRequest);
             Send(protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_RANDOM_SORT, message));
         }

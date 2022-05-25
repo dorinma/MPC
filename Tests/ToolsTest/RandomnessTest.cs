@@ -12,7 +12,7 @@ namespace Tests.ToolsTest
         public void SplitToSecretShares_Success(uint[] inputList)
         {
             RandomUtils.SplitToSecretShares(inputList, out uint[] sharesA, out uint[] sharesB);
-            Assert.Equal(inputList, TestUtils.SumList(sharesA, sharesB));
+            Assert.Equal(inputList, TestUtils.SumLists(sharesA, sharesB));
         }
 
         [Fact]

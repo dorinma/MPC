@@ -18,7 +18,7 @@ namespace Tests.ToolsTest
             return output;
         }
 
-        public static uint[] SumList(uint[] listA, uint[] listB)
+        public static uint[] SumLists(uint[] listA, uint[] listB)
         {
             var a =  listA.Zip(listB, SumUints).ToArray();
             return a;
