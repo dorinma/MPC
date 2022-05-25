@@ -57,24 +57,24 @@ namespace MPCServer
             uint[] sharesIndexes = ComputeIndexesShares(diffValues, numOfElement, n);
 
             //DEBUG
-            Console.WriteLine("shares Indexes");
+            Console.WriteLine("\n\nshares Indexes");
             for (int i = 0; i < sharesIndexes.Length; i++)
             {
-                Console.WriteLine("\t" + sharesIndexes[i] + "\t");
+                Console.WriteLine(i + ". " + sharesIndexes[i]);
             }
 
             // second level - sum results
             uint[] sumIndexesMasks = SumServersPartsWithMasks(sharesIndexes.Length, sharesIndexes, sortRandomRequest.dpfMasks);
 
             //DEBUG
-            Console.WriteLine("sum Indexes");
+            Console.WriteLine("\n\nsum Indexes");
             for (int i = 0; i < sumIndexesMasks.Length; i++)
             {
-                Console.WriteLine("\t" + sumIndexesMasks[i] + "\t");
+                Console.WriteLine(i + ". " + sumIndexesMasks[i]);
             }
-
+            Console.WriteLine("\n\nThe dcf level is Done :) !!");
             // third level - compare eatch value result to all possible indexes and placing in the returned list
-            uint[] sortList = ComputeResultsShares(sumIndexesMasks, sumValuesMasks, n);
+            uint[] sortList = ComputeResultsShares(sumIndexesMasks, sumValuesMasks, numOfElement);
 
             return sortList;
         }

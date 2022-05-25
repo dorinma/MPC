@@ -33,7 +33,6 @@ namespace MPCDataClient
                 {
                     Environment.Exit(-1);
                 }
-                Console.Write("Number of action: ");
             }
 
             if (action == 1)
@@ -63,9 +62,7 @@ namespace MPCDataClient
                 {
                     Environment.Exit(-1);
                 }
-                Console.Write("Number of operation: ");
             }
-
             return operation;
         }
 
@@ -101,11 +98,9 @@ namespace MPCDataClient
 
         public List<uint> ReadData()
         {
-            Console.WriteLine("Insert data file path");
+            Console.WriteLine("\nInsert data file path");
             string path = Console.ReadLine();
-            path = @"..\\..\\..\\..\\inputFile.csv";
-            //path = @"C:\Users\דורין\Downloads\";
-            //path = "C:\\Users\\hodaya\\Desktop\\test.csv";
+            //path = @"..\\..\\..\\..\\inputFile.csv";
             try
             {
                 return ParseFile(path);

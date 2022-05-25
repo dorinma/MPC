@@ -24,7 +24,7 @@ namespace MPCTools
     public class StateObject
     {
         public Socket workSocket = null;
-        public const int BufferSize = 32768;
+        public const int BufferSize = 500000;
         public byte[] buffer = new byte[BufferSize];
         public StringBuilder sb = new StringBuilder();
     }
@@ -231,11 +231,11 @@ namespace MPCTools
             }
         }
 
-        public bool GetExchangeData(byte[] data, out List<uint> exchangeData)
+        public bool GetExchangeData(byte[] data, out uint[] exchangeData)
         {
             try
             {
-                exchangeData = MPCConvertor.BytesToList(data, 0);
+                exchangeData = MPCConvertor.BytesToList(data, 0).ToArray();
                 return true;
             }
             catch

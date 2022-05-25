@@ -19,7 +19,7 @@ namespace MPC_UI
         MainDataContext mainDataContext;
         MPCDataClient.ManagerDataClient managerDataClient;
         MPCRandomnessClient.ManagerRandomnessClient managerRandomnessClient;
-        //private bool isFirstClient = false;
+        private bool isFirstClient = false;
         private bool isDebugMode = true;
 
         public MainWindow()
@@ -48,8 +48,8 @@ namespace MPC_UI
 
         private void Send_Click(object sender, RoutedEventArgs e)
         {
-            if (mainDataContext.SessionId == "")
-                GenerateSession();
+            if (!isFirstClient && ValidateInputFirstInit())
+                managerDataClient.InitConnectionExistingSession(mainDataContext.IP1, mainDataContext.Port1, mainDataContext.SessionId);
             if (ValidateInput())
             {
                 uint[] data = managerDataClient.ReadInput(inFile.Text);
@@ -83,6 +83,7 @@ namespace MPC_UI
         private void StartNewSession_Click(object sender, RoutedEventArgs e)
         {
             GenerateSession();
+            isFirstClient = true;
         }
 
         private void GenerateSession()

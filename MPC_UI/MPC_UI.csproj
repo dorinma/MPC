@@ -9,12 +9,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\back1.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MPCDataClient\MPCDataClient.csproj" />
     <ProjectReference Include="..\MPCRandomnessClient\MPCRandomnessClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Out\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\back1.jpg" />
   </ItemGroup>
 
 </Project>

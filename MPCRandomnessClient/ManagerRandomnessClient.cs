@@ -9,11 +9,11 @@ namespace MPCRandomnessClient
 {
     public class ManagerRandomnessClient
     {
-        public const int n = 3; // n
+        public const int n = 10; // n
         public const int dcfMasksCount = n; // mask for each input element
         public const int dpfMasksCount = n; // mask for each element's index sum 
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
-        public const int dpfGatesCount = n*n; // first layer (dcf gates) - last layer (dpf gates) - n*n 
+        public const int dpfGatesCount = n; // first layer (dcf gates) - last layer (dpf gates) - n*n 
 
         private static DcfAdapterRandClient dcfAdapter = new DcfAdapterRandClient();
         private static DpfAdapterRandClient dpfAdapter = new DpfAdapterRandClient();
@@ -35,6 +35,10 @@ namespace MPCRandomnessClient
             communicationA.Reset();
             communicationB.Reset();
             //other circuits..
+
+            //Console.WriteLine("Please enter 'q' for exit.");
+            //while(Console.ReadLine() != "q") { }
+            //Environment.Exit(0);
         }
 
         private static void CreateAndSendCircuits()
@@ -56,7 +60,7 @@ namespace MPCRandomnessClient
 
             //dpf
             //create masks and shares
-            uint[] dpfMasks = RandomUtils.CreateRandomMasks(dpfMasksCount);
+            uint[] dpfMasks = new uint[dpfMasksCount]; //RandomUtils.CreateRandomMasks(dpfMasksCount);
             RandomUtils.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
 
             //generate keys
@@ -75,6 +79,7 @@ namespace MPCRandomnessClient
             //send (need to verify that both server recieved correctly)
             communicationA.SendMasksAndKeys(n, dcfSharesA, dcfKeysA, dcfAesKeys, dpfSharesA, dpfKeysA, dpfAesKeys);
             communicationB.SendMasksAndKeys(n, dcfSharesB, dcfKeysB, dcfAesKeys, dpfSharesB, dpfKeysB, dpfAesKeys);
+            
             //recieve confirmation
             communicationA.Receive();
             communicationB.Receive();
@@ -82,14 +87,14 @@ namespace MPCRandomnessClient
             communicationA.receiveDone.WaitOne();
             communicationB.receiveDone.WaitOne();
 
-            if(!communicationA.serversVerified || !communicationB.serversVerified)
+            if (!communicationA.serversVerified || !communicationB.serversVerified)
             {
                 // retry ? 
                 Console.WriteLine("At least one server did not get the masks and keys correctly");
             }
             else
             {
-                Console.WriteLine("Success");
+                Console.WriteLine($"\nThe correlated randomness was sent successfully to both servers.");
             }
         }
 
@@ -118,7 +123,7 @@ namespace MPCRandomnessClient
 
             //dpf
             //create masks and shares
-            uint[] dpfMasks = RandomUtils.CreateRandomMasks(dpfMasksCount);
+            uint[] dpfMasks = new uint[dpfMasksCount]; // RandomUtils.CreateRandomMasks(dpfMasksCount);
             RandomUtils.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
 
             //generate keys

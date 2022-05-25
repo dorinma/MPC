@@ -44,7 +44,7 @@ namespace MPCRandomnessClient
 
                 // Connect to the remote endpoint.  
                 socket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), socket);
-                Console.WriteLine($"ip: {serverIp} port: {serverPort}");
+                Console.WriteLine($"Connected to server with ip: {serverIp} port: {serverPort}");
             }
             catch (Exception e)
             {
@@ -62,8 +62,6 @@ namespace MPCRandomnessClient
 
                 // Complete the connection.  
                 socket.EndConnect(ar);
-
-                Console.WriteLine("Socket connected to {0}", socket.RemoteEndPoint.ToString());
 
                 // Signal that the connection has been made.  
                 connectDone.Set();
@@ -106,7 +104,6 @@ namespace MPCRandomnessClient
 
                 // Complete sending the data to the remote device.  
                 int bytesSent = socket.EndSend(ar);
-                Console.WriteLine("Sent {0} bytes to server.", bytesSent);
 
                 // Signal that all bytes have been sent.  
                 //sendDone.Set();
@@ -138,7 +135,6 @@ namespace MPCRandomnessClient
         {
             try
             {
-                Console.WriteLine("recieve callback client");
                 // Retrieve the state object and the client socket
                 // from the asynchronous state object.  
                 StateObject state = (StateObject)ar.AsyncState;
@@ -155,7 +151,6 @@ namespace MPCRandomnessClient
                     }
 
                     protocol.ParseData(state.buffer, out OPCODE_MPC Opcode, out Byte[] MsgData);
-                    Console.WriteLine($"opcode {Opcode}");
                     AnalyzeMessage(Opcode, MsgData);
                     receiveDone.Set(); //Ask Hodaya
                     //  Get the rest of the data.  
@@ -188,7 +183,7 @@ namespace MPCRandomnessClient
                         serversVerified = sessionId.Equals(sessionReceived);
                         if (serversVerified)
                         {
-                            Console.WriteLine($"Received confirmation, session id: {sessionId}");
+                            //Console.WriteLine($"Received confirmation, session id: {sessionId}");
                         }
                         else
                         {

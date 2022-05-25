@@ -57,6 +57,13 @@
             return sessionId;
         }
 
+        public void InitConnectionExistingSession(string ip, int port, string sessionId)
+        {
+            communicationA = new CommunicationDataClient();
+            communicationA.Connect(ip, port);
+            communicationA.receiveDone.Reset();
+        }
+
         public string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
         {
             communicationB = new CommunicationDataClient();
@@ -96,7 +103,7 @@
                 communicationA.Connect(ip1, port1);
                 sessionId = communicationA.SendInitMessage(operation, (int)numberOfUsers);
                 communicationA.receiveDone.Reset();
-                Console.WriteLine($"Session id: {sessionId}");
+                Console.WriteLine($"\nThe session id for your computation is: {sessionId}");
             }
             else
             {
@@ -106,9 +113,13 @@
             
             uint[] data = userService1.ReadData().ToArray();
 
+            Console.WriteLine($"\nThe input values are:");
+            for(int i = 0; i < data.Length; i++)
+            { 
+                Console.WriteLine(i + ". " + data[i]);
+            }
+
             RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
-            /*DataService dataService = new DataService();
-            dataService.GenerateSecretShares(data);*/
 
             communicationB.Connect(ip2, port2);
 
@@ -118,7 +129,7 @@
             communicationA.Receive();
             communicationB.Receive();
 
-            Console.WriteLine("wait for results");
+            Console.WriteLine("\nwait for results");
 
             communicationA.receiveDone.WaitOne();
             communicationA.CloseSocket();

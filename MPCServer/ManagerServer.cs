@@ -25,14 +25,13 @@ namespace MPCServer
             int choose;
             while (!int.TryParse(Console.ReadLine(), out choose) || (choose != 1 && choose != 2))
             {
-                Console.WriteLine("Invalid action.");
+                Console.WriteLine("Invalid option.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
                 var option = Console.ReadLine();
                 if (option != "1")
                 {
                     Environment.Exit(-1);
                 }
-                Console.Write("Number of action: ");
             }
             instance = choose == 1 ? "A" : "B";
 
@@ -53,9 +52,11 @@ namespace MPCServer
                 // if return null -> restart server
                 if (isDebugMode)
                 {
-                    Console.WriteLine("[DEBUG] Secret shares of input:");
-                    for (int i = 0; i < values.Length; i++) Console.Write("\t" + values[i] + "\t");
-                    Console.WriteLine("");
+                    Console.WriteLine("Secret shares of input:");
+                    for (int i = 0; i < values.Length; i++)
+                    {
+                        Console.WriteLine(i + ". " + values[i]);
+                    }
                 }
                 uint[] res = Compute(OPERATION.E_OPER_SORT);
 
@@ -70,7 +71,7 @@ namespace MPCServer
                 }
                 else // debug mode
                 {
-                    Console.WriteLine("\n[DEBUG] Secret shares of output:");
+                    Console.WriteLine("\nSecret shares of output:");
                     Console.WriteLine("\nres:");
 
                     for (int i = 0; i < res.Length; i++)
@@ -78,16 +79,9 @@ namespace MPCServer
                         Console.WriteLine("\t" + res[i] + "\t");
                     }
 
-                    Console.WriteLine("\nvalues:");
-
-                    for (int i = 0; i < values.Length; i++)
-                    {
-                        Console.WriteLine("\t" + values[i] + "\t");
-                    }
-
                     Console.WriteLine("");
 
-                    comm.SendOutputData(values);
+                    comm.SendOutputData(res);
                 }
 
                 deleteUsedMasksAndKeys(values.Length);
@@ -101,7 +95,6 @@ namespace MPCServer
         public static uint[] Compute(OPERATION op) 
         {
             //swich case per operation 
-            //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
             Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm);
             //Future code
             //Computer computer = new Computer(values, comm.requeset[op]);
