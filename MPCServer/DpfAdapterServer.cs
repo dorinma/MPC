@@ -10,7 +10,9 @@ namespace MPCServer
 
     public class DpfAdapterServer : IDpfAdapterServer
     {
-        private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
+        //private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
+        private const string dllPath = @"C:\Users\eden\Desktop\BGU\Project\MPC\sycretDPF\target\debug\sycret.dll";
+
         [DllImport(dllPath)]
         private static extern UInt32 eval_dpf(IntPtr key, IntPtr aesKeys, UInt32 alpha, byte partyId);
 

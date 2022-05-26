@@ -22,14 +22,14 @@ namespace Tests.ExternalSystem
         public void DpfWithEqualAlpha_ReturnsSharesOfOne(uint alpha1, uint alpha2)
         {
             dpfGenAdapter.GenerateDPF(alpha1, beta: 0, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dpfEvalAdapter.EvalDPF("A", keyA, aesKey, alpha2, maskedInput: 0);
-            uint shareB = dpfEvalAdapter.EvalDPF("B", keyB, aesKey, alpha2, maskedInput: 0);
+            uint shareA = dpfEvalAdapter.EvalDPF("A", keyA, aesKey, 3, maskedInput: 0);
+            uint shareB = dpfEvalAdapter.EvalDPF("B", keyB, aesKey, 3, maskedInput: 0);
             Assert.Equal((uint)1, shareA + shareB);
         }
 
         [Theory]
         [MemberData(nameof(DifferentAlphaInputs))]
-        public void DcfWithBiggerAlpha_ReturnsSharesOfZero(uint alpha1, uint alpha2)
+        public void DpfWithDifferentAlpha_ReturnsSharesOfZero(uint alpha1, uint alpha2)
         {
             dpfGenAdapter.GenerateDPF(alpha1, beta: 0, out string keyA, out string keyB, out string aesKey);
             uint shareA = dpfEvalAdapter.EvalDPF("A", keyA, aesKey, alpha2, maskedInput: 0);
