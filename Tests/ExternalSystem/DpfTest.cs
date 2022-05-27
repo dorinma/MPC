@@ -3,6 +3,7 @@ namespace Tests.ExternalSystem
 {
     using MPCRandomnessClient;
     using MPCServer;
+    using MPCTools.Requests;
     using System.Collections.Generic;
     using Xunit;
 

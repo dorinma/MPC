@@ -28,7 +28,8 @@ namespace MPCServer
             { OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, SERVER_STATE.COMPUTATION}
         };
 
-        public const string MSG_VALIDATE_PROTOCOL_FAIL = "Could not parse message.";
+        public const string MSG_BAD_MESSAGE_FORMAT = "Bad message format: Failed to parse request {0}";
+        public const string MSG_VALIDATE_PROTOCOL_FAIL = "Bad mesage format, missing required prefix.";
         public const string MSG_VALIDATE_SERVER_STATE_FAIL = "The server is currently not accepting this kind of messages.";
         public const string MSG_SESSION_RUNNING = "Session already running.";
         public const string MSG_VALIDATE_PARAMS_FAIL = "Could not parse message parameters.";

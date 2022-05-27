@@ -10,7 +10,7 @@ namespace MPCRandomnessClient
 {
     public class ManagerRandomnessClient
     {
-        public const int n = 10; // n
+        public const int n = 5; // n
         public const int dcfMasksCount = n; // mask for each input element
         public const int dpfMasksCount = n; // mask for each element's index sum 
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.

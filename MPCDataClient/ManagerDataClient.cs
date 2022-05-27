@@ -38,59 +38,14 @@
 
             string ip1 = args[0];
             string ip2 = args[2];
+
             if (!Int32.TryParse(args[1], out int port1) | !Int32.TryParse(args[3], out int port2))
             {
                 Console.WriteLine($"Invalid port number");
                 Environment.Exit(-1);
             }
+
             Start(ip1, port1, ip2, port2);
-        }
-
-        public string InitConnectionNewSession(string ip, int port, int operation, int numberOfUsers)
-        {
-            communicationA = new CommunicationDataClient();
-            string sessionId;
-            communicationA.Connect(ip, port);
-            sessionId = communicationA.SendInitMessage(operation, numberOfUsers);
-            communicationA.receiveDone.Reset();
-
-            return sessionId;
-        }
-
-        public void InitConnectionExistingSession(string ip, int port, string sessionId)
-        {
-            communicationA = new CommunicationDataClient();
-            communicationA.Connect(ip, port);
-            communicationA.receiveDone.Reset();
-        }
-
-        public string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
-        {
-            communicationB = new CommunicationDataClient();
-
-            RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
-            
-            communicationB.Connect(ip, port);
-
-            communicationA.SendData(sessionId, serverAShares);
-            communicationB.SendData(sessionId, serverBShares);
-
-            communicationA.Receive();
-            communicationB.Receive();
-
-            //Wait for resaults
-            communicationA.receiveDone.WaitOne();
-            communicationA.CloseSocket();
-
-            communicationB.receiveDone.WaitOne();
-            communicationB.CloseSocket();
-
-            if(debugMode)
-            {
-                return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
-            }
-            return "";
-
         }
 
         private static void Start(string ip1, int port1, string ip2, int port2)
@@ -110,12 +65,12 @@
                 sessionId = userService1.ReadSessionId();
                 communicationA.Connect(ip1, port1);
             }
-            
+
             uint[] data = userService1.ReadData().ToArray();
 
             Console.WriteLine($"\nThe input values are:");
-            for(int i = 0; i < data.Length; i++)
-            { 
+            for (int i = 0; i < data.Length; i++)
+            {
                 Console.WriteLine(i + ". " + data[i]);
             }
 
@@ -123,8 +78,8 @@
 
             communicationB.Connect(ip2, port2);
 
-            communicationA.SendData(sessionId, serverAShares);
-            communicationB.SendData(sessionId, serverBShares);
+            communicationA.SendSharesToServer(sessionId, serverAShares);
+            communicationB.SendSharesToServer(sessionId, serverBShares);
 
             communicationA.Receive();
             communicationB.Receive();
@@ -156,6 +111,53 @@
             {
                 Console.WriteLine(communicationB.response);
             }
+        }
+
+        public string InitConnectionNewSession(string ip, int port, int operation, int numberOfUsers)
+        {
+            communicationA = new CommunicationDataClient();
+            string sessionId;
+            communicationA.Connect(ip, port);
+            sessionId = communicationA.SendInitMessage(operation, numberOfUsers);
+            communicationA.receiveDone.Reset();
+
+            return sessionId;
+        }
+
+        public void InitConnectionExistingSession(string ip, int port, string sessionId)
+        {
+            communicationA = new CommunicationDataClient();
+            communicationA.Connect(ip, port);
+            communicationA.receiveDone.Reset();
+        }
+
+        public string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
+        {
+            communicationB = new CommunicationDataClient();
+
+            RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
+            
+            communicationB.Connect(ip, port);
+
+            communicationA.SendSharesToServer(sessionId, serverAShares);
+            communicationB.SendSharesToServer(sessionId, serverBShares);
+
+            communicationA.Receive();
+            communicationB.Receive();
+
+            //Wait for resaults
+            communicationA.receiveDone.WaitOne();
+            communicationA.CloseSocket();
+
+            communicationB.receiveDone.WaitOne();
+            communicationB.CloseSocket();
+
+            if(debugMode)
+            {
+                return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
+            }
+            return "";
+
         }
 
         public uint[] ReadInput(string filePath)

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Net.Sockets;
 using Newtonsoft.Json;
+using MPCTools.Requests;
 
 namespace MPCTools
 {
@@ -24,7 +25,7 @@ namespace MPCTools
     public class StateObject
     {
         public Socket workSocket = null;
-        public const int BufferSize = 500000;
+        public const int BufferSize = 2048;
         public byte[] buffer = new byte[BufferSize];
         public StringBuilder sb = new StringBuilder();
     }
@@ -81,6 +82,17 @@ namespace MPCTools
         {
         }
 
+        public MessageRequest CreateMessage(OPCODE_MPC opcode, string data)
+        {
+            return new MessageRequest()
+            {
+                prefix = "MC",
+                opcode = opcode,
+                data = data,
+                suffix = "<EOF>"
+            };
+        }
+
         public void ParseData(byte[] Data, out OPCODE_MPC Opcode, out byte[] MsgData)
         {
             Opcode = (OPCODE_MPC)BitConverter.ToUInt16(Data, ProtocolConstants.OPCODE_LSB);
@@ -90,9 +102,10 @@ namespace MPCTools
         }
 
 
-        public bool ValidateMessage(byte[] Data)
+
+        public bool ValidateMessage(string prefix)
         {
-            return Data[0] == 'M' && Data[1] == 'C';
+            return prefix.Equals("MC");
         }
 
         public byte[] CreateArrayMessage(OPCODE_MPC opcode, int elementSize, Array data)
