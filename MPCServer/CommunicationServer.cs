@@ -21,7 +21,7 @@ namespace MPCServer
         private ManualResetEvent serversSend;
 
         private Socket listener;
-        private static protocol protocol = protocol.Instance;
+        private static Protocol protocol = Protocol.Instance;
         private object usersLock = new object();
 
         private string instance;
@@ -167,7 +167,7 @@ namespace MPCServer
                     Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
                         content.Length, content);
 
-                    MessageRequest messageRequest = DeserializRequest<MessageRequest>(content);
+                    MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     
                     if(messageRequest == default)
                     {
@@ -333,7 +333,7 @@ namespace MPCServer
 
         private void HandleSortRandomness(string data, Socket socket)
         {
-            sortRandomRequest = DeserializRequest<SortRandomRequest>(data);
+            sortRandomRequest = protocol.DeserializeRequest<SortRandomRequest>(data);
             if (sortRandomRequest != default) // send confirmation
             {
                 Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
@@ -354,7 +354,7 @@ namespace MPCServer
                 return;
             }
 
-            ClientInitRequest clientInitRequest = DeserializRequest<ClientInitRequest>(data);
+            ClientInitRequest clientInitRequest = protocol.DeserializeRequest<ClientInitRequest>(data);
             if (clientInitRequest == default)
             {
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, clientInitRequest.GetType()));
@@ -385,7 +385,7 @@ namespace MPCServer
 
         public void HandleServerInit(string data, Socket serverSocket)
         {
-            ServerToServerInitRequest serverToServerInitRequest = DeserializRequest<ServerToServerInitRequest>(data);
+            ServerToServerInitRequest serverToServerInitRequest = protocol.DeserializeRequest<ServerToServerInitRequest>(data);
             if (serverToServerInitRequest == default)
             {
                 Console.WriteLine(string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, serverToServerInitRequest.GetType()));
@@ -411,20 +411,9 @@ namespace MPCServer
             }*/
         }
 
-        private T DeserializRequest<T>(string requestString)
-        {
-            try
-            {
-                return JsonConvert.DeserializeObject<T>(requestString) ?? default;
-            }
-            catch
-            {
-                return default;
-            }
-        }
         private void HandleClientData(string data, Socket socket)
         {
-            DataRequest clientDataRequest = DeserializRequest<DataRequest>(data);
+            DataRequest clientDataRequest = protocol.DeserializeRequest<DataRequest>(data);
             if (clientDataRequest == default)
             {
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, clientDataRequest.GetType()));
@@ -454,7 +443,7 @@ namespace MPCServer
 
                 connectedUsers++;
                 serverState = totalUsers == connectedUsers ? SERVER_STATE.COMPUTATION : serverState;
-                values.AddRange(clientDataRequest.dataShares);
+                values.AddRange(clientDataRequest.dataElements);
                // Console.WriteLine($"values {values.Count}");
                // Console.WriteLine($"total users {totalUsers}, connected users {connectedUsers}");
                 clientsSockets.Add(socket);
@@ -464,16 +453,23 @@ namespace MPCServer
             }
         }
 
-        public void SendOutputMessage(string data)
+        public void SendOutputMessage(string message)
         {
-            byte[] message = protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_SERVER_MSG, data);
-            clientsSockets.ForEach(socket => Send(socket, message));
+            MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_MSG, message);
+            clientsSockets.ForEach(socket => Send(socket, messageRequest));
         }
 
-        public void SendOutputData(uint[] data)
+        public void SendOutputData(uint[] outputShares)
         {
-            byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_SERVER_DATA, sizeof(uint), data);
-            clientsSockets.ForEach(socket => Send(socket, message));
+            DataRequest dataRequest = new DataRequest()
+            {
+                sessionId = sessionId,
+                dataElements = outputShares
+            };
+
+            string data = JsonConvert.SerializeObject(dataRequest);
+            MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_DATA, data);
+            clientsSockets.ForEach(socket => Send(socket, messageRequest));
         }
 
         public void SendSessionDetailsToServer()
@@ -541,13 +537,13 @@ namespace MPCServer
 
         public void HandleServerExchangeData(string data, Socket socket)
         {
-            DataRequest dataRequest = DeserializRequest<DataRequest>(data);
+            DataRequest dataRequest = protocol.DeserializeRequest<DataRequest>(data);
             if (dataRequest == default)
             {
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, dataRequest.GetType()));
             }
 
-            exchangeData = dataRequest.dataShares;
+            exchangeData = dataRequest.dataElements;
             reciveDone.Set();
         }
 
@@ -556,7 +552,7 @@ namespace MPCServer
             DataRequest dataRequest = new DataRequest()
             {
                 sessionId = sessionId,
-                dataShares = diffValues
+                dataElements = diffValues
             };
 
             string data = JsonConvert.SerializeObject(dataRequest);

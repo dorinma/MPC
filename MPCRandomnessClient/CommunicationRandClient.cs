@@ -18,7 +18,7 @@ namespace MPCRandomnessClient
         public ManualResetEvent sendDone = new ManualResetEvent(false);
         public ManualResetEvent receiveDone = new ManualResetEvent(false);
 
-        private static protocol protocol = protocol.Instance;
+        private static Protocol protocol = Protocol.Instance;
 
         private Socket socket;
         public string sessionId = string.Empty;
@@ -150,17 +150,13 @@ namespace MPCRandomnessClient
                     Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
                         content.Length, content);
 
-                    MessageRequest messageRequest = default;
-                    try
+                    MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
+                    if (messageRequest == default)
                     {
-                        messageRequest = JsonConvert.DeserializeObject<MessageRequest>(content) ?? default;
-                    }
-                    catch (JsonReaderException e)
-                    {
-                        Console.WriteLine($"Bad json format. Error:{e.Message}");
+                        Console.WriteLine($"Bad json format");
                         return;
                     }
-
+                    
                     AnalyzeMessage(messageRequest.opcode, messageRequest.data);
                     receiveDone.Set();
                 }

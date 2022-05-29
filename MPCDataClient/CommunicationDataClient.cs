@@ -19,7 +19,7 @@ namespace MPCDataClient
         public ManualResetEvent receiveDone = new ManualResetEvent(false);
 
         private Socket client;
-        private static protocol protocol = protocol.Instance;
+        private static Protocol protocol = Protocol.Instance;
 
         public string sessionId { get; set; }
         public string response = string.Empty;
@@ -138,17 +138,13 @@ namespace MPCDataClient
                     Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
                         content.Length, content);
 
-                    MessageRequest messageRequest = default;
-                    try
+                    MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
+                    if (messageRequest == default)
                     {
-                        messageRequest = JsonConvert.DeserializeObject<MessageRequest>(content) ?? default;
-                    }
-                    catch (JsonReaderException e)
-                    {
-                        Console.WriteLine($"Bad json format. Error:{e.Message}");
+                        Console.WriteLine($"Bad json format.");
                         return;
                     }
-
+                    
                     if (!protocol.ValidateMessage(messageRequest.prefix))
                     {
                         Console.WriteLine("Error: bad header");
@@ -192,7 +188,7 @@ namespace MPCDataClient
             DataRequest clientDataRequest = new DataRequest()
             {
                 sessionId = sessionId,
-                dataShares = dataShares
+                dataElements = dataShares
             };
 
             string data = JsonConvert.SerializeObject(clientDataRequest);
@@ -260,12 +256,16 @@ namespace MPCDataClient
                     }
                 case OPCODE_MPC.E_OPCODE_SERVER_MSG:
                     {
-                        response = Encoding.Default.GetString(Encoding.Default.GetBytes(data));
+                        response = data;
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_SERVER_DATA:
                     {
-                        dataResponse = MPCConvertor.BytesToList(Encoding.Default.GetBytes(data), 0);
+                        DataRequest dataRequest = protocol.DeserializeRequest<DataRequest>(data);
+                        if (dataRequest != default)
+                        {
+                            dataResponse = dataRequest.dataElements.ToList();
+                        }
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:

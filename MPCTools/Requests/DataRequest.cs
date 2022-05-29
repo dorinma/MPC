@@ -8,6 +8,6 @@ namespace MPCTools.Requests
         public string sessionId { get; set; }
 
         [JsonProperty("data", Required = Required.Always)]
-        public uint[] dataShares { get; set; }
+        public uint[] dataElements { get; set; }
     }
 }

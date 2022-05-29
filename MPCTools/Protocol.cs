@@ -50,9 +50,9 @@ namespace MPCTools
         E_OPER_SORT = 0X01
     }
 
-    public class protocol
+    public class Protocol
     {
-        private static protocol instance = null;
+        private static Protocol instance = null;
 
         protected AsyncOperation operation;
 
@@ -62,17 +62,17 @@ namespace MPCTools
         public event ServerDone Event_ServerDone;
         public event Init Event_Init;
 
-        private protocol()
+        private Protocol()
         {
         }
 
-        public static protocol Instance
+        public static Protocol Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new protocol();
+                    instance = new Protocol();
                 }
                 return instance;
             }
@@ -91,6 +91,18 @@ namespace MPCTools
                 data = data,
                 suffix = "<EOF>"
             };
+        }
+
+        public T DeserializeRequest<T>(string requestString)
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(requestString) ?? default;
+            }
+            catch
+            {
+                return default;
+            }
         }
 
         public void ParseData(byte[] Data, out OPCODE_MPC Opcode, out byte[] MsgData)
