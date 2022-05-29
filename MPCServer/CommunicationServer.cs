@@ -317,7 +317,7 @@ namespace MPCServer
                     }
                 case OPCODE_MPC.E_OPCODE_EXCHANGE_DATA:
                     {
-                        HandleServerExchangeData(Encoding.Default.GetBytes(data), socket);
+                        HandleServerExchangeData(data, socket);
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR: //todo is this needed? client will send error to server?
@@ -424,7 +424,7 @@ namespace MPCServer
         }
         private void HandleClientData(string data, Socket socket)
         {
-            ClientDataRequest clientDataRequest = DeserializRequest<ClientDataRequest>(data);
+            DataRequest clientDataRequest = DeserializRequest<DataRequest>(data);
             if (clientDataRequest == default)
             {
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, clientDataRequest.GetType()));
@@ -539,23 +539,29 @@ namespace MPCServer
             }
         }
 
-        public void HandleServerExchangeData(byte[] data, Socket socket)
+        public void HandleServerExchangeData(string data, Socket socket)
         {
-            if (protocol.GetExchangeData(data, out exchangeData))
+            DataRequest dataRequest = DeserializRequest<DataRequest>(data);
+            if (dataRequest == default)
             {
-                //Console.WriteLine($"Exchange Data success");
-                reciveDone.Set();
+                SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, dataRequest.GetType()));
             }
-            else // Error - wrong format
-            {
-                SendError(socket, "Bad exchangeData");
-            }
+
+            exchangeData = dataRequest.dataShares;
+            reciveDone.Set();
         }
 
         internal void SendServerData(uint[] diffValues)
         {
-            byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, sizeof(uint), diffValues);
-            Send(memberServerSocket, message);
+            DataRequest dataRequest = new DataRequest()
+            {
+                sessionId = sessionId,
+                dataShares = diffValues
+            };
+
+            string data = JsonConvert.SerializeObject(dataRequest);
+            MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, data);
+            Send(memberServerSocket, messageRequest);
             Console.WriteLine($"Server {instance} send to the other server his diff values");
         }
 

@@ -189,7 +189,7 @@ namespace MPCDataClient
         
         public void SendSharesToServer(string sessionId, uint[] dataShares)
         {
-            ClientDataRequest clientDataRequest = new ClientDataRequest()
+            DataRequest clientDataRequest = new DataRequest()
             {
                 sessionId = sessionId,
                 dataShares = dataShares

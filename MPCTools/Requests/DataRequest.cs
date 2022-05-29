@@ -2,7 +2,7 @@
 
 namespace MPCTools.Requests
 {
-    public class ClientDataRequest
+    public class DataRequest
     {
         [JsonProperty("sessionId", Required = Required.Always)]
         public string sessionId { get; set; }
