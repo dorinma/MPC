@@ -126,7 +126,7 @@ namespace MPCServer
             // Get the socket that handles the client request.  
             Socket acceptListener = (Socket)ar.AsyncState; //maybe same listener
             Socket handler = acceptListener.EndAccept(ar);
-            //handler.RemoteEndPoint.
+            
 
             // Signal the main thread to continue.  
             acceptDone.Set();
@@ -197,54 +197,7 @@ namespace MPCServer
                 }
             }
         }
-        
-        /*public void RecieveCallback1(IAsyncResult ar)
-        {
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket handler = state.workSocket;
-
-            // Read data from the client socket.  
-            
-            int read = handler.EndReceive(ar);
-
-            // Data was read from the client socket.  
-            if (read > 0)
-            {
-                if (!protocol.ValidateMessage(state.buffer))
-                {
-                    SendError(handler, ServerConstants.MSG_VALIDATE_PROTOCOL_FAIL);
-                    return;
-                }
-
-                protocol.ParseData(state.buffer, out OPCODE_MPC opcode, out Byte[] MsgData);
-                //Console.WriteLine($"opcode {opcode}");
-                if (opcode != OPCODE_MPC.E_OPCODE_ERROR && !ValidateServerState(opcode))
-                {
-                    SendError(handler, ServerConstants.MSG_VALIDATE_SERVER_STATE_FAIL);
-                    return; // todo check
-                }
-
-                AnalyzeMessage(opcode, MsgData, handler);
-
-               handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(RecieveCallback), state);
-            }
-            else
-            {
-                *//*if (state.sb.Length > 1)
-                {
-                    // All the data has been read from the client;  
-                    // display it on the console.  
-                    string content = state.sb.ToString();
-                    Console.WriteLine($"Read {content.Length} bytes from socket.\n Data : {content}");
-                }*//*
-
-                // TODO continue listening if there are more numbers to send
-                
-                //handler.Close();
-            }
-        }*/
-
+       
         private void Send(Socket socket ,byte[] byteData) //TODO remove
         {
             // Begin sending the data to the remote device.  
@@ -291,8 +244,6 @@ namespace MPCServer
 
         public void AnalyzeMessage(OPCODE_MPC Opcode, string data, Socket socket)
         {
-            //Console.WriteLine("opcode:");
-            //Console.WriteLine(Opcode);
             switch (Opcode)
             {
                 case OPCODE_MPC.E_OPCODE_RANDOM_SORT:
@@ -397,18 +348,6 @@ namespace MPCServer
             memberServerSocket = serverSocket; // server B save server A's socket
             serverState = SERVER_STATE.CONNECT_AND_DATA;
             Console.WriteLine($"Session with session id: {sessionId} and number of participants: {totalUsers} started, GOOD LUCK :)");
-
-            /*if (protocol.GetServerInitParams(data, out sessionId, out operation, out totalUsers))
-            {             
-                memberServerSocket = serverSocket; // server B save server A's socket
-                serverState = SERVER_STATE.CONNECT_AND_DATA;
-                Console.WriteLine($"Session with session id: {sessionId} and number of participants: {totalUsers} started, GOOD LUCK :)");
-            }
-            else
-            {
-                // Failed to parse parameters
-                Console.WriteLine($"Failed to parse server to server int message.");
-            }*/
         }
 
         private void HandleClientData(string data, Socket socket)
@@ -419,12 +358,6 @@ namespace MPCServer
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, clientDataRequest.GetType()));
             }
             
-            /*if (!protocol.GetDataParams(Data, out string session, out UInt32 elementsCounter, out List<uint> elements))
-            {
-                // failed to parse parameters
-                SendError(socket, ServerConstants.MSG_VALIDATE_PARAMS_FAIL);
-                return;
-            }*/
             if (!clientDataRequest.sessionId.Equals(sessionId))
             {
                 // wrong session id
@@ -485,10 +418,6 @@ namespace MPCServer
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT, data);
 
             Send(memberServerSocket ,messageRequest);
-            //Console.WriteLine($"Send to other server: operation {operation}, total users {totalUsers}");
-            /*byte[] message = protocol.CreateSessionAndOperationMessage(OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT, sessionId, sizeof(int), new int[] { operation, totalUsers });
-            Send(memberServerSocket, message);*/
-            //serversSend.WaitOne();
         }
 
         public void ConnectServers(string serverIp, int serverPort)
