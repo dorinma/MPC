@@ -30,7 +30,7 @@ namespace MPCServer
                 var option = Console.ReadLine();
                 if (option != "1")
                 {
-                    Environment.Exit(-1);
+                    Environment.Exit(0);
                 }
             }
             instance = choose == 1 ? (byte)0 : (byte)1;
@@ -41,15 +41,26 @@ namespace MPCServer
 
             if (instance == 0)
             {
-                comm.ConnectServers(memberServerIP, memberServerPort);
+                if(!comm.ConnectServers(memberServerIP, memberServerPort))
+                {
+                    Environment.Exit(-1);
+                }
             }
 
-            comm.OpenSocket(instance == 0 ? 2022 : 2023);
+            if(!comm.OpenSocket(instance == 0 ? 2022 : 2023))
+            {
+                Environment.Exit(-1);
+            }
 
             while (true)
             {
                 values = comm.StartServer();
                 // if return null -> restart server
+                if(values == null)
+                {
+                    Environment.Exit(-1);
+                }
+
                 if (isDebugMode)
                 {
                     Console.WriteLine("Secret shares of input:");
@@ -62,7 +73,7 @@ namespace MPCServer
 
                 // stop timer
 
-                //clean randmones used
+                // clean randmoness used
 
                 if (!isDebugMode)
                 {
