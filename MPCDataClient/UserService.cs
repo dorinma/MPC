@@ -10,10 +10,12 @@ namespace MPCDataClient
         //https://github.com/TestableIO/System.IO.Abstractions
         //https://stackoverflow.com/questions/52077416/unit-test-a-method-that-has-dependency-on-streamreader-for-reading-file
         readonly IFileSystem fileSystem;
+        string[] operations;
 
         public UserService(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem;
+            operations = new string[1] { "Sort" };
         }
         /// <summary>Create MyComponent</summary>
         public UserService() : this(fileSystem: new FileSystem()) {}
@@ -52,8 +54,12 @@ namespace MPCDataClient
         public int ReadOperation()
         {
             int operation;
-            Console.WriteLine("Insert the number of operation you want to perform:\n1. sort");
-            while (!TryParseOperation(Console.ReadLine(), out operation) || operation > 1)
+            Console.WriteLine("Insert the number of operation you want to perform:");
+            for (int i = 0; i < operations.Length; i++)
+            { 
+                Console.WriteLine($"{i + 1}. {operations[i]}");
+            }
+            while (!TryParseOperation(Console.ReadLine(), out operation))
             {
                 Console.WriteLine("Invalid operation number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
@@ -61,6 +67,10 @@ namespace MPCDataClient
                 if (option != "1")
                 {
                     Environment.Exit(-1);
+                }
+                else
+                {
+                    Console.WriteLine("Insert operation number:");
                 }
             }
             return operation;
@@ -93,7 +103,7 @@ namespace MPCDataClient
 
         public bool TryParseOperation(string userChoice, out int operation)
         {
-            return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
+            return int.TryParse(userChoice, out operation) && operation <= operations.Length && operation >= 1;
         }
 
         public List<uint> ReadData()
