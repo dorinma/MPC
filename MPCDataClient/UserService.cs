@@ -18,7 +18,7 @@ namespace MPCDataClient
         /// <summary>Create MyComponent</summary>
         public UserService() : this(fileSystem: new FileSystem()) {}
 
-        internal bool StartSession(out int operation, out uint numberOfUsers)
+        internal bool StartSession(out int operation, out int numberOfUsers)
         {
             Console.WriteLine("Insert action to perform:");
             Console.WriteLine("1. Start new session");
@@ -72,11 +72,11 @@ namespace MPCDataClient
             return Console.ReadLine();
         }
 
-        private uint ReadNumberOfUsers()
+        private int ReadNumberOfUsers()
         {
-            uint numberOfUsers;
+            int numberOfUsers;
             Console.WriteLine("Insert number of users");
-            while (!UInt32.TryParse(Console.ReadLine(), out numberOfUsers))
+            while (!Int32.TryParse(Console.ReadLine(), out numberOfUsers))
             {
                 Console.WriteLine("Invalid users number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
