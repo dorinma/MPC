@@ -24,7 +24,7 @@ namespace MPCServer
         private static Protocol protocol = Protocol.Instance;
         private object usersLock = new object();
 
-        private string instance;
+        private byte instance;
 
         private int totalUsers;
         private int connectedUsers;
@@ -60,7 +60,7 @@ namespace MPCServer
             reciveDone = new ManualResetEvent(false);
         }
 
-        public void setInstance(string instance)
+        public void setInstance(byte instance)
         {
             this.instance = instance;
         }

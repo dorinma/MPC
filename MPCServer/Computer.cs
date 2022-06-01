@@ -13,13 +13,13 @@ namespace MPCServer
     {
         private uint[] data;
         private SortRandomRequest sortRandomRequest;
-        private string instance;
+        private byte instance;
         private IDcfAdapterServer dcfAdapter;
         private IDpfAdapterServer dpfAdapter;
         private CommunicationServer comm;
 
 
-        public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter)
+        public Computer(uint[] values, SortRandomRequest sortRandomRequest, byte instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter)
         {
             data = values;
             this.sortRandomRequest = sortRandomRequest;
@@ -109,7 +109,7 @@ namespace MPCServer
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
                     uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
-                    sharesIndexes[i] -= instance == "A" ? outputShare : (outputShare - 1);
+                    sharesIndexes[i] -= instance == 0 ? outputShare : (outputShare - 1);
                     sharesIndexes[j] += outputShare;
                     valuesIndex++;
                 }
@@ -148,7 +148,7 @@ namespace MPCServer
         {
             uint[] totalMaskedSum;
 
-            if (instance == "A")
+            if (instance == 0)
             {
                 uint[] maskedSum = new uint[numOfElement]; //init with 0
                 SumEachSharesWithMask(maskedSum, partServer, masks);

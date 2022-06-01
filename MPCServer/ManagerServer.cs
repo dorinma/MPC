@@ -15,7 +15,7 @@ namespace MPCServer
         static bool isDebugMode = true;
         static uint[] values;
         static CommunicationServer comm = new CommunicationServer();
-        static string instance;
+        static byte instance;
 
         public static void Main(string[] args)
         {
@@ -33,18 +33,18 @@ namespace MPCServer
                     Environment.Exit(-1);
                 }
             }
-            instance = choose == 1 ? "A" : "B";
+            instance = choose == 1 ? (byte)0 : (byte)1;
 
             string memberServerIP = args[0];
-            int memberServerPort = instance == "A" ? 2023 : instance == "B" ? 2022 : 0;
+            int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
             comm.setInstance(instance);
 
-            if (instance == "A")
+            if (instance == 0)
             {
                 comm.ConnectServers(memberServerIP, memberServerPort);
             }
 
-            comm.OpenSocket(instance == "A" ? 2022 : 2023);
+            comm.OpenSocket(instance == 0 ? 2022 : 2023);
 
             while (true)
             {
