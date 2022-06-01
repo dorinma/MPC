@@ -16,7 +16,7 @@
 
         [Theory]
         [MemberData(nameof(ValuesAndShares))]
-        public void ComputeSort_ShouldSuccess(uint[] values, uint[] expectedIndexes)
+        public void ComputeSortWithMock_ShouldSuccess(uint[] values, uint[] expectedIndexes)
         {
             RandomUtils.SplitToSecretShares(values, out uint[] sharesA, out uint[] sharesB);
             ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB);
@@ -75,6 +75,34 @@
                 .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == UInt32.Parse(key) ? secondShare : (uint)0 - firstShare);
         }
 
+        [Theory]
+        [MemberData(nameof(Values))]
+        public void ComputeSort_ShouldSuccess(uint[] values)
+        {
+            RandomUtils.SplitToSecretShares(values, out uint[] sharesA, out uint[] sharesB);
+            ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB);
+
+            Computer computerA = new Computer(sharesA, requestA, "A", null, new DcfAdapterServer(), new DpfAdapterServer());
+            Computer computerB = new Computer(sharesB, requestB, "B", null, new DcfAdapterServer(), new DpfAdapterServer());
+
+            uint[] sumValuesMasks = TestUtils.SumLists(TestUtils.SumLists(sharesA, requestA.dcfMasks), TestUtils.SumLists(sharesB, requestB.dcfMasks));
+
+            uint[] diffValues = computerA.DiffEachPairValues(sumValuesMasks, values.Length);
+
+            uint[] sharesIndexesA = computerA.ComputeIndexesShares(diffValues, values.Length, 10);
+            uint[] sharesIndexesB = computerB.ComputeIndexesShares(diffValues, values.Length, 10);
+
+            uint[] maskedIndexes = TestUtils.SumLists(TestUtils.SumLists(sharesIndexesA, requestA.dpfMasks), TestUtils.SumLists(sharesIndexesB, requestB.dpfMasks));
+
+            uint[] resultA = computerA.ComputeResultsShares(maskedIndexes, sumValuesMasks, values.Length);
+            uint[] resultB = computerB.ComputeResultsShares(maskedIndexes, sumValuesMasks, values.Length);
+
+            uint[] sharesSum = TestUtils.SumLists(resultA, resultB);
+            Array.Sort(values);
+
+            Assert.Equal(values, sharesSum);
+        }
+
         public static IEnumerable<object[]> ValuesAndShares()
         {
             yield return new object[]
@@ -93,6 +121,24 @@
             {
                 new uint[] { 1 },
                 new uint[] { 0 },
+            };
+        }
+
+        public static IEnumerable<object[]> Values()
+        {
+            yield return new object[]
+            {
+                new uint[] { 7, 621, 212, 2080, 3265, 553, 25, 1 },
+            };
+
+            yield return new object[]
+            {
+                TestUtils.GenerateRandomList(5)
+            };
+
+            yield return new object[]
+            {
+                TestUtils.GenerateRandomList(10)
             };
         }
     }

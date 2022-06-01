@@ -16,7 +16,7 @@ pub fn share_leaf(mask_a: u32, mask_b: u32, share_bit: u8, flip_bit: u8) -> u32 
 
 pub fn compute_out(mask: u32, leaf: u32, tau: u8, flip_bit: u8) -> u32 {
     let mut out: u32 = match tau {
-        1 => leaf.wrapping_add(mask).wrapping_add(10 as u32), //add x+m
+        1 => leaf.wrapping_add(mask),
         _ => mask,
     };
     if flip_bit == 1 {
