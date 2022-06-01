@@ -23,7 +23,7 @@
             userService = new UserService();
         }
 
-        static void Main(string[] args) // ip1 port1 ip2 port2
+        static void Main(string[] args) //args = [ip1, port1, ip2, port2]
         {
             if (args.Length < 4)
             {

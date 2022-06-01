@@ -135,19 +135,19 @@ namespace MPCDataClient
                 {
                     // All the data has been read from the
                     // client. Display it on the console.  
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
+                    Console.WriteLine("Read {0} bytes from socket. \nData: {1}",
                         content.Length, content);
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     if (messageRequest == default)
                     {
-                        Console.WriteLine($"Bad json format.");
+                        Console.WriteLine($"Invalid json format.");
                         return;
                     }
                     
                     if (!protocol.ValidateMessage(messageRequest.prefix))
                     {
-                        Console.WriteLine("Error: bad header");
+                        Console.WriteLine("Error: Invalid header.");
                         return;
                     }
 
@@ -195,11 +195,6 @@ namespace MPCDataClient
             Send(messageRequest);
         }
 
-        private void Send(byte[] byteData) //TODO remove
-        {
-            // Begin sending the data to the remote device.  
-            client.BeginSend(byteData, 0, byteData.Length, SocketFlags.None, new AsyncCallback(SendCallback), client);
-        }
 
         public void AnalyzeMessage(OPCODE_MPC Opcode, string data)
         {
@@ -226,12 +221,18 @@ namespace MPCDataClient
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
-                        Console.WriteLine($"Received error: {data}");
+                        HandleError(data);
                         break;
                     }
                 default:
                     break;
             }
+        }
+
+        private void HandleError(string data)
+        {
+            Console.WriteLine($"Received error: {data}");
+            CloseSocket();
         }
 
         public void CloseSocket()
