@@ -110,9 +110,9 @@ namespace Tests.ServerTest
             var rand = new Random();
             uint firstShare = rand.NextUInt32();
             dpfMock.Setup(mock => mock.EvalDPF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
-                .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : firstShare);
+                .Returns((byte instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : firstShare);
             dpfMock.Setup(mock => mock.EvalDPF(1, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
-                .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : (uint)0-firstShare);
+                .Returns((byte instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : (uint)0-firstShare);
         }
 
         private void SetupDcfMock(Mock<IDcfAdapterServer> dcfMock)
@@ -122,7 +122,7 @@ namespace Tests.ServerTest
             dcfMock.Setup(mock => mock.EvalDCF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
                 .Returns(firstShare);
             dcfMock.Setup(mock => mock.EvalDCF(1, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
-                .Returns((string instance, string key, string aes, uint alpha) => (int)alpha <= 0 ? 1-firstShare : 0-firstShare);
+                .Returns((byte instance, string key, string aes, uint alpha) => (int)alpha <= 0 ? 1-firstShare : 0-firstShare);
         }
 
         public static IEnumerable<object[]> SumEachSharesWithMask_ValidInputs()
