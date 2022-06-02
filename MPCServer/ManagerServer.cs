@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace MPCServer
 {
@@ -79,6 +81,8 @@ namespace MPCServer
                 {
                     string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
                     comm.SendOutputMessage(msg);
+                    string fileName = System.IO.Directory.GetCurrentDirectory() + "\\output\\" + (instance == 0 ? "outA"  : "outB") + comm.sessionId + ".csv";
+                    MPCFiles.writeToFile(res, fileName);
                 }
                 else // debug mode
                 {
@@ -102,6 +106,7 @@ namespace MPCServer
                 // matching timer to change server state to OFFLINE and turn on randomness client (for send randomness) 
             }
         }
+
 
         public static uint[] Compute(OPERATION op) 
         {

@@ -128,7 +128,8 @@
 
             if (debugMode)
             {
-                return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
+                MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToArray(), System.IO.Directory.GetCurrentDirectory() + "\\output\\finalResult.csv");
+                //return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
             }
             return "";
 

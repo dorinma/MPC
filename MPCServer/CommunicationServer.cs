@@ -28,7 +28,7 @@ namespace MPCServer
 
         private int totalUsers;
         private int connectedUsers;
-        private string sessionId;
+        public string sessionId;
 
         private const int pendingQueueLength = 10;
 
