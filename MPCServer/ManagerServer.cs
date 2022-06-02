@@ -7,18 +7,23 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
+using NLog;
+using NLog.Config;
 
 namespace MPCServer
 {
     public class ManagerServer
     {
-        static bool isDebugMode = true;
-        static uint[] values;
-        static CommunicationServer comm = new CommunicationServer();
-        static byte instance;
+        private static Logger logger;
+        private static bool isDebugMode = true;
+        private static uint[] values;
+        private static CommunicationServer comm;
+        private static byte instance;
 
         public static void Main(string[] args)
         {
+            SetupLogger();
+            comm = new CommunicationServer(logger);
             Console.WriteLine("Insert server instance:");
             Console.WriteLine("1. A");
             Console.WriteLine("2. B");
@@ -103,11 +108,23 @@ namespace MPCServer
             }
         }
 
+        private static void SetupLogger()
+        {
+            if (isDebugMode)
+            {
+                var consoleTarget = LogManager.Configuration.FindTargetByName("logconsole");
+                LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
+            }
+            logger = LogManager.GetLogger("Server logger");
+            logger.Trace("hi");
+         }
+
         public static uint[] Compute(OPERATION op) 
         {
             //swich case per operation 
             //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer());
+            Computer computer = new Computer(values, comm.sortRandomRequest, instance,
+                comm, new DcfAdapterServer(),new DpfAdapterServer(), logger);
             //Future code
             //Computer computer = new Computer(values, comm.requeset[op]);
             uint[] res = computer.Compute(op);

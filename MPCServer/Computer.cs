@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NLog;
+using System.Diagnostics;
 
 namespace MPCServer
 {
@@ -17,9 +19,11 @@ namespace MPCServer
         private IDcfAdapterServer dcfAdapter;
         private IDpfAdapterServer dpfAdapter;
         private CommunicationServer comm;
+        private ILogger logger;
 
 
-        public Computer(uint[] values, SortRandomRequest sortRandomRequest, byte instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter)
+        public Computer(uint[] values, SortRandomRequest sortRandomRequest, byte instance,
+            CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger)
         {
             data = values;
             this.sortRandomRequest = sortRandomRequest;
@@ -27,19 +31,27 @@ namespace MPCServer
             this.comm = comm;
             this.dcfAdapter = dcfAdapter;
             this.dpfAdapter = dpfAdapter;
+            this.logger = logger;
         }
 
         public uint[] Compute(OPERATION op)
         {
+            uint[] result = null;
+            var watch = Stopwatch.StartNew();
+
             switch (op)
             {
                 case OPERATION.E_OPER_SORT:
                     {
-                        return sortCompute();
+                        result = sortCompute();
+                        break;
                     }
             }
 
-            return null;
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            logger.Trace($"Operation {op} on {data.Length} elements: {elapsedMs} ms");
+            return result;
         }
 
         public uint[] sortCompute()

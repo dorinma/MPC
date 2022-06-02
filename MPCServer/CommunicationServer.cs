@@ -1,6 +1,7 @@
 ﻿using MPCTools;
 using MPCTools.Requests;
 using Newtonsoft.Json;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace MPCServer
         private ManualResetEvent connectServerDone;
         private ManualResetEvent serversSend;
 
+        private ILogger logger;
         private Socket listener;
         private static Protocol protocol = Protocol.Instance;
         private object usersLock = new object();
@@ -45,8 +47,10 @@ namespace MPCServer
 
         private Socket memberServerSocket;
 
-        public CommunicationServer()
+        public CommunicationServer(ILogger logger)
         {
+            this.logger = logger;
+
             operation = 0;
             totalUsers = 0;
             connectedUsers = 0;
