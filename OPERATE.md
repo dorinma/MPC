@@ -7,7 +7,8 @@
       * [Servers](#servers)
       * [Data Client](#data-client)
 3. [Running The System](#running-the-system)
-
+4. [Maintenance](#maintenance)
+5. [Extanding Functionality](#extanding-functionality)
 
 ## Introduction
 Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done in a shared-secret form. The output of the computation is saved in the servers for following processes.
@@ -22,7 +23,7 @@ When the users run the application, they run the data client component.
 ## System Components
 ****
 
-### Randomness Client
+#### Randomness Client
 **** 
 
 #### Servers
@@ -32,4 +33,10 @@ When the users run the application, they run the data client component.
 **** 
 
 ## Running The System
+****
+
+## Maintenance
+****
+
+## Extanding Functionality
 ****
