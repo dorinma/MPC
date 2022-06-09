@@ -81,8 +81,7 @@ namespace MPCServer
                 {
                     string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
                     comm.SendOutputMessage(msg);
-                    //string fileName = System.IO.Directory.GetCurrentDirectory() + "\\output\\" + (instance == 0 ? "outA"  : "outB") + comm.sessionId + ".csv";
-                    string fileName = (instance == 0 ? "outA" : "outB") + ".csv";
+                    string fileName = (instance == 0 ? "outA" : "outB")  + "_" + comm.sessionId + ".csv";
                     MPCFiles.writeToFile(res, fileName);
                 }
                 else // debug mode
@@ -96,6 +95,9 @@ namespace MPCServer
                     }
 
                     Console.WriteLine("");
+
+                    string fileName = (instance == 0 ? "outA" : "outB") + comm.sessionId + ".csv";
+                    MPCFiles.writeToFile(res, fileName);
 
                     comm.SendOutputData(res);
                 }

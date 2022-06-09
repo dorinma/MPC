@@ -11,15 +11,16 @@ namespace MPCTools
     {
         public static void writeToFile(uint[] res, String fileName)
         {
-            fileName = "C:\\Users\\דורין\\Desktop\\ExtLibs\\MPC_master\\MPC\\MPCDataClient\\output\\final.csv" + fileName;
+            fileName = Path.Combine(@"..\\..\\..\\Results", fileName);
             var csv = new StringBuilder();
             for (int i = 0; i < res.Length; i++)
             {
                 csv.Append(res[i]);
+                csv.Append("\n");
             }
-            using (StreamWriter sw = (File.Exists(fileName)) ? File.AppendText(fileName) : File.CreateText(fileName)) { 
+            using (StreamWriter sw = File.CreateText(fileName)) { 
               
-                sw.Write(fileName, csv.ToString());
+                sw.Write(csv.ToString());
             }
         }
     }
