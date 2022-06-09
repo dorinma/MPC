@@ -26,8 +26,8 @@
             FixKeysForMock(requestA, requestB);
 
 
-            Computer computerA = new Computer(sharesA, requestA, "A", null, new DcfAdapterServer(), dpfMock.Object);
-            Computer computerB = new Computer(sharesB, requestB, "B", null, new DcfAdapterServer(), dpfMock.Object);
+            Computer computerA = new Computer(sharesA, requestA, 0, null, new DcfAdapterServer(), dpfMock.Object);
+            Computer computerB = new Computer(sharesB, requestB, 1, null, new DcfAdapterServer(), dpfMock.Object);
 
             uint[] sumValuesMasks = TestUtils.SumLists(TestUtils.SumLists(sharesA, requestA.dcfMasks), TestUtils.SumLists(sharesB, requestB.dcfMasks));
 
@@ -68,11 +68,11 @@
             var rand = new Random();
             uint firstShare = rand.NextUInt32();
             uint secondShare = rand.NextUInt32();
-            dpfMock.Setup(mock => mock.EvalDPF("A", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
+            dpfMock.Setup(mock => mock.EvalDPF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
                 .Callback(() => calls++)
-                .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == UInt32.Parse(key) ? beta - UInt32.Parse(aes) - secondShare : firstShare);
-            dpfMock.Setup(mock => mock.EvalDPF("B", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
-                .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == UInt32.Parse(key) ? secondShare : (uint)0 - firstShare);
+                .Returns((byte instance, string key, string aes, uint alpha, uint beta) => alpha == UInt32.Parse(key) ? beta - UInt32.Parse(aes) - secondShare : firstShare);
+            dpfMock.Setup(mock => mock.EvalDPF(1, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
+                .Returns((byte instance, string key, string aes, uint alpha, uint beta) => alpha == UInt32.Parse(key) ? secondShare : (uint)0 - firstShare);
         }
 
         public static IEnumerable<object[]> ValuesAndShares()

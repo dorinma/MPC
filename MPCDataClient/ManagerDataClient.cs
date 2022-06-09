@@ -23,7 +23,7 @@
             userService = new UserService();
         }
 
-        static void Main(string[] args) // ip1 port1 ip2 port2
+        static void Main(string[] args) //args = [ip1, port1, ip2, port2]
         {
             if (args.Length < 4)
             {
@@ -128,7 +128,8 @@
 
             if (debugMode)
             {
-                return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
+                MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToArray(), "final.csv"); //System.IO.Directory.GetCurrentDirectory() + "\\output\\finalResult.csv");
+                //return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
             }
             return "";
 

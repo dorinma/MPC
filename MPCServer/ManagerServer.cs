@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace MPCServer
 {
@@ -15,7 +17,7 @@ namespace MPCServer
         static bool isDebugMode = true;
         static uint[] values;
         static CommunicationServer comm = new CommunicationServer();
-        static string instance;
+        static byte instance;
 
         public static void Main(string[] args)
         {
@@ -30,26 +32,37 @@ namespace MPCServer
                 var option = Console.ReadLine();
                 if (option != "1")
                 {
+                    Environment.Exit(0);
+                }
+            }
+            instance = choose == 1 ? (byte)0 : (byte)1;
+
+            string memberServerIP = args[0];
+            int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
+            comm.setInstance(instance);
+
+            if (instance == 0)
+            {
+                if(!comm.ConnectServers(memberServerIP, memberServerPort))
+                {
                     Environment.Exit(-1);
                 }
             }
-            instance = choose == 1 ? "A" : "B";
 
-            string memberServerIP = args[0];
-            int memberServerPort = instance == "A" ? 2023 : instance == "B" ? 2022 : 0;
-            comm.setInstance(instance);
-
-            if (instance == "A")
+            if(!comm.OpenSocket(instance == 0 ? 2022 : 2023))
             {
-                comm.ConnectServers(memberServerIP, memberServerPort);
+                Environment.Exit(-1);
             }
-
-            comm.OpenSocket(instance == "A" ? 2022 : 2023);
 
             while (true)
             {
                 values = comm.StartServer();
                 // if return null -> restart server
+                if(values == null)
+                {
+                    Environment.Exit(-1);
+                }
+
                 if (isDebugMode)
                 {
                     Console.WriteLine("Secret shares of input:");
@@ -62,12 +75,14 @@ namespace MPCServer
 
                 // stop timer
 
-                //clean randmones used
+                // clean randmoness used
 
                 if (!isDebugMode)
                 {
                     string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
                     comm.SendOutputMessage(msg);
+                    string fileName = (instance == 0 ? "outA" : "outB")  + "_" + comm.sessionId + ".csv";
+                    MPCFiles.writeToFile(res, fileName);
                 }
                 else // debug mode
                 {
@@ -81,6 +96,9 @@ namespace MPCServer
 
                     Console.WriteLine("");
 
+                    string fileName = (instance == 0 ? "outA" : "outB") + comm.sessionId + ".csv";
+                    MPCFiles.writeToFile(res, fileName);
+
                     comm.SendOutputData(res);
                 }
 
@@ -91,6 +109,7 @@ namespace MPCServer
                 // matching timer to change server state to OFFLINE and turn on randomness client (for send randomness) 
             }
         }
+
 
         public static uint[] Compute(OPERATION op) 
         {

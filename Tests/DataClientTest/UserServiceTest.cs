@@ -70,11 +70,6 @@ namespace Tests.DataClientTest
             {
                 "1"
             };
-
-            yield return new object[]
-            {
-                "3"
-            };
         }
 
         public static IEnumerable<object[]> InvalidOperations()

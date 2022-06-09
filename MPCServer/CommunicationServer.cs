@@ -24,11 +24,13 @@ namespace MPCServer
         private static Protocol protocol = Protocol.Instance;
         private object usersLock = new object();
 
-        private string instance;
+        private byte instance;
 
         private int totalUsers;
         private int connectedUsers;
-        private string sessionId;
+        public string sessionId;
+
+        private const int pendingQueueLength = 10;
 
         public SortRandomRequest sortRandomRequest = default;
         //Future code
@@ -60,7 +62,7 @@ namespace MPCServer
             reciveDone = new ManualResetEvent(false);
         }
 
-        public void setInstance(string instance)
+        public void setInstance(byte instance)
         {
             this.instance = instance;
         }
@@ -82,20 +84,24 @@ namespace MPCServer
             exchangeData = null;
         }
 
-        public void OpenSocket(int port)
+        public bool OpenSocket(int port)
         {
+            bool result = true;
             try
             {
-                Console.WriteLine($"Server {instance} started.");
+                Console.WriteLine("Server {0} started.", instance == (byte)0 ? "A" : "B");
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listener.Bind(new IPEndPoint(IPAddress.Any, port));
-                listener.Listen(10);
+                listener.Listen(pendingQueueLength);
 
             }
             catch (Exception ex)
             {
+                Console.WriteLine("[ERROR] Failed to open socket.");
                 Console.WriteLine(ex.Message);
+                result = false;
             }
+            return result;
         }
 
         public uint[] StartServer()
@@ -114,9 +120,9 @@ namespace MPCServer
                 //Console.WriteLine("exit while");
                 return values.ToArray();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(ex.Message);
                 return null;
             }
         }
@@ -420,27 +426,30 @@ namespace MPCServer
             Send(memberServerSocket ,messageRequest);
         }
 
-        public void ConnectServers(string serverIp, int serverPort)
+        public bool ConnectServers(string serverIp, int serverPort)
         {
+            bool result = true;
             // Connect to a remote device.  
             try
             {
                 // Establish the remote endpoint for the socket.  
                 IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
 
-                // Create a TCP/IP socket.  
+                // Create a TCP/IP socket.
                 memberServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 // Connect to the remote endpoint.  
                 memberServerSocket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), memberServerSocket);
                 connectServerDone.WaitOne();
-                Console.WriteLine($"Connected to server with ip: {serverIp} port: {serverPort}");
+                Console.WriteLine($"Connected to server with IP: {serverIp} port: {serverPort}.");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.ToString());
-                Environment.Exit(-1);
+                Console.WriteLine("Failed to connect to other server.");
+                Console.WriteLine(ex.Message);
+                result = false;
             }
+            return result;
         }
 
         private void ConnectCallback(IAsyncResult ar)
@@ -458,9 +467,11 @@ namespace MPCServer
                 // Signal that the connection has been made.  
                 connectServerDone.Set();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine("Failed to connect to other server.");
+                Console.WriteLine(ex.Message);
+                Environment.Exit(-1);
             }
         }
 
