@@ -7,14 +7,14 @@
 3. [Followed Process](#followed-process)
 
 ## Introduction
-Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done in a shared-secret form. The output of the computation is saved in the servers for following processes.
+Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done in a shared-secret form. The output of the computation is saved in the servers for further processes.
 
 The actual data is not exposed at any point of the process, only in a shared-secret form (even the computation's output).
 
-The application is composed of four components: 
+The application is composed of the following components: 
 - A randomness client that runs offline.
 - Two remote servers that perform the computations.
-- A data client that is in charge of getting the input from the users and send it to the servers.
+- 1-N data clients that is in charge of getting the input from the users and send it to the servers.
 
 When the users run the application, they run the data client component.
 
@@ -58,4 +58,4 @@ If the user checks this field, then the application will send the shared-secret 
  
 
 ## Followed Process
-After the user presses the "Send" button, the servers wait untill the data from all the participants is received. Then, they will perform the specified compoutation and save the output data for following processes (create statistics, train models of machine learning etc.).
+After the user presses the "Send" button, the servers wait untill the data from all the participants is received. Then, they will perform the specified compoutation and save the output data for further processes (create statistics, train models of machine learning etc.).
