@@ -7,6 +7,7 @@ using System.IO;
 
 using MPC_UI.ViewModel;
 using MPCDataClient;
+using MPCTools;
 
 namespace MPC_UI
 {
@@ -92,7 +93,7 @@ namespace MPC_UI
             if (ValidateInputFirstInit())
             {
                 mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1, 
-                    Operation.SelectedIndex, mainDataContext.ParticipantsNum);
+                    Operations.operations[Operation.SelectedIndex-1], mainDataContext.ParticipantsNum);
                 sessionId.Text = mainDataContext.SessionId; //assume valid session id
                 //isFirstClient = true;
             }

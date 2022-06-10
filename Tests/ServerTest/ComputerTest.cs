@@ -5,6 +5,7 @@ namespace Tests.ServerTest
     using MPCServer;
     using MPCTools;
     using MPCTools.Requests;
+    using NLog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,6 +14,13 @@ namespace Tests.ServerTest
 
     public class ComputerTest
     {
+        private readonly ILogger loggerMock;
+
+        public ComputerTest()
+        {
+            loggerMock = new Mock<ILogger>().Object;
+        }
+
         SortRandomRequest emptyRequest = new SortRandomRequest
         {
             sessionId = string.Empty,
@@ -25,11 +33,9 @@ namespace Tests.ServerTest
             dpfAesKeys = new string[10]
         };
 
-        public ComputerTest() { }
-
         public Computer InitComuter(byte instance, SortRandomRequest randomRequest = default, IDcfAdapterServer dcfAdapter = default, IDpfAdapterServer dpfAdapter = default)
         {
-            return new Computer(null, randomRequest, instance, null, dcfAdapter, dpfAdapter);
+            return new Computer(null, randomRequest, instance, null, dcfAdapter, dpfAdapter, loggerMock);
         }
 
         [Theory]

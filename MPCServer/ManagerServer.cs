@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Net;
 using NLog;
 using NLog.Config;
+using NLog.Targets;
 
 namespace MPCServer
 {
@@ -22,8 +23,6 @@ namespace MPCServer
 
         public static void Main(string[] args)
         {
-            SetupLogger();
-            comm = new CommunicationServer(logger);
             Console.WriteLine("Insert server instance:");
             Console.WriteLine("1. A");
             Console.WriteLine("2. B");
@@ -40,10 +39,13 @@ namespace MPCServer
             }
             instance = choose == 1 ? (byte)0 : (byte)1;
 
+            SetupLogger();
+            comm = new CommunicationServer(logger);
+
             string memberServerIP = args[0];
             int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
             comm.setInstance(instance);
-
+            
             if (instance == 0)
             {
                 if(!comm.ConnectServers(memberServerIP, memberServerPort))
@@ -65,41 +67,27 @@ namespace MPCServer
                 {
                     Environment.Exit(-1);
                 }
+                logger.Debug("Input shares:");
+                logger.Debug(string.Join(", ", values));
+                
+                uint[] res = Compute(comm.operation);
 
+                logger.Debug("Output shares:");
+                logger.Debug(string.Join(", ", res));
+
+                string msg = "Computation completed successfully.";
+                logger.Info(msg);
+                
                 if (isDebugMode)
                 {
-                    Console.WriteLine("Secret shares of input:");
-                    for (int i = 0; i < values.Length; i++)
-                    {
-                        Console.WriteLine(i + ". " + values[i]);
-                    }
+                    comm.SendOutputData(res);                    
                 }
-                uint[] res = Compute(OPERATION.E_OPER_SORT);
-
-                // stop timer
-
-                // clean randmoness used
-
-                if (!isDebugMode)
+                else
                 {
-                    string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
                     comm.SendOutputMessage(msg);
                 }
-                else // debug mode
-                {
-                    Console.WriteLine("\nSecret shares of output:");
-                    Console.WriteLine("\nres:");
 
-                    for (int i = 0; i < res.Length; i++)
-                    {
-                        Console.WriteLine("\t" + res[i] + "\t");
-                    }
-
-                    Console.WriteLine("");
-
-                    comm.SendOutputData(res);
-                }
-
+                // clean used randmoness
                 deleteUsedMasksAndKeys(values.Length);
                 comm.RestartServer();
 
@@ -110,23 +98,22 @@ namespace MPCServer
 
         private static void SetupLogger()
         {
+            GlobalDiagnosticsContext.Set("serverInstance", instance == 0 ? "A" : "B");
+
             if (isDebugMode)
             {
-                var consoleTarget = LogManager.Configuration.FindTargetByName("logconsole");
                 LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
             }
+
             logger = LogManager.GetLogger("Server logger");
-            logger.Trace("hi");
          }
 
         public static uint[] Compute(OPERATION op) 
         {
-            //swich case per operation 
-            //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
+            logger.Info($"Number of elements - {values.Length}.");
             Computer computer = new Computer(values, comm.sortRandomRequest, instance,
                 comm, new DcfAdapterServer(),new DpfAdapterServer(), logger);
-            //Future code
-            //Computer computer = new Computer(values, comm.requeset[op]);
+
             uint[] res = computer.Compute(op);
             return res;
         }
@@ -166,6 +153,8 @@ namespace MPCServer
             comm.sortRandomRequest.dcfKeys = newDcfKeys;
 
             comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
+
+            logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
         }
 
         public void SendResult() { }

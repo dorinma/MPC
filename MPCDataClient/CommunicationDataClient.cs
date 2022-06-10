@@ -43,7 +43,7 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
                 Environment.Exit(-1);
             }
         }
@@ -63,7 +63,7 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -89,7 +89,7 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -106,7 +106,7 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -135,13 +135,12 @@ namespace MPCDataClient
                 {
                     // All the data has been read from the
                     // client. Display it on the console.  
-                    Console.WriteLine("Read {0} bytes from socket. \nData: {1}",
-                        content.Length, content);
+                    Console.WriteLine($"Read {content.Length} bytes from");
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     if (messageRequest == default)
                     {
-                        Console.WriteLine($"Invalid json format.");
+                        Console.WriteLine($"Error: Invalid json format.");
                         return;
                     }
                     
@@ -163,7 +162,7 @@ namespace MPCDataClient
             }
         }
 
-        public string SendInitMessage(int operation, int numberOfUsers)
+        public string SendInitMessage(OPERATION operation, int numberOfUsers)
         {
             ClientInitRequest clientInitRequest = new ClientInitRequest()
             {

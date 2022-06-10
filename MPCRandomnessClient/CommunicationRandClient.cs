@@ -48,7 +48,7 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
                 Environment.Exit(-1);
             }
         }
@@ -68,7 +68,7 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -101,7 +101,7 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -118,7 +118,7 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -179,7 +179,7 @@ namespace MPCRandomnessClient
                         serversVerified = sessionId.Equals(sessionReceived);
                         if (serversVerified)
                         {
-                            //Console.WriteLine($"Received confirmation, session id: {sessionId}");
+                            Console.WriteLine($"Received confirmation, session id: {sessionId}");
                         }
                         else
                         {

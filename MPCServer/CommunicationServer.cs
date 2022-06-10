@@ -16,7 +16,7 @@ namespace MPCServer
     public class CommunicationServer
     {
         private ManualResetEvent acceptDone;
-        private ManualResetEvent reciveDone;
+        private ManualResetEvent receiveDone;
         private ManualResetEvent sendDone;
         private ManualResetEvent connectServerDone;
         private ManualResetEvent serversSend;
@@ -38,7 +38,7 @@ namespace MPCServer
         //Future code
         //pubkic Dictionary<OPERATION, SortRandomRequest> requeset;
 
-        private int operation; // 1.merge 2.find the K'th element 3.sort
+        public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
         private List<uint> values;
         private uint[] exchangeData = null;
 
@@ -63,7 +63,7 @@ namespace MPCServer
             sendDone = new ManualResetEvent(false);
             connectServerDone = new ManualResetEvent(false);
             serversSend = new ManualResetEvent(false);
-            reciveDone = new ManualResetEvent(false);
+            receiveDone = new ManualResetEvent(false);
         }
 
         public void setInstance(byte instance)
@@ -84,8 +84,56 @@ namespace MPCServer
             sendDone.Reset();
             connectServerDone.Reset();
             serversSend.Reset();
-            reciveDone.Reset();
+            receiveDone.Reset();
             exchangeData = null;
+        }
+
+        public bool ConnectServers(string otherServerIp, int otherServerPort)
+        {
+            bool result = true;
+            // Connect to a remote device.  
+            try
+            {
+                // Establish the remote endpoint for the socket.  
+                IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(otherServerIp), otherServerPort);
+
+                // Create a TCP/IP socket.
+                memberServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                // Connect to the remote endpoint.  
+                memberServerSocket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), memberServerSocket);
+                connectServerDone.WaitOne();
+                logger.Debug($"Connected to server with IP: {otherServerIp} port: {otherServerPort}.");
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to connect to other server. Error: {ex.Message}");
+                result = false;
+            }
+
+            return result;
+        }
+
+        private void ConnectCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Retrieve the socket from the state object.  
+                Socket client = (Socket)ar.AsyncState;
+
+                // Complete the connection.  
+                client.EndConnect(ar);
+
+                logger.Debug($"Socket connected to {client.RemoteEndPoint.ToString()}");
+
+                // Signal that the connection has been made.  
+                connectServerDone.Set();
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to connect to other server. Error: {ex.Message}");
+                Environment.Exit(-1);
+            }
         }
 
         public bool OpenSocket(int port)
@@ -93,16 +141,16 @@ namespace MPCServer
             bool result = true;
             try
             {
-                Console.WriteLine("Server {0} started.", instance == (byte)0 ? "A" : "B");
+                logger.Debug($"Server {instance} started. Runs on port {port}");
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listener.Bind(new IPEndPoint(IPAddress.Any, port));
                 listener.Listen(pendingQueueLength);
 
             }
             catch (Exception ex)
-            {
-                Console.WriteLine("[ERROR] Failed to open socket.");
-                Console.WriteLine(ex.Message);
+
+            { 
+                logger.Error($"Failed to open socket. Error: {ex.Message}");
                 result = false;
             }
             return result;
@@ -116,17 +164,16 @@ namespace MPCServer
                 {
                     acceptDone.Reset();
 
-                   // Console.WriteLine("Waiting for a connection...");
                     listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
                     acceptDone.WaitOne();
                 }
-                //Console.WriteLine("exit while");
+
                 return values.ToArray();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                logger.Error($"Accept connection failed. Error: {ex.Message}");
                 return null;
             }
         }
@@ -174,8 +221,7 @@ namespace MPCServer
                 {
                     // All the data has been read from the
                     // client. Display it on the console.  
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
-                        content.Length, content);
+                    logger.Debug($"Receieve {content.Length} bytes from socket.");
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     
@@ -234,15 +280,15 @@ namespace MPCServer
                 // Signal that all bytes have been sent.  
                 sendDone.Set();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.ToString());
+                logger.Error($"Failed to send. Error: {ex.Message}");
             }
         }
 
         public void SendError(Socket socket, string errMsg)
         {
-
+            logger.Error($"Error: {errMsg}");
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_ERROR, $"Error: {errMsg}");
             Send(socket, messageRequest);
         }
@@ -283,7 +329,7 @@ namespace MPCServer
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR: //todo is this needed? client will send error to server?
                     {
-                        Console.WriteLine("Server Receive error");
+                        logger.Error($"Server Receive error. Error: {data}");
                         //RespondServerDone(Data);
                         break;
                     }       
@@ -299,6 +345,7 @@ namespace MPCServer
             {
                 Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
                 serverState = SERVER_STATE.FIRST_INIT;
+                logger.Debug($"Recieve randomness request for {sortRandomRequest.n} elements.");
             }
             else // Error - wrong format
             {
@@ -321,19 +368,11 @@ namespace MPCServer
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, clientInitRequest.GetType()));
             }
 
-            /*if (!protocol.GetClientInitParams(Data, out int userOperation, out int participants))
-            {
-                // Failed to parse parameters
-                SendError(socket, ServerConstants.MSG_VALIDATE_PARAMS_FAIL);
-                return;
-            }*/
-
             //send session id to second server
             operation = clientInitRequest.operation;
             totalUsers = clientInitRequest.numberOfUsers;
             serverState = SERVER_STATE.CONNECT_AND_DATA;
             SendSessionDetailsToServer();
-            Console.WriteLine($"Session with session id: {sessionId} and number of participants: {totalUsers} started, GOOD LUCK :)");
 
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId);
             Send(socket, messageRequest);
@@ -342,6 +381,8 @@ namespace MPCServer
             state.workSocket = socket;
             socket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                 new AsyncCallback(ReceiveCallback), state);
+            logger.Info($"Start sesion {sessionId}");
+            logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
         }
 
         public void HandleServerInit(string data, Socket serverSocket)
@@ -349,7 +390,7 @@ namespace MPCServer
             ServerToServerInitRequest serverToServerInitRequest = protocol.DeserializeRequest<ServerToServerInitRequest>(data);
             if (serverToServerInitRequest == default)
             {
-                Console.WriteLine(string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, serverToServerInitRequest.GetType()));
+                logger.Error(string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, serverToServerInitRequest.GetType()));
             }
 
             sessionId = serverToServerInitRequest.sessionId;
@@ -357,7 +398,8 @@ namespace MPCServer
             totalUsers = serverToServerInitRequest.numberOfUsers;
             memberServerSocket = serverSocket; // server B save server A's socket
             serverState = SERVER_STATE.CONNECT_AND_DATA;
-            Console.WriteLine($"Session with session id: {sessionId} and number of participants: {totalUsers} started, GOOD LUCK :)");
+            logger.Info($"Start sesion {sessionId}");
+            logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
         }
 
         private void HandleClientData(string data, Socket socket)
@@ -387,12 +429,10 @@ namespace MPCServer
                 connectedUsers++;
                 serverState = totalUsers == connectedUsers ? SERVER_STATE.COMPUTATION : serverState;
                 values.AddRange(clientDataRequest.dataElements);
-               // Console.WriteLine($"values {values.Count}");
-               // Console.WriteLine($"total users {totalUsers}, connected users {connectedUsers}");
                 clientsSockets.Add(socket);
-                //Console.WriteLine($"Clients sockets count {clientsSockets.Count}");
 
                 acceptDone.Set(); //TODO - should we check that connectedUsers == totalUsers
+                logger.Debug($"User connected and added {clientDataRequest.dataElements.Length} elements. Number of connected users - {connectedUsers}");
             }
         }
 
@@ -430,55 +470,6 @@ namespace MPCServer
             Send(memberServerSocket ,messageRequest);
         }
 
-        public bool ConnectServers(string serverIp, int serverPort)
-        {
-            bool result = true;
-            // Connect to a remote device.  
-            try
-            {
-                // Establish the remote endpoint for the socket.  
-                IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(serverIp), serverPort);
-
-                // Create a TCP/IP socket.
-                memberServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-                // Connect to the remote endpoint.  
-                memberServerSocket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), memberServerSocket);
-                connectServerDone.WaitOne();
-                Console.WriteLine($"Connected to server with IP: {serverIp} port: {serverPort}.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Failed to connect to other server.");
-                Console.WriteLine(ex.Message);
-                result = false;
-            }
-            return result;
-        }
-
-        private void ConnectCallback(IAsyncResult ar)
-        {
-            try
-            {
-                // Retrieve the socket from the state object.  
-                Socket client = (Socket)ar.AsyncState;
-
-                // Complete the connection.  
-                client.EndConnect(ar);
-
-               // Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
-
-                // Signal that the connection has been made.  
-                connectServerDone.Set();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Failed to connect to other server.");
-                Console.WriteLine(ex.Message);
-                Environment.Exit(-1);
-            }
-        }
-
         public void HandleServerExchangeData(string data, Socket socket)
         {
             DataRequest dataRequest = protocol.DeserializeRequest<DataRequest>(data);
@@ -486,9 +477,13 @@ namespace MPCServer
             {
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, dataRequest.GetType()));
             }
+            else
+            {
+                logger.Debug($"Server {instance} receive {dataRequest.dataElements.Length} elements from the other server.");
+            }
 
             exchangeData = dataRequest.dataElements;
-            reciveDone.Set();
+            receiveDone.Set();
         }
 
         internal void SendServerData(uint[] diffValues)
@@ -502,14 +497,14 @@ namespace MPCServer
             string data = JsonConvert.SerializeObject(dataRequest);
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, data);
             Send(memberServerSocket, messageRequest);
-            Console.WriteLine($"Server {instance} send to the other server his diff values");
+            logger.Debug($"Server {instance} send the other server his diff values");
         }
 
-        internal uint[] ReciveServerData()
+        internal uint[] ReceiveServerData()
         {
             if (exchangeData == null)
             {
-                reciveDone.Reset();
+                receiveDone.Reset();
                 try
                 {
                     // Create the state object.  
@@ -519,32 +514,30 @@ namespace MPCServer
                     // Begin receiving the data from the remote device.  
                     memberServerSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine(e.ToString());
+                    logger.Error($"Failed to receive message. Error: {ex.Message}");
                 }
-                reciveDone.WaitOne();
+                receiveDone.WaitOne();
             }
 
             uint[] currExchangeData = exchangeData;
             exchangeData = null;
 
-            //Console.WriteLine("recive done :)");
             return currExchangeData;
         }
 
-        internal uint[] BReciveServerData()
+        internal uint[] BreceiveServerData()
         {
             if (exchangeData == null)
             {
-                reciveDone.Reset();
-                reciveDone.WaitOne();
+                receiveDone.Reset();
+                receiveDone.WaitOne();
             }
 
             uint[] currExchangeData = exchangeData;
             exchangeData = null;
 
-            //Console.WriteLine("recive done :)");
             return currExchangeData;
         }
 

@@ -46,7 +46,7 @@
                 Environment.Exit(-1);
             }
 
-            if (userService1.StartSession(out int operation, out int numberOfUsers))
+            if (userService1.StartSession(out OPERATION operation, out int numberOfUsers))
             {
                 sessionId = InitConnectionNewSession(ip1, port1, operation, numberOfUsers);
             }
@@ -58,17 +58,11 @@
 
             uint[] data = userService1.ReadData().ToArray();
 
-            Console.WriteLine($"\nThe input values are:");
-            for (int i = 0; i < data.Length; i++)
-            {
-                Console.WriteLine(i + ". " + data[i]);
-            }
-
             Run(ip2, port2, sessionId, data, debug);
         }
 
 
-        public static string InitConnectionNewSession(string ip, int port, int operation, int numberOfUsers)
+        public static string InitConnectionNewSession(string ip, int port, OPERATION operation, int numberOfUsers)
         {
             communicationA = new CommunicationDataClient();
             string sessionId;
@@ -137,7 +131,6 @@
         public uint[] ReadInput(string filePath)
         {
             data = userService.ReadData(filePath).ToArray();
-            //if (data == null) return false;
             return data;
         }
     }

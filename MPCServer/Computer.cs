@@ -1,16 +1,11 @@
-﻿using MPCTools;
-using MPCTools.Requests;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using NLog;
-using System.Diagnostics;
-
-namespace MPCServer
+﻿namespace MPCServer
 {
+    using MPCTools;
+    using MPCTools.Requests;
+    using System;
+    using NLog;
+    using System.Diagnostics;
+
     public class Computer
     {
         private uint[] data;
@@ -41,7 +36,7 @@ namespace MPCServer
 
             switch (op)
             {
-                case OPERATION.E_OPER_SORT:
+                case OPERATION.SORT:
                     {
                         result = sortCompute();
                         break;
@@ -70,23 +65,15 @@ namespace MPCServer
 
             uint[] sharesIndexes = ComputeIndexesShares(diffValues, numOfElement, n);
 
-            //DEBUG
-            Console.WriteLine("\n\nshares Indexes");
-            for (int i = 0; i < sharesIndexes.Length; i++)
-            {
-                Console.WriteLine(i + ". " + sharesIndexes[i]);
-            }
+            logger.Debug("Indexes shares:");
+            logger.Debug(string.Join(", ", sharesIndexes));
 
             // second level - sum results
             uint[] sumIndexesMasks = SumServersPartsWithMasks(sharesIndexes.Length, sharesIndexes, sortRandomRequest.dpfMasks);
 
-            //DEBUG
-            Console.WriteLine("\n\nsum Indexes");
-            for (int i = 0; i < sumIndexesMasks.Length; i++)
-            {
-                Console.WriteLine(i + ". " + sumIndexesMasks[i]);
-            }
-            Console.WriteLine("\n\nThe dcf level is Done :) !!");
+            logger.Debug("Masked indexes:");
+            logger.Debug(string.Join(", ", sumIndexesMasks));
+
             // third level - compare eatch value result to all possible indexes and placing in the returned list
             uint[] sortList = ComputeResultsShares(sumIndexesMasks, sumValuesMasks, numOfElement);
 
@@ -165,11 +152,11 @@ namespace MPCServer
                 uint[] maskedSum = new uint[numOfElement]; //init with 0
                 SumEachSharesWithMask(maskedSum, partServer, masks);
                 comm.SendServerData(maskedSum);
-                totalMaskedSum = comm.ReciveServerData();
+                totalMaskedSum = comm.ReceiveServerData();
             }
             else
             {
-                totalMaskedSum = comm.ReciveServerData();
+                totalMaskedSum = comm.ReceiveServerData();
                 SumEachSharesWithMask(totalMaskedSum, partServer, masks);
                 comm.SendServerData(totalMaskedSum);
             }
