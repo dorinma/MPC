@@ -6,6 +6,8 @@ using System.Net;
 using System.IO;
 
 using MPC_UI.ViewModel;
+using MPCDataClient;
+using MPCTools;
 
 namespace MPC_UI
 {
@@ -49,13 +51,13 @@ namespace MPC_UI
         private void Send_Click(object sender, RoutedEventArgs e)
         {
             if (!isFirstClient && ValidateInputFirstInit())
-                managerDataClient.InitConnectionExistingSession(mainDataContext.IP1, mainDataContext.Port1, mainDataContext.SessionId);
+                ManagerDataClient.InitConnectionExistingSession(mainDataContext.IP1, mainDataContext.Port1, mainDataContext.SessionId);
             if (ValidateInput())
             {
                 uint[] data = managerDataClient.ReadInput(inFile.Text);
                 if (data != null)
                 {
-                    string res = managerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data, isDebugMode);
+                    string res = ManagerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data, isDebugMode);
                     if (isDebugMode)
                     {
                         using (StreamWriter outputFile = new StreamWriter(Path.Combine(@"..\\..\\..\\Out", "ComputationOutput.txt")))
@@ -90,8 +92,8 @@ namespace MPC_UI
         {
             if (ValidateInputFirstInit())
             {
-                mainDataContext.SessionId = managerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1, 
-                    Operation.SelectedIndex, mainDataContext.ParticipantsNum);
+                mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1, 
+                    Operations.operations[Operation.SelectedIndex-1], mainDataContext.ParticipantsNum);
                 sessionId.Text = mainDataContext.SessionId; //assume valid session id
                 //isFirstClient = true;
             }
@@ -113,7 +115,7 @@ namespace MPC_UI
         {
             ParticipantsNum.IsEnabled = false;
             sessionId.IsReadOnly = false;
-            //isFirstClient = false;
+            isFirstClient = false;
         }
 
         private void refreshRnd_Click(object sender, RoutedEventArgs e)

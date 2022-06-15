@@ -1,25 +1,24 @@
-﻿using MPCTools;
-using MPCTools.Requests;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-
-namespace MPCServer
+﻿namespace MPCServer
 {
+    using MPCTools;
+    using MPCTools.Requests;
+    using System;
+    using NLog;
+    using System.Diagnostics;
+
     public class Computer
     {
         private uint[] data;
         private SortRandomRequest sortRandomRequest;
-        private string instance;
+        private byte instance;
         private IDcfAdapterServer dcfAdapter;
         private IDpfAdapterServer dpfAdapter;
         private CommunicationServer comm;
+        private ILogger logger;
 
 
-        public Computer(uint[] values, SortRandomRequest sortRandomRequest, string instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter)
+        public Computer(uint[] values, SortRandomRequest sortRandomRequest, byte instance,
+            CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger)
         {
             data = values;
             this.sortRandomRequest = sortRandomRequest;
@@ -27,19 +26,27 @@ namespace MPCServer
             this.comm = comm;
             this.dcfAdapter = dcfAdapter;
             this.dpfAdapter = dpfAdapter;
+            this.logger = logger;
         }
 
         public uint[] Compute(OPERATION op)
         {
+            uint[] result = null;
+            var watch = Stopwatch.StartNew();
+
             switch (op)
             {
-                case OPERATION.E_OPER_SORT:
+                case OPERATION.SORT:
                     {
-                        return sortCompute();
+                        result = sortCompute();
+                        break;
                     }
             }
 
-            return null;
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            logger.Trace($"Operation {op} on {data.Length} elements: {elapsedMs} ms");
+            return result;
         }
 
         public uint[] sortCompute()
@@ -58,23 +65,15 @@ namespace MPCServer
 
             uint[] sharesIndexes = ComputeIndexesShares(diffValues, numOfElement, n);
 
-            //DEBUG
-            Console.WriteLine("\n\nshares Indexes");
-            for (int i = 0; i < sharesIndexes.Length; i++)
-            {
-                Console.WriteLine(i + ". " + sharesIndexes[i]);
-            }
+            logger.Debug("Indexes shares:");
+            logger.Debug(string.Join(", ", sharesIndexes));
 
             // second level - sum results
             uint[] sumIndexesMasks = SumServersPartsWithMasks(sharesIndexes.Length, sharesIndexes, sortRandomRequest.dpfMasks);
 
-            //DEBUG
-            Console.WriteLine("\n\nsum Indexes");
-            for (int i = 0; i < sumIndexesMasks.Length; i++)
-            {
-                Console.WriteLine(i + ". " + sumIndexesMasks[i]);
-            }
-            Console.WriteLine("\n\nThe dcf level is Done :) !!");
+            logger.Debug("Masked indexes:");
+            logger.Debug(string.Join(", ", sumIndexesMasks));
+
             // third level - compare eatch value result to all possible indexes and placing in the returned list
             uint[] sortList = ComputeResultsShares(sumIndexesMasks, sumValuesMasks, numOfElement);
 
@@ -109,7 +108,7 @@ namespace MPCServer
                 {
                     int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
                     uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
-                    sharesIndexes[i] -= instance == "A" ? outputShare : (outputShare - 1);
+                    sharesIndexes[i] -= instance == 0 ? outputShare : (outputShare - 1);
                     sharesIndexes[j] += outputShare;
                     valuesIndex++;
                 }
@@ -148,16 +147,16 @@ namespace MPCServer
         {
             uint[] totalMaskedSum;
 
-            if (instance == "A")
+            if (instance == 0)
             {
                 uint[] maskedSum = new uint[numOfElement]; //init with 0
                 SumEachSharesWithMask(maskedSum, partServer, masks);
                 comm.SendServerData(maskedSum);
-                totalMaskedSum = comm.ReciveServerData();
+                totalMaskedSum = comm.ReceiveServerData();
             }
             else
             {
-                totalMaskedSum = comm.ReciveServerData();
+                totalMaskedSum = comm.ReceiveServerData();
                 SumEachSharesWithMask(totalMaskedSum, partServer, masks);
                 comm.SendServerData(totalMaskedSum);
             }

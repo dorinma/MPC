@@ -22,8 +22,8 @@ namespace Tests.ExternalSystem
         public void DcfWithSmallerOrEqualAlpha_ReturnsSharesOfOne(uint alpha1, uint alpha2)
         {
             dcfGenAdapter.GenerateDCF(alpha1, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dcfEvalAdapter.EvalDCF("A", keyA, aesKey, alpha2);
-            uint shareB = dcfEvalAdapter.EvalDCF("B", keyB, aesKey, alpha2);
+            uint shareA = dcfEvalAdapter.EvalDCF(0, keyA, aesKey, alpha2);
+            uint shareB = dcfEvalAdapter.EvalDCF(1, keyB, aesKey, alpha2);
             Assert.Equal((uint)1, shareA + shareB);
         }
 
@@ -32,8 +32,8 @@ namespace Tests.ExternalSystem
         public void DcfWithBiggerAlpha_ReturnsSharesOfZero(uint alpha1, uint alpha2)
         {
             dcfGenAdapter.GenerateDCF(alpha1, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dcfEvalAdapter.EvalDCF("A", keyA, aesKey, alpha2);
-            uint shareB = dcfEvalAdapter.EvalDCF("B", keyB, aesKey, alpha2);
+            uint shareA = dcfEvalAdapter.EvalDCF(0, keyA, aesKey, alpha2);
+            uint shareB = dcfEvalAdapter.EvalDCF(1, keyB, aesKey, alpha2);
             Assert.Equal((uint)0, shareA + shareB);
         }
 

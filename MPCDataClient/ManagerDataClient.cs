@@ -23,7 +23,7 @@
             userService = new UserService();
         }
 
-        static void Main(string[] args) // ip1 port1 ip2 port2
+        static void Main(string[] args) //args = [ip1, port1, ip2, port2]
         {
             if (args.Length < 4)
             {
@@ -38,15 +38,31 @@
 
             string ip1 = args[0];
             string ip2 = args[2];
+            string sessionId = "";
+
             if (!Int32.TryParse(args[1], out int port1) | !Int32.TryParse(args[3], out int port2))
             {
-                Console.WriteLine($"Invalid port number");
+                Console.WriteLine($"Invalid port number.");
                 Environment.Exit(-1);
             }
-            Start(ip1, port1, ip2, port2);
+
+            if (userService1.StartSession(out OPERATION operation, out int numberOfUsers))
+            {
+                sessionId = InitConnectionNewSession(ip1, port1, operation, numberOfUsers);
+            }
+            else
+            {
+                sessionId = userService1.ReadSessionId();
+                InitConnectionExistingSession(ip1, port1, sessionId);
+            }
+
+            uint[] data = userService1.ReadData().ToArray();
+
+            Run(ip2, port2, sessionId, data, debug);
         }
 
-        public string InitConnectionNewSession(string ip, int port, int operation, int numberOfUsers)
+
+        public static string InitConnectionNewSession(string ip, int port, OPERATION operation, int numberOfUsers)
         {
             communicationA = new CommunicationDataClient();
             string sessionId;
@@ -57,14 +73,14 @@
             return sessionId;
         }
 
-        public void InitConnectionExistingSession(string ip, int port, string sessionId)
+        public static void InitConnectionExistingSession(string ip, int port, string sessionId)
         {
             communicationA = new CommunicationDataClient();
             communicationA.Connect(ip, port);
             communicationA.receiveDone.Reset();
         }
 
-        public string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
+        public static string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
         {
             communicationB = new CommunicationDataClient();
 
@@ -72,11 +88,13 @@
             
             communicationB.Connect(ip, port);
 
-            communicationA.SendData(sessionId, serverAShares);
-            communicationB.SendData(sessionId, serverBShares);
+            communicationA.SendSharesToServer(sessionId, serverAShares);
+            communicationB.SendSharesToServer(sessionId, serverBShares);
 
             communicationA.Receive();
             communicationB.Receive();
+
+            Console.WriteLine("\nWaiting for results.");
 
             //Wait for resaults
             communicationA.receiveDone.WaitOne();
@@ -85,65 +103,10 @@
             communicationB.receiveDone.WaitOne();
             communicationB.CloseSocket();
 
-            if(debugMode)
-            {
-                return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
-            }
-            return "";
-
-        }
-
-        private static void Start(string ip1, int port1, string ip2, int port2)
-        {
-            communicationA = new CommunicationDataClient();
-            communicationB = new CommunicationDataClient();
-            string sessionId;
-            if (userService1.StartSession(out int operation, out uint numberOfUsers))
-            {
-                communicationA.Connect(ip1, port1);
-                sessionId = communicationA.SendInitMessage(operation, (int)numberOfUsers);
-                communicationA.receiveDone.Reset();
-                Console.WriteLine($"\nThe session id for your computation is: {sessionId}");
-            }
-            else
-            {
-                sessionId = userService1.ReadSessionId();
-                communicationA.Connect(ip1, port1);
-            }
-            
-            uint[] data = userService1.ReadData().ToArray();
-
-            Console.WriteLine($"\nThe input values are:");
-            for(int i = 0; i < data.Length; i++)
-            { 
-                Console.WriteLine(i + ". " + data[i]);
-            }
-
-            RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
-
-            communicationB.Connect(ip2, port2);
-
-            communicationA.SendData(sessionId, serverAShares);
-            communicationB.SendData(sessionId, serverBShares);
-
-            communicationA.Receive();
-            communicationB.Receive();
-
-            Console.WriteLine("\nwait for results");
-
-            communicationA.receiveDone.WaitOne();
-            communicationA.CloseSocket();
-
-            communicationB.receiveDone.WaitOne();
-            communicationB.CloseSocket();
-
-            Console.WriteLine("sockets closed");
+            Console.WriteLine("Sockets are closed.");
 
             if (communicationA.dataResponse.Count > 0 && communicationB.dataResponse.Count > 0)
             {
-                /*Console.WriteLine($"Server A list: {String.Join(", ", communicationA.dataResponse)}");
-                Console.WriteLine($"Server B list: {String.Join(", ", communicationB.dataResponse)}");*/
-
                 Console.WriteLine(
                     $"Output list: {String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList())}");
             }
@@ -156,12 +119,19 @@
             {
                 Console.WriteLine(communicationB.response);
             }
+
+            if (debugMode)
+            {
+                MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToArray(), "final.csv"); //System.IO.Directory.GetCurrentDirectory() + "\\output\\finalResult.csv");
+                //return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
+            }
+            return "";
+
         }
 
         public uint[] ReadInput(string filePath)
         {
             data = userService.ReadData(filePath).ToArray();
-            //if (data == null) return false;
             return data;
         }
     }
