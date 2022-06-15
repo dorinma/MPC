@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
+using System.Runtime.CompilerServices;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -85,6 +87,8 @@ namespace MPCServer
                 else
                 {
                     comm.SendOutputMessage(msg);
+                    string fileName = (instance == 0 ? "outA" : "outB")  + "_" + comm.sessionId + ".csv";
+                    MPCFiles.writeToFile(res, fileName);
                 }
 
                 // clean used randmoness
@@ -106,7 +110,7 @@ namespace MPCServer
             }
 
             logger = LogManager.GetLogger("Server logger");
-         }
+        }
 
         public static uint[] Compute(OPERATION op) 
         {

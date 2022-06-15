@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Results\" />
     <Folder Include="Logs\" />
   </ItemGroup>
 
