@@ -140,6 +140,11 @@
 
             yield return new object[]
             {
+                new uint[] { 13050108, 250082, 990200, 3048969, 3748079 },
+            };
+
+            yield return new object[]
+            {
                 TestUtils.GenerateRandomList(5)
             };
 

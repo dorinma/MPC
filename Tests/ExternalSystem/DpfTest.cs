@@ -36,7 +36,7 @@ namespace Tests.ExternalSystem
         {
             dpfGenAdapter.GenerateDPF(alpha1, 0-mask, out string keyA, out string keyB, out string aesKey);
             uint shareA = dpfEvalAdapter.EvalDPF(0, keyA, aesKey, alpha2, mask+input);
-            uint shareB = dpfEvalAdapter.EvalDPF(0, keyB, aesKey, alpha2, mask+input);
+            uint shareB = dpfEvalAdapter.EvalDPF(1, keyB, aesKey, alpha2, mask+input);
 
             Assert.Equal((uint)0, shareA + shareB);
         }
