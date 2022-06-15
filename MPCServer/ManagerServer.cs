@@ -86,11 +86,11 @@ namespace MPCServer
                 }
                 else
                 {
-                    comm.SendOutputMessage(msg);
-                    string fileName = (instance == 0 ? "outA" : "outB")  + "_" + comm.sessionId + ".csv";
-                    MPCFiles.writeToFile(res, fileName);
+                    comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_SERVER_MSG, msg);
                 }
 
+                string fileName = (instance == 0 ? "outA" : "outB") + "_" + comm.sessionId + ".csv";
+                MPCFiles.writeToFile(res, fileName);
                 // clean used randmoness
                 deleteUsedMasksAndKeys(values.Length);
                 comm.RestartServer();
@@ -115,6 +115,13 @@ namespace MPCServer
         public static uint[] Compute(OPERATION op) 
         {
             logger.Info($"Number of elements - {values.Length}.");
+            if (values.Length > comm.sortRandomRequest.n)
+            {
+                string serverInstance = instance == 0 ? "A" : "B";
+                comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_ERROR, $"Server {serverInstance} doesn't have enough correlated randomness to perform the computation.");
+                return new uint[0];//to do
+            }
+
             Computer computer = new Computer(values, comm.sortRandomRequest, instance,
                 comm, new DcfAdapterServer(),new DpfAdapterServer(), logger);
 

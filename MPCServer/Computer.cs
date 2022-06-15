@@ -16,6 +16,9 @@
         private CommunicationServer comm;
         private ILogger logger;
 
+        private long communicationBytesCounter;
+        private long memoryBytesCounter;
+
 
         public Computer(uint[] values, SortRandomRequest sortRandomRequest, byte instance,
             CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger)
@@ -27,13 +30,15 @@
             this.dcfAdapter = dcfAdapter;
             this.dpfAdapter = dpfAdapter;
             this.logger = logger;
+            communicationBytesCounter = 0;
+            memoryBytesCounter = values.Length * 660 + (values.Length * (values.Length -1)/2)*900 ;
         }
 
         public uint[] Compute(OPERATION op)
         {
             uint[] result = null;
             var watch = Stopwatch.StartNew();
-
+            
             switch (op)
             {
                 case OPERATION.SORT:
@@ -44,14 +49,19 @@
             }
 
             watch.Stop();
+
             var elapsedMs = watch.ElapsedMilliseconds;
-            logger.Trace($"Operation {op} on {data.Length} elements: {elapsedMs} ms");
+            logger.Trace($"Operation {op} on {data.Length} elements.");
+            logger.Trace($"Runtime {elapsedMs} ms");
+            logger.Trace($"Memory consumption {memoryBytesCounter} bytes");
+            logger.Trace($"communication sent {communicationBytesCounter} bytes");
             return result;
         }
 
         public uint[] sortCompute()
         {
-            //actually logic
+
+            long totalMemoryBefore = GC.GetTotalMemory(true);
 
             // first level - dcf between each pair values
             int numOfElement = data.Length;
@@ -77,6 +87,9 @@
             // third level - compare eatch value result to all possible indexes and placing in the returned list
             uint[] sortList = ComputeResultsShares(sumIndexesMasks, sumValuesMasks, numOfElement);
 
+            long totalMemoryAfter = GC.GetTotalMemory(true);
+            memoryBytesCounter += totalMemoryAfter - totalMemoryBefore;
+            
             return sortList;
         }
 
@@ -160,6 +173,8 @@
                 SumEachSharesWithMask(totalMaskedSum, partServer, masks);
                 comm.SendServerData(totalMaskedSum);
             }
+
+            communicationBytesCounter += numOfElement * sizeof(uint);
 
             return totalMaskedSum;
         }
