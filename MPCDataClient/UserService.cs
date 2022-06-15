@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MPCTools;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
@@ -10,17 +11,15 @@ namespace MPCDataClient
         //https://github.com/TestableIO/System.IO.Abstractions
         //https://stackoverflow.com/questions/52077416/unit-test-a-method-that-has-dependency-on-streamreader-for-reading-file
         readonly IFileSystem fileSystem;
-        string[] operations;
 
         public UserService(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem;
-            operations = new string[1] { "Sort" };
         }
         /// <summary>Create MyComponent</summary>
         public UserService() : this(fileSystem: new FileSystem()) {}
 
-        internal bool StartSession(out int operation, out int numberOfUsers)
+        internal bool StartSession(out OPERATION operation, out int numberOfUsers)
         {
             Console.WriteLine("Insert action to perform:");
             Console.WriteLine("1. Start new session");
@@ -51,15 +50,15 @@ namespace MPCDataClient
             return action == 1;
         }
 
-        public int ReadOperation()
+        public OPERATION ReadOperation()
         {
-            int operation;
+            int operationNumber;
             Console.WriteLine("Insert the number of operation you want to perform:");
-            for (int i = 0; i < operations.Length; i++)
+            for (int i = 0; i < Operations.operations.Length; i++)
             { 
-                Console.WriteLine($"{i + 1}. {operations[i]}");
+                Console.WriteLine($"{i + 1}. {Operations.operations[i]}");
             }
-            while (!TryParseOperation(Console.ReadLine(), out operation))
+            while (!TryParseOperation(Console.ReadLine(), out operationNumber))
             {
                 Console.WriteLine("Invalid operation number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
@@ -73,7 +72,7 @@ namespace MPCDataClient
                     Console.WriteLine("Insert operation number:");
                 }
             }
-            return operation;
+            return Operations.operations[operationNumber-1];
         }
 
         internal string ReadSessionId()
@@ -103,7 +102,7 @@ namespace MPCDataClient
 
         public bool TryParseOperation(string userChoice, out int operation)
         {
-            return int.TryParse(userChoice, out operation) && operation <= operations.Length && operation >= 1;
+            return int.TryParse(userChoice, out operation) && operation <= Operations.operations.Length && operation >= 1;
         }
 
         public List<uint> ReadData()

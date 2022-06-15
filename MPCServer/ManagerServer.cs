@@ -9,15 +9,19 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO;
 using System.Runtime.CompilerServices;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace MPCServer
 {
     public class ManagerServer
     {
-        static bool isDebugMode = true;
-        static uint[] values;
-        static CommunicationServer comm = new CommunicationServer();
-        static byte instance;
+        private static Logger logger;
+        private static bool isDebugMode = true;
+        private static uint[] values;
+        private static CommunicationServer comm;
+        private static byte instance;
 
         public static void Main(string[] args)
         {
@@ -37,10 +41,13 @@ namespace MPCServer
             }
             instance = choose == 1 ? (byte)0 : (byte)1;
 
+            SetupLogger();
+            comm = new CommunicationServer(logger);
+
             string memberServerIP = args[0];
             int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
             comm.setInstance(instance);
-
+            
             if (instance == 0)
             {
                 if(!comm.ConnectServers(memberServerIP, memberServerPort))
@@ -62,46 +69,29 @@ namespace MPCServer
                 {
                     Environment.Exit(-1);
                 }
+                logger.Debug("Input shares:");
+                logger.Debug(string.Join(", ", values));
+                
+                uint[] res = Compute(comm.operation);
 
+                logger.Debug("Output shares:");
+                logger.Debug(string.Join(", ", res));
+
+                string msg = "Computation completed successfully.";
+                logger.Info(msg);
+                
                 if (isDebugMode)
                 {
-                    Console.WriteLine("Secret shares of input:");
-                    for (int i = 0; i < values.Length; i++)
-                    {
-                        Console.WriteLine(i + ". " + values[i]);
-                    }
+                    comm.SendOutputData(res);                    
                 }
-                uint[] res = Compute(OPERATION.E_OPER_SORT);
-
-                // stop timer
-
-                // clean randmoness used
-
-                if (!isDebugMode)
+                else
                 {
-                    string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
                     comm.SendOutputMessage(msg);
                     string fileName = (instance == 0 ? "outA" : "outB")  + "_" + comm.sessionId + ".csv";
                     MPCFiles.writeToFile(res, fileName);
                 }
-                else // debug mode
-                {
-                    Console.WriteLine("\nSecret shares of output:");
-                    Console.WriteLine("\nres:");
 
-                    for (int i = 0; i < res.Length; i++)
-                    {
-                        Console.WriteLine("\t" + res[i] + "\t");
-                    }
-
-                    Console.WriteLine("");
-
-                    string fileName = (instance == 0 ? "outA" : "outB") + comm.sessionId + ".csv";
-                    MPCFiles.writeToFile(res, fileName);
-
-                    comm.SendOutputData(res);
-                }
-
+                // clean used randmoness
                 deleteUsedMasksAndKeys(values.Length);
                 comm.RestartServer();
 
@@ -110,14 +100,24 @@ namespace MPCServer
             }
         }
 
+        private static void SetupLogger()
+        {
+            GlobalDiagnosticsContext.Set("serverInstance", instance == 0 ? "A" : "B");
+
+            if (isDebugMode)
+            {
+                LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
+            }
+
+            logger = LogManager.GetLogger("Server logger");
+        }
 
         public static uint[] Compute(OPERATION op) 
         {
-            //swich case per operation 
-            //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer());
-            //Future code
-            //Computer computer = new Computer(values, comm.requeset[op]);
+            logger.Info($"Number of elements - {values.Length}.");
+            Computer computer = new Computer(values, comm.sortRandomRequest, instance,
+                comm, new DcfAdapterServer(),new DpfAdapterServer(), logger);
+
             uint[] res = computer.Compute(op);
             return res;
         }
@@ -157,6 +157,8 @@ namespace MPCServer
             comm.sortRandomRequest.dcfKeys = newDcfKeys;
 
             comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
+
+            logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
         }
 
         public void SendResult() { }

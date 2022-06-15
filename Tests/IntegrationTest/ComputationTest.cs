@@ -5,6 +5,7 @@
     using MPCServer;
     using MPCTools;
     using MPCTools.Requests;
+    using NLog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,6 +14,12 @@
 
     public class ComputationTest
     {
+        private readonly ILogger loggerMock;
+
+        public ComputationTest()
+        {
+            loggerMock = new Mock<ILogger>().Object;
+        }
 
         [Theory]
         [MemberData(nameof(ValuesAndShares))]
@@ -26,8 +33,8 @@
             FixKeysForMock(requestA, requestB);
 
 
-            Computer computerA = new Computer(sharesA, requestA, 0, null, new DcfAdapterServer(), dpfMock.Object);
-            Computer computerB = new Computer(sharesB, requestB, 1, null, new DcfAdapterServer(), dpfMock.Object);
+            Computer computerA = new Computer(sharesA, requestA, 0, null, new DcfAdapterServer(), dpfMock.Object, loggerMock);
+            Computer computerB = new Computer(sharesB, requestB, 1, null, new DcfAdapterServer(), dpfMock.Object, loggerMock);
 
             uint[] sumValuesMasks = TestUtils.SumLists(TestUtils.SumLists(sharesA, requestA.dcfMasks), TestUtils.SumLists(sharesB, requestB.dcfMasks));
 
