@@ -89,8 +89,8 @@
             RandomUtils.SplitToSecretShares(values, out uint[] sharesA, out uint[] sharesB);
             ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB);
 
-            Computer computerA = new Computer(sharesA, requestA, "A", null, new DcfAdapterServer(), new DpfAdapterServer());
-            Computer computerB = new Computer(sharesB, requestB, "B", null, new DcfAdapterServer(), new DpfAdapterServer());
+            Computer computerA = new Computer(sharesA, requestA, 0, null, new DcfAdapterServer(), new DpfAdapterServer(), loggerMock);
+            Computer computerB = new Computer(sharesB, requestB, 1, null, new DcfAdapterServer(), new DpfAdapterServer(), loggerMock);
 
             uint[] sumValuesMasks = TestUtils.SumLists(TestUtils.SumLists(sharesA, requestA.dcfMasks), TestUtils.SumLists(sharesB, requestB.dcfMasks));
 

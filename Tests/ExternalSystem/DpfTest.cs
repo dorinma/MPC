@@ -3,12 +3,9 @@ namespace Tests.ExternalSystem
 {
     using MPCRandomnessClient;
     using MPCServer;
-<<<<<<< HEAD
     using MPCTools;
     using System;
-=======
     using MPCTools.Requests;
->>>>>>> master
     using System.Collections.Generic;
     using Xunit;
 
@@ -25,36 +22,22 @@ namespace Tests.ExternalSystem
 
         [Theory]
         [MemberData(nameof(EqualAlphaInputs))]
-<<<<<<< HEAD
         public void DpfWithEqualAlpha_ReturnsSharesOfOne(uint alpha, uint mask, uint input)
         {   
             dpfGenAdapter.GenerateDPF(alpha, 0-mask, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dpfEvalAdapter.EvalDPF("A", keyA, aesKey, alpha, mask+input);
-            uint shareB = dpfEvalAdapter.EvalDPF("B", keyB, aesKey, alpha, mask+input);
+            uint shareA = dpfEvalAdapter.EvalDPF(0, keyA, aesKey, alpha, mask+input);
+            uint shareB = dpfEvalAdapter.EvalDPF(1, keyB, aesKey, alpha, mask+input);
             Assert.Equal(input, shareA + shareB);
-=======
-        public void DpfWithEqualAlpha_ReturnsSharesOfOne(uint alpha1, uint alpha2)
-        {
-            dpfGenAdapter.GenerateDPF(alpha1, beta: 0, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dpfEvalAdapter.EvalDPF(0, keyA, aesKey, alpha2, maskedInput: 0);
-            uint shareB = dpfEvalAdapter.EvalDPF(1, keyB, aesKey, alpha2, maskedInput: 0);
-            Assert.Equal((uint)1, shareA + shareB);
->>>>>>> master
         }
 
         [Theory]
         [MemberData(nameof(DifferentAlphaInputs))]
         public void DpfWithDifferentAlpha_ReturnsSharesOfZero(uint alpha1, uint alpha2, uint mask, uint input)
         {
-<<<<<<< HEAD
             dpfGenAdapter.GenerateDPF(alpha1, 0-mask, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dpfEvalAdapter.EvalDPF("A", keyA, aesKey, alpha2, mask+input);
-            uint shareB = dpfEvalAdapter.EvalDPF("B", keyB, aesKey, alpha2, mask+input);
-=======
-            dpfGenAdapter.GenerateDPF(alpha1, beta: 0, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dpfEvalAdapter.EvalDPF(0, keyA, aesKey, alpha2, maskedInput: 0);
-            uint shareB = dpfEvalAdapter.EvalDPF(1, keyB, aesKey, alpha2, maskedInput: 0);
->>>>>>> master
+            uint shareA = dpfEvalAdapter.EvalDPF(0, keyA, aesKey, alpha2, mask+input);
+            uint shareB = dpfEvalAdapter.EvalDPF(0, keyB, aesKey, alpha2, mask+input);
+
             Assert.Equal((uint)0, shareA + shareB);
         }
 
