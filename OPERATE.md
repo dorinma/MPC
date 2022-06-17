@@ -41,7 +41,21 @@ This is the component that runs when the users run the application. The operator
 
 ## Maintenance
 
-#### Error Handeling
-
 #### Extending Functionality
+
+#### Error Handeling
+There is a number of possible errors that may occur while running the system:
+
+##### 1. Crash of a component
+Handeling this error depends on the component that had crashed.
+###### Data client:
+If the data client crashed before his data was sent, the servers will still wait for its data so the user can simply restart the app. In case it crashed after sending the data, the servers will continue with the computation, and the user will not get a confirmation message. In debug mode, the output will still be written to the destinated directory.
+
+If the randomness client crashes or the servers do not have enough correlated randomness, they will remain in their init state- in which they either wait for data from the users or for more randomness. In case all the data has arrived and still they have not recived the needed randomness, they will remain in this state.
+/////////the servers send informative message to the users here?
+
+In case one of the servers crashes and the connection between them is broken, the other server will keep trying to connect to it for a few seconds. If this ends unsuccessfully, the operator must restart the fallen server.
+
+##### 2. Computation failure
+##### 3. Communication failure
 
