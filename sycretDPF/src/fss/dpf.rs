@@ -80,8 +80,6 @@ pub fn generate_cw_from_seeds(
         }
     }
     // We only need 32 bits to make a sharing of 1
-    let s_a_i_2 = s_a_i >> 32;
-    let s_b_i_2 = s_b_i >> 32;
     (share_leaf(s_a_i as u32, s_b_i as u32, 1, t_b_i), share_leaf((s_a_i >> 32) as u32, (s_b_i >> 32) as u32, beta, t_b_i))
 }
 
@@ -191,7 +189,6 @@ impl DPFKey1 for DPFKeyAlpha1 {
                 }
             }
         }
-        let s_i_2 = s_i << 32;
         (compute_out(s_i as u32, self.cw_leaf_1, t_i, party_id), compute_out((s_i >> 32) as u32, self.cw_leaf_2, t_i, party_id))
     }
 }
