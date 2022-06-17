@@ -10,7 +10,7 @@
 
     public class DcfAdapterServer : IDcfAdapterServer
     {
-        private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
+        private const string dllPath = @"..\\..\\..\\ExtLibs\\DCF\\sycret.dll";
         [DllImport(dllPath)]
         private static extern UInt32 eval_dcf(IntPtr key, IntPtr aesKeys, UInt32 alpha, byte partyId);
 
