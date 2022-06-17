@@ -64,7 +64,6 @@ namespace MPCServer
             while (true)
             {
                 
-
                 values = comm.StartServer();
                 // if return null -> restart server
                 if(values == null)

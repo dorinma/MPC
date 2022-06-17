@@ -88,7 +88,8 @@ namespace MPCServer
             serversSend.Reset();
             receiveDone.Reset();
             exchangeData = null;
-            ServerBBeginReceive();
+            memberServerSocket.Close();
+            //ServerBBeginReceive(); TODO if server b gets the message this isnt needed
         }
 
         private void ServerBBeginReceive()
