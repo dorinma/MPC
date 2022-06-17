@@ -10,7 +10,7 @@ namespace Tests.ToolsTest
         public static uint[] GenerateRandomList(int size)
         {
             Random random = new Random();
-            var output = new uint[size];
+            uint[] output = new uint[size];
             for (int i = 0; i < size; i++)
             {
                 output[i] = random.NextUInt32();

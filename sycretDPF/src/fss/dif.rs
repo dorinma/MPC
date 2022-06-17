@@ -244,7 +244,7 @@ pub fn generate_cw_from_seeds(
             u_b_i = w_b_next.u_l;
         }
 
-        cw_leaf[i] = share_leaf(z_a_i, z_b_i, alpha_bits[i], u_b_i);
+        cw_leaf[i] = share_leaf(z_a_i, z_b_i, alpha_bits[i] as u32, u_b_i);
     }
     cw_leaf[N * 8] = share_leaf(s_a_i as u32, s_b_i as u32, 1, t_b_i);
     (cw, cw_leaf)

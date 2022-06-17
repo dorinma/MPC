@@ -31,12 +31,13 @@
             this.dpfAdapter = dpfAdapter;
             this.logger = logger;
             communicationBytesCounter = 0;
-            memoryBytesCounter = values.Length * 660 + (values.Length * (values.Length -1)/2)*900 ;
+            memoryBytesCounter = 0;
         }
 
         public uint[] Compute(OPERATION op)
         {
             uint[] result = null;
+            memoryBytesCounter = data.Length * 660 + (data.Length * (data.Length - 1) / 2) * 900;
             var watch = Stopwatch.StartNew();
             
             switch (op)
