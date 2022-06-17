@@ -124,9 +124,8 @@ namespace MPCDataClient
                     Environment.Exit(-1);
                 }
 
-                ReadData();
+                return ReadData();
             }
-            return null;
         }
 
         public List<uint> ReadData(string filePath)

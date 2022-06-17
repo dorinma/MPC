@@ -107,25 +107,29 @@
 
             if (communicationA.dataResponse.Count > 0 && communicationB.dataResponse.Count > 0)
             {
-                Console.WriteLine(
-                    $"Output list: {String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList())}");
+                if (debugMode)
+                {
+                    Console.WriteLine(
+                    $"Output list: {string.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList())}");
+
+                    var fileName = $"results_{DateTime.Now}.csv";
+                    MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse,
+                        (x, y) => { return (uint)(x + y); }).ToArray(), $@"..\..\..\..\Results\{fileName}");
+
+                    if(communicationA.response.Length > 0)
+                    {
+                        return communicationA.response.Length + $@"\nThe results saved to Results\{fileName}";
+                    }
+                }
             }
 
-            if (communicationA.response.Length > 0)
+            if (communicationA.response.Length > 0 && communicationB.response.Length > 0)
             {
                 Console.WriteLine(communicationA.response);
-            }
-            if (communicationB.response.Length > 0)
-            {
-                Console.WriteLine(communicationB.response);
+                return communicationA.response;
             }
 
-            if (debugMode)
-            {
-                MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToArray(), "final.csv"); //System.IO.Directory.GetCurrentDirectory() + "\\output\\finalResult.csv");
-                //return String.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList());
-            }
-            return "";
+            return "Something went wrong.";
 
         }
 

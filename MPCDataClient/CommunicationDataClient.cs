@@ -215,12 +215,14 @@ namespace MPCDataClient
                         if (dataRequest != default)
                         {
                             dataResponse = dataRequest.dataElements.ToList();
+                            response = "The computation was successful.";
                         }
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
-                        HandleError(data);
+                        response = data;
+                        //HandleError(data);
                         break;
                     }
                 default:

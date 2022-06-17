@@ -47,22 +47,24 @@ namespace MPCServer
             string memberServerIP = args[0];
             int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
             comm.setInstance(instance);
-            
+
             if (instance == 0)
             {
-                if(!comm.ConnectServers(memberServerIP, memberServerPort))
+                if (!comm.ConnectServers(memberServerIP, memberServerPort)) // TODO add while
                 {
                     Environment.Exit(-1);
                 }
             }
 
-            if(!comm.OpenSocket(instance == 0 ? 2022 : 2023))
+            if (!comm.OpenSocket(instance == 0 ? 2022 : 2023)) // TODO add while
             {
                 Environment.Exit(-1);
             }
 
             while (true)
             {
+                
+
                 values = comm.StartServer();
                 // if return null -> restart server
                 if(values == null)
