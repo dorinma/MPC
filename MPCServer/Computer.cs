@@ -47,6 +47,8 @@
                         result = sortCompute();
                         break;
                     }
+                default:
+                    break;
             }
 
             watch.Stop();

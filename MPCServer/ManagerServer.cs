@@ -1,17 +1,7 @@
 ﻿using MPCTools;
-using MPCTools.Requests;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Sockets;
-using System.Net;
-using System.IO;
-using System.Runtime.CompilerServices;
 using NLog;
-using NLog.Config;
-using NLog.Targets;
 
 namespace MPCServer
 {
@@ -22,6 +12,9 @@ namespace MPCServer
         private static uint[] values;
         private static CommunicationServer comm;
         private static byte instance;
+
+        private const int RETRY_COUNT = 5;
+        private const int SLEEP_TIME = 5000; //5 seconds
 
         public static void Main(string[] args)
         {
@@ -48,22 +41,44 @@ namespace MPCServer
             int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
             comm.setInstance(instance);
 
+            int tries = 0;
+            bool connected = false;
+
             if (instance == 0)
             {
-                if (!comm.ConnectServers(memberServerIP, memberServerPort)) // TODO add while
+                connected = comm.ConnectServers(memberServerIP, memberServerPort);
+                while (!connected && tries < RETRY_COUNT)
                 {
+                    System.Threading.Thread.Sleep(SLEEP_TIME);
+                    tries++;
+                    connected = comm.ConnectServers(memberServerIP, memberServerPort);
+                }
+                if (!connected)
+                {
+                    logger.Error("Could not connect to other server."); //TODO is this ok??
+                    // Console.WriteLine("Could not connect to other server.");
                     Environment.Exit(-1);
                 }
             }
 
-            if (!comm.OpenSocket(instance == 0 ? 2022 : 2023)) // TODO add while
+            tries = 0;
+            connected = comm.OpenSocket(instance == 0 ? 2022 : 2023);
+
+            while (!connected && tries < RETRY_COUNT) // TODO add while
             {
+                System.Threading.Thread.Sleep(SLEEP_TIME);
+                tries++;
+                connected = comm.OpenSocket(instance == 0 ? 2022 : 2023);
+            }
+
+            if (!connected)
+            {
+                logger.Error("Could not create socket between servers.");
                 Environment.Exit(-1);
             }
 
             while (true)
             {
-                
                 values = comm.StartServer();
                 // if return null -> restart server
                 if(values == null)

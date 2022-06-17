@@ -82,6 +82,8 @@
 
         public static string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
         {
+            string response = "";
+
             communicationB = new CommunicationDataClient();
 
             RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
@@ -118,7 +120,7 @@
 
                     if(communicationA.response.Length > 0)
                     {
-                        return communicationA.response.Length + $@"\nThe results saved to Results\{fileName}";
+                        response = communicationA.response.Length + $@"\nThe results saved to Results\{fileName}";
                     }
                 }
             }
@@ -126,11 +128,13 @@
             if (communicationA.response.Length > 0 && communicationB.response.Length > 0)
             {
                 Console.WriteLine(communicationA.response);
-                return communicationA.response;
+                response = communicationA.response;
             }
 
-            return "Something went wrong.";
-
+            response = "Something went wrong.";
+            
+            
+            return response;
         }
 
         public uint[] ReadInput(string filePath)

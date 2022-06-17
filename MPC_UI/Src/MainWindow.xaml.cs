@@ -58,7 +58,8 @@ namespace MPC_UI
                 if (data != null)
                 {
                     string res = ManagerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data, isDebugMode);
-                    if (isDebugMode)
+                    MessageBox.Show(res);
+                    /*if (isDebugMode)
                     {
                         using (StreamWriter outputFile = new StreamWriter(Path.Combine(@"..\\..\\..\\Out", "ComputationOutput.txt")))
                         {
@@ -69,7 +70,7 @@ namespace MPC_UI
                     else
                     {
                         MessageBox.Show("Computation is done.");
-                    }
+                    }*/
                 }
                 else
                 {
