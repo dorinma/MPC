@@ -5,6 +5,7 @@ namespace Tests.ServerTest
     using MPCServer;
     using MPCTools;
     using MPCTools.Requests;
+    using NLog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -13,6 +14,13 @@ namespace Tests.ServerTest
 
     public class ComputerTest
     {
+        private readonly ILogger loggerMock;
+
+        public ComputerTest()
+        {
+            loggerMock = new Mock<ILogger>().Object;
+        }
+
         SortRandomRequest emptyRequest = new SortRandomRequest
         {
             sessionId = string.Empty,
@@ -25,11 +33,9 @@ namespace Tests.ServerTest
             dpfAesKeys = new string[10]
         };
 
-        public ComputerTest() { }
-
-        public Computer InitComuter(string instance, SortRandomRequest randomRequest = default, IDcfAdapterServer dcfAdapter = default, IDpfAdapterServer dpfAdapter = default)
+        public Computer InitComuter(byte instance, SortRandomRequest randomRequest = default, IDcfAdapterServer dcfAdapter = default, IDpfAdapterServer dpfAdapter = default)
         {
-            return new Computer(null, randomRequest, instance, null, dcfAdapter, dpfAdapter);
+            return new Computer(null, randomRequest, instance, null, dcfAdapter, dpfAdapter, loggerMock);
         }
 
         [Theory]
@@ -39,8 +45,8 @@ namespace Tests.ServerTest
             uint[] sharesValueB, uint[] masksB,
             uint[] expectedOutput)
         {
-            Computer computerA = InitComuter("A");
-            Computer computerB = InitComuter("B");
+            Computer computerA = InitComuter(0);
+            Computer computerB = InitComuter(1);
             uint[] outputA = new uint[sharesValueA.Length];
             computerA.SumEachSharesWithMask(outputA, sharesValueA, masksA);
             computerB.SumEachSharesWithMask(outputA, sharesValueB, masksB);
@@ -51,7 +57,7 @@ namespace Tests.ServerTest
         [MemberData(nameof(SumEachSharesWithMask_InvalidInputs))]
         public void SumEachSharesWithMask_ShouldFail(uint[] sharesValueA, uint[] masksA) 
         {
-            Computer computerA = InitComuter("A");
+            Computer computerA = InitComuter(0);
             uint[] outputA = new uint[sharesValueA.Length];
              Assert.ThrowsAny<Exception>(() => computerA.SumEachSharesWithMask(outputA, sharesValueA, masksA));
         }
@@ -61,8 +67,8 @@ namespace Tests.ServerTest
         public void ComputesIndexesShares_ShouldSuccess(uint[] values, uint[] expectedIndexes)
         {
             Mock<IDcfAdapterServer> dcfMock = new Mock<IDcfAdapterServer>();
-            Computer computerA = InitComuter("A", emptyRequest, dcfAdapter: dcfMock.Object);
-            Computer computerB = InitComuter("B", emptyRequest, dcfAdapter: dcfMock.Object);
+            Computer computerA = InitComuter(0, emptyRequest, dcfAdapter: dcfMock.Object);
+            Computer computerB = InitComuter(1, emptyRequest, dcfAdapter: dcfMock.Object);
 
             uint[] diffValues = computerA.DiffEachPairValues(values, values.Length); //same for bith computers
 
@@ -80,9 +86,9 @@ namespace Tests.ServerTest
         public void ComputesIndexesShares_NotEnoughRandomness_ShouldFail(uint[] diffValues)
         {
             Mock<IDcfAdapterServer> dcfMock = new Mock<IDcfAdapterServer>();
-            dcfMock.Setup(mock => mock.EvalDCF("A", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
+            dcfMock.Setup(mock => mock.EvalDCF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
                 .Returns(0);
-            Computer computerA = InitComuter("A", emptyRequest, dcfAdapter: dcfMock.Object);
+            Computer computerA = InitComuter(0, emptyRequest, dcfAdapter: dcfMock.Object);
             
             Assert.ThrowsAny<Exception>(() => computerA.ComputeIndexesShares(diffValues, diffValues.Length, 10));
         }
@@ -92,8 +98,8 @@ namespace Tests.ServerTest
         public void ComputesResultsShares_ShouldSuccess(uint[] values, uint[] sharesAValues, uint[] sharesBValues, uint[] indexes)
         {
             Mock<IDpfAdapterServer> dpfMock = new Mock<IDpfAdapterServer>();
-            Computer computerA = InitComuter("A", emptyRequest, dpfAdapter: dpfMock.Object);
-            Computer computerB = InitComuter("B", emptyRequest, dpfAdapter: dpfMock.Object);
+            Computer computerA = InitComuter(0, emptyRequest, dpfAdapter: dpfMock.Object);
+            Computer computerB = InitComuter(1, emptyRequest, dpfAdapter: dpfMock.Object);
 
             SetupDpfMock(dpfMock);
 
@@ -109,20 +115,20 @@ namespace Tests.ServerTest
         {
             var rand = new Random();
             uint firstShare = rand.NextUInt32();
-            dpfMock.Setup(mock => mock.EvalDPF("A", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
-                .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : firstShare);
-            dpfMock.Setup(mock => mock.EvalDPF("B", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
-                .Returns((string instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : (uint)0-firstShare);
+            dpfMock.Setup(mock => mock.EvalDPF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
+                .Returns((byte instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : firstShare);
+            dpfMock.Setup(mock => mock.EvalDPF(1, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>(), It.IsAny<uint>()))
+                .Returns((byte instance, string key, string aes, uint alpha, uint beta) => alpha == 0 ? beta : (uint)0-firstShare);
         }
 
         private void SetupDcfMock(Mock<IDcfAdapterServer> dcfMock)
         {
             var rand = new Random();
             uint firstShare = rand.NextUInt32();
-            dcfMock.Setup(mock => mock.EvalDCF("A", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
+            dcfMock.Setup(mock => mock.EvalDCF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
                 .Returns(firstShare);
-            dcfMock.Setup(mock => mock.EvalDCF("B", It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
-                .Returns((string instance, string key, string aes, uint alpha) => (int)alpha <= 0 ? 1-firstShare : 0-firstShare);
+            dcfMock.Setup(mock => mock.EvalDCF(1, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
+                .Returns((byte instance, string key, string aes, uint alpha) => (int)alpha <= 0 ? 1-firstShare : 0-firstShare);
         }
 
         public static IEnumerable<object[]> SumEachSharesWithMask_ValidInputs()

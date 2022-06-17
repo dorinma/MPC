@@ -1,4 +1,6 @@
 ﻿using MPCTools;
+using MPCTools.Requests;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +19,7 @@ namespace MPCDataClient
         public ManualResetEvent receiveDone = new ManualResetEvent(false);
 
         private Socket client;
-        private static protocol protocol = protocol.Instance;
+        private static Protocol protocol = Protocol.Instance;
 
         public string sessionId { get; set; }
         public string response = string.Empty;
@@ -41,7 +43,7 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
                 Environment.Exit(-1);
             }
         }
@@ -61,31 +63,16 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
-        private void Send(byte[] byteData)
+        private void Send(MessageRequest messageRequest)
         {
+            byte[] bytes = Encoding.Default.GetBytes(JsonConvert.SerializeObject(messageRequest));
             // Begin sending the data to the remote device.  
-            client.BeginSend(byteData, 0, byteData.Length, SocketFlags.None, new AsyncCallback(SendCallback), client);
+            client.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, new AsyncCallback(SendCallback), client);
         }
-
-        public string SendInitMessage(int operation, int numberOfUsers)
-        {
-            byte[] message = protocol.CreateArrayMessage(OPCODE_MPC.E_OPCODE_CLIENT_INIT, sizeof(int), new List<int> { operation, numberOfUsers }.ToArray());
-            Send(message);
-            Receive();
-            receiveDone.WaitOne();
-            return sessionId;
-        }
-
-        public void SendData(string sessionId, uint[] data)
-        {
-            byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(uint), data);
-            Send(meesage);
-        }
-
 
         private void SendCallback(IAsyncResult ar)
         {
@@ -102,7 +89,7 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -119,80 +106,132 @@ namespace MPCDataClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
-        private void ReceiveCallback(IAsyncResult ar)
+        public void ReceiveCallback(IAsyncResult ar)
         {
-            try
+            String content = String.Empty;
+
+            // Retrieve the state object and the handler socket  
+            // from the asynchronous state object.  
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket handler = state.workSocket;
+
+            // Read data from the client socket.
+            int bytesRead = handler.EndReceive(ar);
+
+            if (bytesRead > 0)
             {
-                // Retrieve the state object and the client socket
-                // from the asynchronous state object.  
-                StateObject state = (StateObject)ar.AsyncState;
-                Socket client = state.workSocket;
-                // Read data from the remote device.  
-                int bytesRead = client.EndReceive(ar);
-                if (bytesRead > 0)
+                // There  might be more data, so store the data received so far.  
+                state.sb.Append(Encoding.ASCII.GetString(
+                    state.buffer, 0, bytesRead));
+
+                // Check for end-of-file tag. If it is not there, read
+                // more data.  
+                content = state.sb.ToString();
+                if (content.IndexOf("<EOF>") > -1)
                 {
-                    // There might be more data, so store the data received so far.  
-                    if (!protocol.ValidateMessage(state.buffer))
+                    // All the data has been read from the
+                    // client. Display it on the console.  
+                    Console.WriteLine($"Read {content.Length} bytes from");
+
+                    MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
+                    if (messageRequest == default)
                     {
-                        Console.WriteLine("Error: bad header");
+                        Console.WriteLine($"Error: Invalid json format.");
+                        return;
+                    }
+                    
+                    if (!protocol.ValidateMessage(messageRequest.prefix))
+                    {
+                        Console.WriteLine("Error: Invalid header.");
                         return;
                     }
 
-                    protocol.ParseData(state.buffer, out OPCODE_MPC Opcode, out Byte[] MsgData);
-                    AnalyzeMessage(Opcode, MsgData);
+                    AnalyzeMessage(messageRequest.opcode, messageRequest.data);
                     receiveDone.Set();
-                    //  Get the rest of the data.  
-                    client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 }
                 else
                 {
-                    // All the data has arrived; put it in response.  
-                    /*if (state.sb.Length > 1)
-                    {
-                        response = state.sb.ToString();
-                    }*/
-                    // Signal that all bytes have been received.  
-                    receiveDone.Set();
+                    // Not all data received. Get more.  
+                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReceiveCallback), state);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
             }
         }
 
-        public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] Data)
+        public string SendInitMessage(OPERATION operation, int numberOfUsers)
+        {
+            ClientInitRequest clientInitRequest = new ClientInitRequest()
+            {
+                operation = operation,
+                numberOfUsers = numberOfUsers
+            };
+
+            string data = JsonConvert.SerializeObject(clientInitRequest);
+            MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_INIT, data);
+
+            Send(messageRequest);
+        
+            Receive();
+            receiveDone.WaitOne();
+            return sessionId;
+        }
+        
+        public void SendSharesToServer(string sessionId, uint[] dataShares)
+        {
+            DataRequest clientDataRequest = new DataRequest()
+            {
+                sessionId = sessionId,
+                dataElements = dataShares
+            };
+
+            string data = JsonConvert.SerializeObject(clientDataRequest);
+            MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, data);
+            //byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(uint), data);
+            Send(messageRequest);
+        }
+
+
+        public void AnalyzeMessage(OPCODE_MPC Opcode, string data)
         {
             switch (Opcode)
             {
                 case OPCODE_MPC.E_OPCODE_SERVER_INIT:
                     {
-                        sessionId = Encoding.Default.GetString(Data).Substring(0, ProtocolConstants.SESSION_ID_SIZE);
-                        //Console.WriteLine($"recieved session id - {sessionId}");
+                        sessionId = data.Substring(0, ProtocolConstants.SESSION_ID_SIZE); //TODO data and randomness clients
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_SERVER_MSG:
                     {
-                        response = Encoding.Default.GetString(Data);
+                        response = data;
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_SERVER_DATA:
                     {
-                        dataResponse = MPCConvertor.BytesToList(Data, 0);
+                        DataRequest dataRequest = protocol.DeserializeRequest<DataRequest>(data);
+                        if (dataRequest != default)
+                        {
+                            dataResponse = dataRequest.dataElements.ToList();
+                        }
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
-                        Console.WriteLine($"Received error: {Encoding.Default.GetString(Data)}");
+                        HandleError(data);
                         break;
                     }
                 default:
                     break;
             }
+        }
+
+        private void HandleError(string data)
+        {
+            Console.WriteLine($"Received error: {data}");
+            CloseSocket();
         }
 
         public void CloseSocket()

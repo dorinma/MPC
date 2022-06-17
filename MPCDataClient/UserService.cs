@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MPCTools;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
@@ -18,7 +19,7 @@ namespace MPCDataClient
         /// <summary>Create MyComponent</summary>
         public UserService() : this(fileSystem: new FileSystem()) {}
 
-        internal bool StartSession(out int operation, out uint numberOfUsers)
+        internal bool StartSession(out OPERATION operation, out int numberOfUsers)
         {
             Console.WriteLine("Insert action to perform:");
             Console.WriteLine("1. Start new session");
@@ -49,11 +50,15 @@ namespace MPCDataClient
             return action == 1;
         }
 
-        public int ReadOperation()
+        public OPERATION ReadOperation()
         {
-            int operation;
-            Console.WriteLine("Insert the number of operation you want to perform:\n1. sort");
-            while (!TryParseOperation(Console.ReadLine(), out operation) || operation > 1)
+            int operationNumber;
+            Console.WriteLine("Insert the number of operation you want to perform:");
+            for (int i = 0; i < Operations.operations.Length; i++)
+            { 
+                Console.WriteLine($"{i + 1}. {Operations.operations[i]}");
+            }
+            while (!TryParseOperation(Console.ReadLine(), out operationNumber))
             {
                 Console.WriteLine("Invalid operation number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
@@ -62,8 +67,12 @@ namespace MPCDataClient
                 {
                     Environment.Exit(-1);
                 }
+                else
+                {
+                    Console.WriteLine("Insert operation number:");
+                }
             }
-            return operation;
+            return Operations.operations[operationNumber-1];
         }
 
         internal string ReadSessionId()
@@ -72,11 +81,11 @@ namespace MPCDataClient
             return Console.ReadLine();
         }
 
-        private uint ReadNumberOfUsers()
+        private int ReadNumberOfUsers()
         {
-            uint numberOfUsers;
+            int numberOfUsers;
             Console.WriteLine("Insert number of users");
-            while (!UInt32.TryParse(Console.ReadLine(), out numberOfUsers))
+            while (!Int32.TryParse(Console.ReadLine(), out numberOfUsers))
             {
                 Console.WriteLine("Invalid users number.");
                 Console.WriteLine("If you want to try again press 1, otherwise press any other character.");
@@ -93,7 +102,7 @@ namespace MPCDataClient
 
         public bool TryParseOperation(string userChoice, out int operation)
         {
-            return int.TryParse(userChoice, out operation) && operation <= 3 && operation >= 1;
+            return int.TryParse(userChoice, out operation) && operation <= Operations.operations.Length && operation >= 1;
         }
 
         public List<uint> ReadData()

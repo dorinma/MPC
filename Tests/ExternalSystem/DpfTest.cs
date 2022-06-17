@@ -5,6 +5,7 @@ namespace Tests.ExternalSystem
     using MPCServer;
     using MPCTools;
     using System;
+    using MPCTools.Requests;
     using System.Collections.Generic;
     using Xunit;
 
@@ -24,8 +25,8 @@ namespace Tests.ExternalSystem
         public void DpfWithEqualAlpha_ReturnsSharesOfOne(uint alpha, uint mask, uint input)
         {   
             dpfGenAdapter.GenerateDPF(alpha, 0-mask, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dpfEvalAdapter.EvalDPF("A", keyA, aesKey, alpha, mask+input);
-            uint shareB = dpfEvalAdapter.EvalDPF("B", keyB, aesKey, alpha, mask+input);
+            uint shareA = dpfEvalAdapter.EvalDPF(0, keyA, aesKey, alpha, mask+input);
+            uint shareB = dpfEvalAdapter.EvalDPF(1, keyB, aesKey, alpha, mask+input);
             Assert.Equal(input, shareA + shareB);
         }
 
@@ -34,8 +35,8 @@ namespace Tests.ExternalSystem
         public void DpfWithDifferentAlpha_ReturnsSharesOfZero(uint alpha1, uint alpha2, uint mask, uint input)
         {
             dpfGenAdapter.GenerateDPF(alpha1, 0-mask, out string keyA, out string keyB, out string aesKey);
-            uint shareA = dpfEvalAdapter.EvalDPF("A", keyA, aesKey, alpha2, mask+input);
-            uint shareB = dpfEvalAdapter.EvalDPF("B", keyB, aesKey, alpha2, mask+input);
+            uint shareA = dpfEvalAdapter.EvalDPF(0, keyA, aesKey, alpha2, mask+input);
+            uint shareB = dpfEvalAdapter.EvalDPF(1, keyB, aesKey, alpha2, mask+input);
             Assert.Equal((uint)0, shareA + shareB);
         }
 

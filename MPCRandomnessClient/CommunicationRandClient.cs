@@ -18,7 +18,7 @@ namespace MPCRandomnessClient
         public ManualResetEvent sendDone = new ManualResetEvent(false);
         public ManualResetEvent receiveDone = new ManualResetEvent(false);
 
-        private static protocol protocol = protocol.Instance;
+        private static Protocol protocol = Protocol.Instance;
 
         private Socket socket;
         public string sessionId = string.Empty;
@@ -48,7 +48,7 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
                 Environment.Exit(-1);
             }
         }
@@ -68,19 +68,22 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
         public void SendMasksAndKeys(SortRandomRequest sortRequest)
         {
-            string message = JsonConvert.SerializeObject(sortRequest);
-            Send(protocol.CreateStringMessage(OPCODE_MPC.E_OPCODE_RANDOM_SORT, message));
+            string data = JsonConvert.SerializeObject(sortRequest);
+            MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_RANDOM_SORT, data);
+            
+            Send(messageRequest);
         }
-        private void Send(byte[] byteData)
+        private void Send(MessageRequest messageRequest)
         {
+            byte[] bytes = Encoding.Default.GetBytes(JsonConvert.SerializeObject(messageRequest));
             // Begin sending the data to the remote device.  
-            socket.BeginSend(byteData, 0, byteData.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+            socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }
 
         private void SendCallback(IAsyncResult ar)
@@ -98,7 +101,7 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -115,63 +118,68 @@ namespace MPCRandomnessClient
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine(e.Message);
             }
         }
 
-        private void ReceiveCallback(IAsyncResult ar)
+        public void ReceiveCallback(IAsyncResult ar)
         {
-            try
+            String content = String.Empty;
+
+            // Retrieve the state object and the handler socket  
+            // from the asynchronous state object.  
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket handler = state.workSocket;
+
+            // Read data from the client socket.
+            int bytesRead = handler.EndReceive(ar);
+
+            if (bytesRead > 0)
             {
-                // Retrieve the state object and the client socket
-                // from the asynchronous state object.  
-                StateObject state = (StateObject)ar.AsyncState;
-                Socket client = state.workSocket;
-                // Read data from the remote device.  
-                int bytesRead = client.EndReceive(ar);
-                if (bytesRead > 0)
+                // There  might be more data, so store the data received so far.  
+                state.sb.Append(Encoding.ASCII.GetString(
+                    state.buffer, 0, bytesRead));
+
+                // Check for end-of-file tag. If it is not there, read
+                // more data.  
+                content = state.sb.ToString();
+                if (content.IndexOf("<EOF>") > -1)
                 {
-                    // There might be more data, so store the data received so far.  
-                    if (!protocol.ValidateMessage(state.buffer))
+                    // All the data has been read from the
+                    // client. Display it on the console.  
+                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
+                        content.Length, content);
+
+                    MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
+                    if (messageRequest == default)
                     {
-                        Console.WriteLine("Error: bad header");
+                        Console.WriteLine($"Bad json format");
                         return;
                     }
-
-                    protocol.ParseData(state.buffer, out OPCODE_MPC Opcode, out Byte[] MsgData);
-                    AnalyzeMessage(Opcode, MsgData);
-                    receiveDone.Set(); //Ask Hodaya
-                    //  Get the rest of the data.  
-                    client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+                    
+                    AnalyzeMessage(messageRequest.opcode, messageRequest.data);
+                    receiveDone.Set();
                 }
                 else
                 {
-                    // All the data has arrived; put it in response.  
-                    /*if (state.sb.Length > 1)
-                    {
-                        response = state.sb.ToString();
-                    }*/
-                    // Signal that all bytes have been received.  
-                    receiveDone.Set();
+                    // Not all data received. Get more.  
+                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReceiveCallback), state);
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
             }
         }
 
-        public void AnalyzeMessage(OPCODE_MPC Opcode, byte[] data)
+        public void AnalyzeMessage(OPCODE_MPC Opcode, string data)
         {
             switch (Opcode)
             {
                 case OPCODE_MPC.E_OPCODE_SERVER_VERIFY:
                     {
-                        var sessionReceived = Encoding.Default.GetString(data).Substring(0, ProtocolConstants.SESSION_ID_SIZE);
+                        var sessionReceived = data.Substring(0, ProtocolConstants.SESSION_ID_SIZE);
                         serversVerified = sessionId.Equals(sessionReceived);
                         if (serversVerified)
                         {
-                            //Console.WriteLine($"Received confirmation, session id: {sessionId}");
+                            Console.WriteLine($"Received confirmation, session id: {sessionId}");
                         }
                         else
                         {
@@ -182,7 +190,7 @@ namespace MPCRandomnessClient
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
-                        Console.WriteLine($"Received error: {Encoding.Default.GetString(data)}");
+                        Console.WriteLine($"Received error: {data}");
                         break;
                     }
                 default:

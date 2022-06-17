@@ -7,15 +7,21 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
+using System.Runtime.CompilerServices;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace MPCServer
 {
     public class ManagerServer
     {
-        static bool isDebugMode = true;
-        static uint[] values;
-        static CommunicationServer comm = new CommunicationServer();
-        static string instance;
+        private static Logger logger;
+        private static bool isDebugMode = true;
+        private static uint[] values;
+        private static CommunicationServer comm;
+        private static byte instance;
 
         public static void Main(string[] args)
         {
@@ -30,60 +36,62 @@ namespace MPCServer
                 var option = Console.ReadLine();
                 if (option != "1")
                 {
+                    Environment.Exit(0);
+                }
+            }
+            instance = choose == 1 ? (byte)0 : (byte)1;
+
+            SetupLogger();
+            comm = new CommunicationServer(logger);
+
+            string memberServerIP = args[0];
+            int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
+            comm.setInstance(instance);
+            
+            if (instance == 0)
+            {
+                if(!comm.ConnectServers(memberServerIP, memberServerPort))
+                {
                     Environment.Exit(-1);
                 }
             }
-            instance = choose == 1 ? "A" : "B";
 
-            string memberServerIP = args[0];
-            int memberServerPort = instance == "A" ? 2023 : instance == "B" ? 2022 : 0;
-            comm.setInstance(instance);
-
-            if (instance == "A")
+            if(!comm.OpenSocket(instance == 0 ? 2022 : 2023))
             {
-                comm.ConnectServers(memberServerIP, memberServerPort);
+                Environment.Exit(-1);
             }
-
-            comm.OpenSocket(instance == "A" ? 2022 : 2023);
 
             while (true)
             {
                 values = comm.StartServer();
                 // if return null -> restart server
+                if(values == null)
+                {
+                    Environment.Exit(-1);
+                }
+                logger.Debug("Input shares:");
+                logger.Debug(string.Join(", ", values));
+                
+                uint[] res = Compute(comm.operation);
+
+                logger.Debug("Output shares:");
+                logger.Debug(string.Join(", ", res));
+
+                string msg = "Computation completed successfully.";
+                logger.Info(msg);
+                
                 if (isDebugMode)
                 {
-                    Console.WriteLine("Secret shares of input:");
-                    for (int i = 0; i < values.Length; i++)
-                    {
-                        Console.WriteLine(i + ". " + values[i]);
-                    }
+                    comm.SendOutputData(res);                    
                 }
-                uint[] res = Compute(OPERATION.E_OPER_SORT);
-
-                // stop timer
-
-                //clean randmones used
-
-                if (!isDebugMode)
+                else
                 {
-                    string msg = "Message: Computation completed successfully."; //TODO if exception send another msg
-                    comm.SendOutputMessage(msg);
-                }
-                else // debug mode
-                {
-                    Console.WriteLine("\nSecret shares of output:");
-                    Console.WriteLine("\nres:");
-
-                    for (int i = 0; i < res.Length; i++)
-                    {
-                        Console.WriteLine("\t" + res[i] + "\t");
-                    }
-
-                    Console.WriteLine("");
-
-                    comm.SendOutputData(res);
+                    comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_SERVER_MSG, msg);
                 }
 
+                string fileName = (instance == 0 ? "outA" : "outB") + "_" + comm.sessionId + ".csv";
+                MPCFiles.writeToFile(res, fileName);
+                // clean used randmoness
                 deleteUsedMasksAndKeys(values.Length);
                 comm.RestartServer();
 
@@ -92,13 +100,31 @@ namespace MPCServer
             }
         }
 
+        private static void SetupLogger()
+        {
+            GlobalDiagnosticsContext.Set("serverInstance", instance == 0 ? "A" : "B");
+
+            if (isDebugMode)
+            {
+                LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
+            }
+
+            logger = LogManager.GetLogger("Server logger");
+        }
+
         public static uint[] Compute(OPERATION op) 
         {
-            //swich case per operation 
-            //LogicCircuit.Circuit c = new LogicCircuit.SortCircuit();
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer());
-            //Future code
-            //Computer computer = new Computer(values, comm.requeset[op]);
+            logger.Info($"Number of elements - {values.Length}.");
+            if (values.Length > comm.sortRandomRequest.n)
+            {
+                string serverInstance = instance == 0 ? "A" : "B";
+                comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_ERROR, $"Server {serverInstance} doesn't have enough correlated randomness to perform the computation.");
+                return new uint[0];//to do
+            }
+
+            Computer computer = new Computer(values, comm.sortRandomRequest, instance,
+                comm, new DcfAdapterServer(),new DpfAdapterServer(), logger);
+
             uint[] res = computer.Compute(op);
             return res;
         }
@@ -138,6 +164,8 @@ namespace MPCServer
             comm.sortRandomRequest.dcfKeys = newDcfKeys;
 
             comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
+
+            logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
         }
 
         public void SendResult() { }
