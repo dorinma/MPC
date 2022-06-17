@@ -13,7 +13,7 @@ namespace MPCRandomnessClient
         public const int n = 10; // n
         public const int dcfMasksCount = n; // mask for each input element
         public const int dpfMasksCount = n; // mask for each element's index sum 
-        public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
+        public const int dcfGatesCount = n*(n-1); // first layer (dcf gates) - n choose 2 * 2 for fix range.
         public const int dpfGatesCount = n; // first layer (dcf gates) - last layer (dpf gates) - n*n 
 
         private static DcfAdapterRandClient dcfAdapter = new DcfAdapterRandClient();
@@ -147,7 +147,7 @@ namespace MPCRandomnessClient
 
             //dcf
             //create masks and shares
-            uint[] dcfMasks = RandomUtils.CreateRandomMasks(dcfMasksCount);
+            uint[] dcfMasks = new uint[dcfMasksCount]; //RandomUtils.CreateRandomMasks(dcfMasksCount);
             RandomUtils.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB);
             //generate keys
             string[] dcfKeysA = new string[dcfGatesCount];
@@ -220,16 +220,31 @@ namespace MPCRandomnessClient
 
         public static void GenerateDcfKeys(uint[] masks, string[] keysA, string[] keysB, string[] aesKeys)
         {
-            int keyIndex;
+            int keyIndex = 0;
             for(int i = 0; i < n; i++)
             {
                 for (int j = i+1; j < n; j++)
                 {
-                    dcfAdapter.GenerateDCF(masks[i]-masks[j], out string keyA, out string keyB, out string aesKey); // mask1-mask2
-                    keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
-                    keysA[keyIndex] = keyA;
-                    keysB[keyIndex] = keyB;
-                    aesKeys[keyIndex] = aesKey;
+                    string keyA1, keyA2, keyB1, keyB2, aesKey1, aesKey2;
+                    if (masks[i] > masks[j])
+                    {
+                        dcfAdapter.GenerateDCF(UInt32.MaxValue / 2 + (masks[i] - masks[j]), out keyA1, out keyB1, out aesKey1); // mask1-mask2
+                        dcfAdapter.GenerateDCF(UInt32.MaxValue + (masks[i] - masks[j]), out keyA2, out keyB2, out aesKey2); // mask1-mask2
+                    }
+                    else
+                    {
+                        dcfAdapter.GenerateDCF(UInt32.MaxValue + (masks[i] - masks[j]), out keyA1, out keyB1, out aesKey1); // mask1-mask2
+                        dcfAdapter.GenerateDCF(UInt32.MaxValue / 2 + (masks[i] - masks[j]), out keyA2, out keyB2, out aesKey2); // mask1-mask2
+                    }
+                    //dcfAdapter.GenerateDCF(masks[i]-masks[j], out string keyA, out string keyB, out string aesKey); // mask1-mask2
+                    //keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
+                    keysA[keyIndex] = keyA1;
+                    keysA[keyIndex + 1] = keyA2;
+                    keysB[keyIndex] = keyB1;
+                    keysB[keyIndex + 1] = keyB2;
+                    aesKeys[keyIndex] = aesKey1;
+                    aesKeys[keyIndex + 1] = aesKey2;
+                    keyIndex += 2;
                 }
             }
         }

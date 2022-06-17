@@ -119,8 +119,10 @@
             {
                 for (int j = i + 1; j < numOfElement; j++)
                 {
-                    int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-                    uint outputShare = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
+                    int keyIndex = ((2 * n - i - 1) * i / 2 + j - i - 1) * 2;
+                    uint outputShare1 = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
+                    uint outputShare2 = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex + 1], dcfAesKeys[keyIndex + 1], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
+                    uint outputShare = outputShare1 - outputShare2;
                     sharesIndexes[i] -= instance == 0 ? outputShare : (outputShare - 1);
                     sharesIndexes[j] += outputShare;
                     valuesIndex++;

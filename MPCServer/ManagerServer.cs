@@ -115,6 +115,7 @@ namespace MPCServer
         public static uint[] Compute(OPERATION op) 
         {
             logger.Info($"Number of elements - {values.Length}.");
+
             if (values.Length > comm.sortRandomRequest.n)
             {
                 string serverInstance = instance == 0 ? "A" : "B";
