@@ -151,7 +151,7 @@ namespace MPCServer
                 // Complete the connection.  
                 client.EndConnect(ar);
 
-                logger.Debug($"Socket connected to {client.RemoteEndPoint.ToString()}");
+                logger.Debug($"Socket is connected to {client.RemoteEndPoint.ToString()}.");
 
                 // Signal that the connection has been made.  
                 connectServerDone.Set();
@@ -168,7 +168,7 @@ namespace MPCServer
             bool result = true;
             try
             {
-                logger.Debug($"Server {serverInstance} started. Runs on port {port}");
+                logger.Debug($"Server {serverInstance} started. Runs on port {port}.");
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listener.Bind(new IPEndPoint(IPAddress.Any, port));
                 listener.Listen(pendingQueueLength);
