@@ -109,6 +109,7 @@ namespace MPC_UI
         {
             ParticipantsNum.IsEnabled = true;
             sessionId.IsReadOnly = true;
+            generateSession.IsEnabled = true;
             //isFirstClient = true;
         }
         
@@ -116,6 +117,7 @@ namespace MPC_UI
         {
             ParticipantsNum.IsEnabled = false;
             sessionId.IsReadOnly = false;
+            generateSession.IsEnabled = false;
             isFirstClient = false;
         }
 

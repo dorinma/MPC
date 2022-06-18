@@ -88,8 +88,9 @@ namespace MPCServer
             serversSend.Reset();
             receiveDone.Reset();
             exchangeData = null;
-            memberServerSocket.Close();
-            //ServerBBeginReceive(); TODO if server b gets the message this isnt needed
+            //memberServerSocket.Close();
+            if(this.instance == 1) //server b
+                ServerBBeginReceive(); //TODO if server b gets the message this isnt needed
         }
 
         private void ServerBBeginReceive()
@@ -247,7 +248,7 @@ namespace MPCServer
                 {
                     // All the data has been read from the
                     // client. Display it on the console.  
-                    logger.Debug($"Receieve {content.Length} bytes from socket.");
+                    logger.Debug($"Received {content.Length} bytes from socket.");
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     
@@ -278,12 +279,6 @@ namespace MPCServer
                     new AsyncCallback(ReceiveCallback), state);
                 }
             }
-        }
-       
-        private void Send(Socket socket ,byte[] byteData) //TODO remove
-        {
-            // Begin sending the data to the remote device.  
-            socket.BeginSend(byteData, 0, byteData.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
         }
 
         private void Send(Socket socket, MessageRequest messageRequest)
@@ -371,7 +366,7 @@ namespace MPCServer
             {
                 Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
                 //serverState = SERVER_STATE.INIT;
-                logger.Debug($"Recieve randomness request for {sortRandomRequest.n} elements.");
+                logger.Debug($"Received randomness request for {sortRandomRequest.n} elements.");
             }
             else // Error - wrong format
             {

@@ -82,8 +82,6 @@
 
         public static string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
         {
-            string response = "";
-
             communicationB = new CommunicationDataClient();
 
             RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
@@ -114,13 +112,14 @@
                     Console.WriteLine(
                     $"Output list: {string.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList())}");
 
-                    var fileName = $"results_{DateTime.Now}.csv";
+                    var fileName = $"results_{DateTimeOffset.Now.ToUnixTimeMilliseconds()}.csv";
                     MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse,
                         (x, y) => { return (uint)(x + y); }).ToArray(), $@"..\..\..\..\Results\{fileName}");
 
                     if(communicationA.response.Length > 0)
                     {
-                        response = communicationA.response.Length + $@"\nThe results saved to Results\{fileName}";
+                        //return communicationA.response.Length + $"\nOutput is saved to Results\\{fileName}";
+                        return $"\nOutput is saved to Results\\{fileName}";
                     }
                 }
             }
@@ -128,13 +127,10 @@
             if (communicationA.response.Length > 0 && communicationB.response.Length > 0)
             {
                 Console.WriteLine(communicationA.response);
-                response = communicationA.response;
-            }
-
-            response = "Something went wrong.";
+                return communicationA.response;
+            }            
             
-            
-            return response;
+            return "Something went wrong.";
         }
 
         public uint[] ReadInput(string filePath)

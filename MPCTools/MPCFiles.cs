@@ -9,16 +9,16 @@ namespace MPCTools
 {
     public static class MPCFiles
     {
-        public static void writeToFile(uint[] res, String fileName)
+        public static void writeToFile(uint[] res, String fullFilePath)
         {
-            fileName = Path.Combine(@"..\\..\\..\\Results", fileName);
+            //fileName = Path.Combine(@"..\\..\\..\\Results", fileName);
             var csv = new StringBuilder();
             for (int i = 0; i < res.Length; i++)
             {
                 csv.Append(res[i]);
                 csv.Append("\n");
             }
-            using (StreamWriter sw = File.CreateText(fileName)) { 
+            using (StreamWriter sw = File.CreateText(fullFilePath)) { 
               
                 sw.Write(csv.ToString());
             }

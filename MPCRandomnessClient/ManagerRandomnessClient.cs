@@ -111,11 +111,11 @@ namespace MPCRandomnessClient
             communicationB.Connect(ip2, port2);
             communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
-            //send (need to verify that both server recieved correctly)
+            //send (need to verify that both server received correctly)
 
             communicationA.SendMasksAndKeys(sortRequestA);
             communicationB.SendMasksAndKeys(sortRequestB);
-            //recieve confirmation
+            //receive confirmation
             communicationA.Receive();
             communicationB.Receive();
 
@@ -201,7 +201,7 @@ namespace MPCRandomnessClient
             //send 
             communicationA.SendMasksAndKeys(sortRequestA);
             communicationB.SendMasksAndKeys(sortRequestB);
-            //recieve confirmation
+            //receive confirmation
             communicationA.Receive();
             communicationB.Receive();
 

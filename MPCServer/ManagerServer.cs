@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using NLog;
+using System.IO;
 
 namespace MPCServer
 {
@@ -106,7 +107,8 @@ namespace MPCServer
                 }
 
                 string fileName = (instance == 0 ? "outA" : "outB") + "_" + comm.sessionId + ".csv";
-                MPCFiles.writeToFile(res, fileName);
+                String fullPath = Path.Combine(@"..\\..\\..\\Results", fileName);
+                MPCFiles.writeToFile(res, fullPath);
                 // clean used randmoness
                 deleteUsedMasksAndKeys(values.Length);
                 comm.RestartServer();
