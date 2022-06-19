@@ -3,25 +3,31 @@
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Manual](#manual)
+      * [Running The Application](#running-the-application)
       * [User Input](#user-input)
-3. [Followed Process](#followed-process)
+3. [Further Process](#further-process)
 
 ## Introduction
-Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done in a shared-secret form. The output of the computation is saved in the servers for further processes.
+Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done by splitting the data in a shared secret form. The output of the computation is saved in the servers for further processes.
 
-The actual data is not exposed at any point of the process, only in a shared-secret form (even the computation's output).
+The actual data is not exposed at any point of the process, only in a shared secret form as mentioned above (the output of the computation included).
 
 The application is composed of the following components: 
 - A randomness client that runs offline.
 - Two remote servers that perform the computations.
-- 1-N data clients that is in charge of getting the input from the users and send it to the servers.
+- 1-N data clients that are in charge of getting the input from the users and send it to the servers.
 
 When the users run the application, they run the data client component.
 
 ## Manual
-Running the app will open the following screen:
+Running the UI application will open the following window:
 <p align="center"> <img src="https://user-images.githubusercontent.com/48642477/172847647-89c159e9-42e4-41fa-a7ad-e2f7217b7f25.png" height="350"> </p>
 
+ ### Running The Application
+ To run the user application, run the MPC_UI project.
+ For the computations to work properly, the servers must be already running.
+ 
+ 
  ### User Input
  In order to begin computation, the user must first insert the following data:
  
@@ -39,7 +45,7 @@ Running the app will open the following screen:
  #### Input file
  This file includes the data the user wants to perform the computation on. 
  
- Currently, the applicaion supports data of type UInt32, and the file must be a .csv file in the following format: the first row is a header and the application will ignore it. 
+ Currently, the applicaion supports data of type unsigned int of 32 bits, and the file must be a .csv file in the following format: the first row is a header and the application will ignore it. 
  The next rows will contain the data, with a single number in each row. The numbers must all be different than each other for the algorithm to work correctly.
  
  Example to such file:
@@ -51,11 +57,11 @@ Running the app will open the following screen:
 ```
 
 #### Operation to perform
-The computation the user wishes to perform on his data. Currently only sorting the data is enabled.
+The computation the user wishes to perform on his data. Currently sorting the data is enabled.
 
 #### Debug mode
-If the user checks this field, then the application will send the shared-secret output back to the user (instead of just saving it in the servers).
+If the user checks this field, then the application will send the shared secret output back to the user (instead of just saving it in the servers).
  
 
-## Followed Process
+## Further Process
 After the user presses the "Send" button, the servers wait untill the data from all the participants is received. Then, they will perform the specified compoutation and save the output data for further processes (create statistics, train models of machine learning etc.).
