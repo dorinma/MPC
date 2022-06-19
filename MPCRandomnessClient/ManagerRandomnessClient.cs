@@ -225,16 +225,18 @@ namespace MPCRandomnessClient
             {
                 for (int j = i+1; j < n; j++)
                 {
+                    uint maxValuaWithDiff = UInt32.MaxValue + (masks[i] - masks[j]);
+                    uint halfMaxValuaWithDiff = UInt32.MaxValue / 2 + (masks[i] - masks[j]);
                     string keyA1, keyA2, keyB1, keyB2, aesKey1, aesKey2;
-                    if (masks[i] > masks[j])
+                    if (maxValuaWithDiff > halfMaxValuaWithDiff)
                     {
-                        dcfAdapter.GenerateDCF(UInt32.MaxValue / 2 + (masks[i] - masks[j]), out keyA1, out keyB1, out aesKey1); // mask1-mask2
-                        dcfAdapter.GenerateDCF(UInt32.MaxValue + (masks[i] - masks[j]), out keyA2, out keyB2, out aesKey2); // mask1-mask2
+                        dcfAdapter.GenerateDCF(maxValuaWithDiff, out keyA1, out keyB1, out aesKey1); // mask1-mask2
+                        dcfAdapter.GenerateDCF(halfMaxValuaWithDiff, out keyA2, out keyB2, out aesKey2); // mask1-mask2
                     }
                     else
                     {
-                        dcfAdapter.GenerateDCF(UInt32.MaxValue + (masks[i] - masks[j]), out keyA1, out keyB1, out aesKey1); // mask1-mask2
-                        dcfAdapter.GenerateDCF(UInt32.MaxValue / 2 + (masks[i] - masks[j]), out keyA2, out keyB2, out aesKey2); // mask1-mask2
+                        dcfAdapter.GenerateDCF(maxValuaWithDiff, out keyA1, out keyB1, out aesKey1); // mask1-mask2
+                        dcfAdapter.GenerateDCF2(halfMaxValuaWithDiff, out keyA2, out keyB2, out aesKey2); // mask1-mask2
                     }
                     //dcfAdapter.GenerateDCF(masks[i]-masks[j], out string keyA, out string keyB, out string aesKey); // mask1-mask2
                     //keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1; // calculate the index for keyij -> key for the gate with input with mask i and j
