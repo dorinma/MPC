@@ -118,8 +118,7 @@
 
                     if(communicationA.response.Length > 0)
                     {
-                        //return communicationA.response.Length + $"\nOutput is saved to Results\\{fileName}";
-                        return $"\nOutput is saved to Results\\{fileName}";
+                        return communicationA.response + $"\nOutput is saved to Results\\{fileName}";
                     }
                 }
             }
