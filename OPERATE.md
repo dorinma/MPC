@@ -12,12 +12,12 @@
      * [Extending Functionality](#extending-functionality)
 
 ## Introduction
-Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done in a shared-secret form. The output of the computation is saved in the servers for further processes.
+Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done by splitting the data in a shared secret form. The output of the computation is saved in the servers for further processes.
 
-The application is composed of following components: 
+The application is composed of the following components: 
 - A randomness client that runs offline.
 - Two remote servers that perform the computations.
-- 1-N data clients that is in charge of getting the input from the users and send it to the servers.
+- 1-N data clients that are in charge of getting the input from the users and send it to the servers.
 
 
 ## System Components
@@ -42,6 +42,14 @@ This is the component that runs when the users run the application. The operator
 ## Maintenance
 
 #### Extending Functionality
+The software enables users to sort data. We used different design patterns to make this part easily extendable, so that more computations will be allowed.
+
+In order to add operations (such as merging lists, finding the i-th element), follow these steps:
+
+1. In MPCTypes.cs add the new operation in the enum OPERATION & in the class Operation.
+2. In the MPCServer project create a class that implements the Computer abstract class, which is responsible for the logic of the computation (make sure to implement the Compute method).
+3. In the InitComputer method found in ManagerServer.cs, add a case matching to the new operation which will create the appropriate Computer.
+4. In the MPCRandomnessClient project create a class that implements the Circuit abstract class. This class will be in charge of generating the correlated randomness for this specific computation.
 
 #### Error Handeling
 There is a number of possible errors that may occur while running the system:
@@ -51,9 +59,11 @@ Handeling this error depends on the component that had crashed.
 ###### Data client:
 If the data client crashed before his data was sent, the servers will still wait for its data so the user can simply restart the app. In case it crashed after sending the data, the servers will continue with the computation, and the user will not get a confirmation message. In debug mode, the output will still be written to the destinated directory.
 
+###### Randomness client:
 If the randomness client crashes or the servers do not have enough correlated randomness, they will remain in their init state- in which they either wait for data from the users or for more randomness. In case all the data has arrived and still they have not recived the needed randomness, they will remain in this state.
 /////////the servers send informative message to the users here?
 
+###### Server:
 In case one of the servers crashes and the connection between them is broken, the other server will keep trying to connect to it for a few seconds. If this ends unsuccessfully, the operator must restart the fallen server.
 
 ##### 2. Computation failure
