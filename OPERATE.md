@@ -8,8 +8,8 @@
       * [Data Client](#data-client)
 3. [Running The System](#running-the-system)
 4. [Maintenance](#maintenance)
-     * [Error Handeling](#error-handeling)
      * [Extending Functionality](#extending-functionality)
+     * [Error Handeling](#error-handeling)
 
 ## Introduction
 Our system enables the users to perform computation on their joint data, while keeping each user's data private, this is done by splitting the data in a shared secret form. The output of the computation is saved in the servers for further processes.
