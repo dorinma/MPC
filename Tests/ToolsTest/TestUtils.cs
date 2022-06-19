@@ -20,7 +20,7 @@ namespace Tests.ToolsTest
 
         public static uint[] SumLists(uint[] listA, uint[] listB)
         {
-            var a =  listA.Zip(listB, SumUints).ToArray();
+            uint[] a =  listA.Zip(listB, SumUints).ToArray();
             return a;
         }
 
