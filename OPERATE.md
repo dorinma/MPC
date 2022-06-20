@@ -63,8 +63,6 @@ In any other case, the application should be restarted.
 If the randomness client crashes or the servers do not have enough correlated randomness, they will remain in their init state- in which they either wait for data from the users or for more randomness. In case all the data has arrived and still they have not received the needed randomness, the servers will remain in this state and will send informative message to the users.
 
 In the case the randomness has failed to arrive to a server, it will not be in correlation with the other server. Therefore, the randomness client will resend the randomness it generated to both servers.
-TODO: new randomness? old? send to both or to one?
-************************************************************************
 
 ##### Server:
 Errors in the communication or computation may prevent the servers from proceeding with the computation. In such case, the server will catch the error and restart itself by clearing the computation data, closing the open sockets and returning to its init state. 
