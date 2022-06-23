@@ -13,11 +13,20 @@ namespace MPCTools.Requests
         [JsonProperty("dcfMasks", Required = Required.Always)]
         public uint[] dcfMasks { get; set; }
 
-        [JsonProperty("dcfKeys", Required = Required.Always)]
-        public string[] dcfKeys { get; set; }
+        [JsonProperty("dcfKeysSmallerLowerBound", Required = Required.Always)]
+        public string[] dcfKeysSmallerLowerBound { get; set; }
 
-        [JsonProperty("dcfAesKeys", Required = Required.Always)]
-        public string[] dcfAesKeys { get; set; }
+        [JsonProperty("dcfKeysSmallerUpperBound", Required = Required.Always)]
+        public string[] dcfKeysSmallerUpperBound { get; set; }
+
+        [JsonProperty("shares01", Required = Required.Always)]
+        public uint[] shares01 { get; set; }
+
+        [JsonProperty("dcfAesKeysLower", Required = Required.Always)]
+        public string[] dcfAesKeysLower { get; set; }
+
+        [JsonProperty("dcfAesKeysUpper", Required = Required.Always)]
+        public string[] dcfAesKeysUpper { get; set; }
 
         [JsonProperty("dpfMasks", Required = Required.Always)]
         public uint[] dpfMasks { get; set; }

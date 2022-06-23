@@ -19,7 +19,7 @@
             //var index = serverIndex.Equals("A") ? (byte)0 : (byte)1;
             IntPtr keyPointer = Marshal.StringToHGlobalAnsi(key);
             IntPtr aesPointer = Marshal.StringToHGlobalAnsi(aesKey);
-            UInt32 share = eval_dcf(keyPointer, aesPointer, alpha, serverIndex);
+            uint share = eval_dcf(keyPointer, aesPointer, alpha, serverIndex);
             Marshal.FreeHGlobal(keyPointer);
             Marshal.FreeHGlobal(aesPointer);
             return share;

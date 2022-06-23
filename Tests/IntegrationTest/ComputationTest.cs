@@ -125,6 +125,8 @@
             };
 
             yield return new object[]
+
+
             {
                 new uint[] { 1 },
                 new uint[] { 0 },
@@ -133,6 +135,21 @@
 
         public static IEnumerable<object[]> Values()
         {
+            yield return new object[]
+           {
+                new uint[] { 10, 5, 7 , 10000, 2147483647, 0, 1, 4444, 12, 100},
+           };
+
+            yield return new object[]
+             {
+                new uint[] { 1, 2, 3 , 4, 5, 6, 7, 8, 9, 10},
+              };
+
+            yield return new object[]
+              {
+                new uint[] { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+              };
+
             yield return new object[]
             {
                 new uint[] { 7, 621, 212, 2080, 3265, 553, 25, 1 },
