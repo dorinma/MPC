@@ -97,7 +97,7 @@ namespace MPCRandomnessClient
             // We define the range of the input to be between 0 to 2^31-1. (So the other half (from 2^31-1 to 2^32-1) will use for negative numbers)
             // In regulre state, this range is the positive area but it change with the masks diff 
             // Now we define the change in the offset.
-            // Basically we have a lower and upper bound.
+            // Basically we have a lower and upper bound for negative area.
 
             int keyIndex = 0;
             uint[] shares01 = new uint[sortRequestA.shares01.Length];
