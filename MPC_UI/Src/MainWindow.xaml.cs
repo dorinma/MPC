@@ -123,6 +123,7 @@ namespace MPC_UI
 
         private void refreshRnd_Click(object sender, RoutedEventArgs e)
         {
+            /*
             if (ValidateCommInfo())
             {
                 if (managerRandomnessClient.Run(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2)) 
@@ -130,6 +131,7 @@ namespace MPC_UI
                 else MessageBox.Show("Could not generate new randomness.");
             }
             else MessageBox.Show("Please insert valid IPs & ports.");
+            */
         }
 
         private void DebugMode_Checked(object sender, RoutedEventArgs e)

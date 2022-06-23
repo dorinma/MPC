@@ -4,12 +4,10 @@ using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MPCServer
 {
@@ -75,6 +73,7 @@ namespace MPCServer
 
         public void RestartServer()
         {
+            logger.Debug($"Restarting server {serverInstance}.");
             operation = 0;
             totalUsers = 0;
             connectedUsers = 0;
@@ -88,31 +87,8 @@ namespace MPCServer
             serversSend.Reset();
             receiveDone.Reset();
             exchangeData = null;
-            //memberServerSocket.Close();
-            if(this.instance == 1) //server b
-                ServerBBeginReceive(); //TODO if server b gets the message this isnt needed
-        }
-
-        private void ServerBBeginReceive()
-        {
-            if(instance != 1)
-            {
-                return;
-            }
-
-            try
-            {
-                // Create the state object.  
-                StateObject state = new StateObject();
-                state.workSocket = memberServerSocket;
-
-                // Begin receiving the data from the remote device.  
-                memberServerSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-            }
-            catch (Exception ex)
-            {
-                logger.Error($"Failed to receive message. Error: {ex.Message}");
-            }
+            memberServerSocket.Close();
+            memberServerSocket = null;
         }
 
         public bool ConnectServers(string otherServerIp, int otherServerPort)
@@ -463,7 +439,7 @@ namespace MPCServer
             clientsSockets.ForEach(socket => Send(socket, messageRequest));
         }
 
-        public void SendOutputData(uint[] outputShares)
+        public void SendOutputToAllClients(uint[] outputShares)
         {
             DataRequest dataRequest = new DataRequest()
             {
@@ -548,7 +524,7 @@ namespace MPCServer
             return currExchangeData;
         }
 
-        internal uint[] BreceiveServerData()
+        internal uint[] BReceiveServerData()
         {
             if (exchangeData == null)
             {

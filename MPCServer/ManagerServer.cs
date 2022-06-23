@@ -14,8 +14,7 @@ namespace MPCServer
         private static CommunicationServer comm;
         private static byte instance;
 
-        private const int RETRY_COUNT = 5;
-        private const int SLEEP_TIME = 5000; //5 seconds
+        private const int RETRY_TIME = 10; //minutes
 
         public static void Main(string[] args)
         {
@@ -42,80 +41,75 @@ namespace MPCServer
             int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
             comm.setInstance(instance);
 
-            int tries = 0;
-            bool connected = false;
+            while (true)
+            {
+                Run(memberServerIP, memberServerPort);
+                comm.RestartServer();
+            }
+        }
 
+        private static void Run(string memberServerIP, int memberServerPort)
+        {
+            long startMinute = DateTimeOffset.Now.Minute;
             if (instance == 0)
             {
-                connected = comm.ConnectServers(memberServerIP, memberServerPort);
-                while (!connected && tries < RETRY_COUNT)
+                bool connected = comm.ConnectServers(memberServerIP, memberServerPort);
+                while (!connected && DateTimeOffset.Now.Minute - startMinute <= RETRY_TIME)
                 {
-                    System.Threading.Thread.Sleep(SLEEP_TIME);
-                    tries++;
                     connected = comm.ConnectServers(memberServerIP, memberServerPort);
                 }
                 if (!connected)
                 {
-                    logger.Error("Could not connect to other server."); //TODO is this ok??
-                    // Console.WriteLine("Could not connect to other server.");
+                    logger.Error("Could not connect to other server.");
                     Environment.Exit(-1);
                 }
             }
 
-            tries = 0;
-            connected = comm.OpenSocket(instance == 0 ? 2022 : 2023);
-
-            while (!connected && tries < RETRY_COUNT) // TODO add while
+            if (!comm.OpenSocket(instance == 0 ? 2022 : 2023))
             {
-                System.Threading.Thread.Sleep(SLEEP_TIME);
-                tries++;
-                connected = comm.OpenSocket(instance == 0 ? 2022 : 2023);
+                logger.Error("Could not create a socket between servers.");
+                return;
             }
 
-            if (!connected)
+            values = comm.StartServer();
+
+            if (values == null)
             {
-                logger.Error("Could not create socket between servers.");
-                Environment.Exit(-1);
+                logger.Error("Variable \"values\" is null.");
+                return;
             }
 
-            while (true)
+            logger.Debug("Input shares:");
+            logger.Debug(string.Join(", ", values));
+
+            uint[] res = Compute(comm.operation);
+
+            if (res == null)
             {
-                values = comm.StartServer();
-                // if return null -> restart server
-                if(values == null)
-                {
-                    Environment.Exit(-1);
-                }
-                logger.Debug("Input shares:");
-                logger.Debug(string.Join(", ", values));
-                
-                uint[] res = Compute(comm.operation);
-
-                logger.Debug("Output shares:");
-                logger.Debug(string.Join(", ", res));
-
-                string msg = "Computation completed successfully.";
-                logger.Info(msg);
-                
-                if (isDebugMode)
-                {
-                    comm.SendOutputData(res);                    
-                }
-                else
-                {
-                    comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_SERVER_MSG, msg);
-                }
-
-                string fileName = (instance == 0 ? "outA" : "outB") + "_" + comm.sessionId + ".csv";
-                String fullPath = Path.Combine(@"..\\..\\..\\Results", fileName);
-                MPCFiles.writeToFile(res, fullPath);
-                // clean used randmoness
-                deleteUsedMasksAndKeys(values.Length);
-                comm.RestartServer();
-
-                // future code 
-                // matching timer to change server state to OFFLINE and turn on randomness client (for send randomness) 
+                return;
             }
+
+            logger.Debug("Output shares:");
+            logger.Debug(string.Join(", ", res));
+
+            string msg = "Computation completed successfully.";
+            logger.Info(msg);
+
+            string fileName = (instance == 0 ? "outA" : "outB") + "_" + comm.sessionId + ".csv";
+            String fullPath = Path.Combine(@"..\\..\\..\\Results", fileName);
+            MPCFiles.writeToFile(res, fullPath);
+
+            if (isDebugMode)
+            {
+                comm.SendOutputToAllClients(res);
+            }
+            else
+            {
+                comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_SERVER_MSG, msg);
+            }
+
+            // clean used randmoness
+            deleteUsedMasksAndKeys(values.Length);
         }
 
         private static void SetupLogger()
@@ -130,21 +124,22 @@ namespace MPCServer
             logger = LogManager.GetLogger("Server logger");
         }
 
-        public static uint[] Compute(OPERATION op) 
+        public static uint[] Compute(OPERATION op)
         {
-            logger.Info($"Number of elements - {values.Length}.");
+            logger.Info($"Number of elements: {values.Length}.");
             if (values.Length > comm.sortRandomRequest.n)
             {
                 string serverInstance = instance == 0 ? "A" : "B";
-                comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_ERROR, $"Server {serverInstance} doesn't have enough correlated randomness to perform the computation.");
-                return new uint[0];//to do
+                string msg = $"Server {serverInstance} doesn't have enough correlated randomness to perform the computation.";
+                logger.Error(msg);
+                comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_ERROR, msg);
+                return null;
             }
 
             Computer computer = new Computer(values, comm.sortRandomRequest, instance,
-                comm, new DcfAdapterServer(),new DpfAdapterServer(), logger);
+                comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
 
-            uint[] res = computer.Compute(op);
-            return res;
+            return computer.Compute(op);
         }
 
         private static void deleteUsedMasksAndKeys(int numOfElement)
@@ -184,13 +179,6 @@ namespace MPCServer
             comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
 
             logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
-        }
-
-        public void SendResult() { }
-
-        public uint[] SumOutputs() 
-        {
-            return null;
         }
     }
 }

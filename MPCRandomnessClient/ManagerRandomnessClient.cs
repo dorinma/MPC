@@ -26,6 +26,9 @@ namespace MPCRandomnessClient
         private static int port1 = 2022;
         private static int port2 = 2023;
 
+        private const int RETRY_COUNT = 5;
+        private const int SLEEP_TIME = 3000; //3 seconds
+
         public static void Main(string[] args)
         {
             //while with timer
@@ -113,6 +116,31 @@ namespace MPCRandomnessClient
             communicationB.connectDone.WaitOne();
             //send (need to verify that both server received correctly)
 
+            SendRadomness(sortRequestA, sortRequestB);
+
+            int tries = 0;
+
+            while ((!communicationA.serversVerified || !communicationB.serversVerified) && tries < RETRY_COUNT)
+            {
+                Console.WriteLine($"Try #{tries + 1}: at least one server did not get the masks and keys correctly.");
+                
+                System.Threading.Thread.Sleep(SLEEP_TIME);
+                tries++;
+                SendRadomness(sortRequestA, sortRequestB);
+            }
+
+            if (communicationA.serversVerified && communicationB.serversVerified)
+            { 
+                Console.WriteLine($"\nThe correlated randomness was sent successfully to both servers.");
+            }
+            else
+            {
+                Console.WriteLine("Failed to send correlated randomness to the servers.");
+            }
+        }
+
+        private static void SendRadomness(SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
+        {
             communicationA.SendMasksAndKeys(sortRequestA);
             communicationB.SendMasksAndKeys(sortRequestB);
             //receive confirmation
@@ -121,18 +149,9 @@ namespace MPCRandomnessClient
 
             communicationA.receiveDone.WaitOne();
             communicationB.receiveDone.WaitOne();
-
-            if (!communicationA.serversVerified || !communicationB.serversVerified)
-            {
-                // retry ? 
-                Console.WriteLine("At least one server did not get the masks and keys correctly");
-            }
-            else
-            {
-                Console.WriteLine($"\nThe correlated randomness was sent successfully to both servers.");
-            }
         }
 
+        /*
         public bool Run(string ip_1, string ip_2, int port_1, int port_2)
         {
             bool res = true;
@@ -217,6 +236,7 @@ namespace MPCRandomnessClient
             communicationB.Reset();
             return res;
         }
+        */
 
         public static void GenerateDcfKeys(uint[] masks, string[] keysA, string[] keysB, string[] aesKeys)
         {
