@@ -31,16 +31,5 @@
             free_string(keys.keyA);
             free_string(keys.keyB);
         }
-
-        public void GenerateDCF(uint masksDiff, uint beta, out string keyA, out string keyB, out string aesKey)
-        {
-            Keys keys = gen_dcf(masksDiff, beta);
-            aesKey = Marshal.PtrToStringAnsi(keys.aesKeys);
-            keyA = Marshal.PtrToStringAnsi(keys.keyA);
-            keyB = Marshal.PtrToStringAnsi(keys.keyB);
-            free_string(keys.aesKeys);
-            free_string(keys.keyA);
-            free_string(keys.keyB);
-        }
     }
 }

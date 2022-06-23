@@ -26,8 +26,11 @@ namespace Tests.ServerTest
             sessionId = string.Empty,
             n = 10,
             dcfMasks = new uint[10], //also masks for the dpf output
-            dcfKeys = new string[45], // 10 C 2
-            dcfAesKeys = new string[45],
+            dcfKeysSmallerLowerBound = new string[45], // 10 C 2
+            dcfKeysSmallerUpperBound = new string[45],
+            shares01 = new uint[45],
+            dcfAesKeysLower = new string[45],
+            dcfAesKeysUpper = new string[45],
             dpfMasks = new uint[10],
             dpfKeys = new string[10],
             dpfAesKeys = new string[10]

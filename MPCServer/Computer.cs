@@ -112,20 +112,34 @@
         public uint[] ComputeIndexesShares(uint[] diffValues, int numOfElement, int n)
         {
             uint[] sharesIndexes = new uint[numOfElement];
-            string[] dcfKeys = sortRandomRequest.dcfKeys;
-            string[] dcfAesKeys = sortRandomRequest.dcfAesKeys;
+            string[] keysSmallerLowerBound = sortRandomRequest.dcfKeysSmallerLowerBound;
+            string[] keysSmallerUpperBound = sortRandomRequest.dcfKeysSmallerUpperBound;
+            string[] aesKeysLower = sortRandomRequest.dcfAesKeysLower;
+            string[] aesKeysUpper = sortRandomRequest.dcfAesKeysUpper;
+            uint[] shares01 = sortRandomRequest.shares01;
             int valuesIndex = 0;
 
             for (int i = 0; i < numOfElement; i++)
             {
                 for (int j = i + 1; j < numOfElement; j++)
                 {
-                    int keyIndex = ((2 * n - i - 1) * i / 2 + j - i - 1) * 2;
-                    uint outputShare1 = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex], dcfAesKeys[keyIndex], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
-                    uint outputShare2 = dcfAdapter.EvalDCF(instance, dcfKeys[keyIndex + 1], dcfAesKeys[keyIndex + 1], diffValues[valuesIndex]); // return 1 if values[i] < values[j] otherxise 0
-                    uint outputShare = outputShare1 - outputShare2;
+                    // calculate the index for keyij -> key for the gate with input with mask i and j
+                    int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
+
+                    // -1 if values[i]-values[j] < smaller upper bound, otherxise 0 (shares)
+                    uint outputShare1 = 0 - dcfAdapter.EvalDCF(instance, keysSmallerUpperBound[keyIndex], aesKeysUpper[keyIndex], diffValues[valuesIndex]);
+                    // -1 if values[i]-values[j] < smaller lower bound, otherxise 0 (shares)
+                    uint outputShare2 = 0 - dcfAdapter.EvalDCF(instance, keysSmallerLowerBound[keyIndex], aesKeysLower[keyIndex], diffValues[valuesIndex]);
+                   
+                    // eventually return 1 if values[i] < values[j], otherxise 0 (shares)
+                    uint outputShare = shares01[keyIndex] - (outputShare1 - outputShare2); 
+
+                    // For the continuation of the algorithm, 1 means larger than and 0 means smaller than  
+                    // So switch 1 to 0 and the opposite for values[i]
                     sharesIndexes[i] -= instance == 0 ? outputShare : (outputShare - 1);
+
                     sharesIndexes[j] += outputShare;
+
                     valuesIndex++;
                 }
             }

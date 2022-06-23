@@ -13,7 +13,7 @@ namespace Tests.ToolsTest
             uint[] output = new uint[size];
             for (int i = 0; i < size; i++)
             {
-                output[i] = random.NextUInt32();
+                output[i] = (uint)random.Next();
             }
             return output;
         }
