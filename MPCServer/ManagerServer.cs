@@ -136,8 +136,7 @@ namespace MPCServer
                 return null;
             }
 
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance,
-                comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
+            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
 
             return computer.Compute(op);
         }

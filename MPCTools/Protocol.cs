@@ -53,7 +53,7 @@ namespace MPCTools
         {
             try
             {
-                return JsonConvert.DeserializeObject<T>(requestString) ?? default;
+                return JsonConvert.DeserializeObject<T>(requestString);
             }
             catch
             {

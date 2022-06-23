@@ -19,6 +19,9 @@
         private long communicationBytesCounter;
         private long memoryBytesCounter;
 
+        private const int DPF_KEY_SIZE = 692;
+        private const int DCF_KEY_SIZE = 900;
+
 
         public Computer(uint[] values, SortRandomRequest sortRandomRequest, byte instance,
             CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger)
@@ -37,7 +40,8 @@
         public uint[] Compute(OPERATION op)
         {
             uint[] result = null;
-            memoryBytesCounter = data.Length * 660 + (data.Length * (data.Length - 1) / 2) * 900;
+            memoryBytesCounter = data.Length * DPF_KEY_SIZE + (data.Length * (data.Length - 1) / 2) * DCF_KEY_SIZE;
+            //TODO move to an abstract method (sizes are different for each operation)
             var watch = Stopwatch.StartNew();
             
             switch (op)
@@ -54,10 +58,10 @@
             watch.Stop();
 
             var elapsedMs = watch.ElapsedMilliseconds;
-            logger.Trace($"Operation {op} on {data.Length} elements.");
-            logger.Trace($"Runtime {elapsedMs} ms");
-            logger.Trace($"Memory consumption {memoryBytesCounter} bytes");
-            logger.Trace($"communication sent {communicationBytesCounter} bytes");
+            logger.Trace($"{op} operation on {data.Length} elements.");
+            logger.Trace($"Runtime: {elapsedMs} ms.");
+            logger.Trace($"Memory consumption: {memoryBytesCounter} bytes.");
+            logger.Trace($"communication: {communicationBytesCounter} bytes sent.");
             return result;
         }
 
@@ -66,7 +70,7 @@
 
             long totalMemoryBefore = GC.GetTotalMemory(true);
 
-            // first level - dcf between each pair values
+            // First level - dcf between each pair values
             int numOfElement = data.Length;
             int n = sortRandomRequest.n;
 
