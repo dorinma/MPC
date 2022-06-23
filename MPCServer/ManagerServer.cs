@@ -14,7 +14,7 @@ namespace MPCServer
         private static CommunicationServer comm;
         private static byte instance;
 
-        private const int RETRY_TIME = 10; //minutes
+        private const int RETRY_TIME = 10; // Minutes
 
         public static void Main(string[] args)
         {
@@ -108,7 +108,7 @@ namespace MPCServer
                 comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_SERVER_MSG, msg);
             }
 
-            // clean used randmoness
+            // Clean used randmoness
             deleteUsedMasksAndKeys(values.Length);
         }
 

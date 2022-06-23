@@ -16,6 +16,7 @@ namespace MPCTools
         public const byte OPCODE_LSB = 2;
 
         public const byte NULL_TERMINATOR = 0xA;
+        public const int pendingQueueLength = 10;
     }
 
     public class StateObject

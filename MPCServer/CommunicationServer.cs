@@ -13,38 +13,38 @@ namespace MPCServer
 {
     public class CommunicationServer
     {
+        //events
         private ManualResetEvent acceptDone;
         private ManualResetEvent receiveDone;
         private ManualResetEvent sendDone;
         private ManualResetEvent connectServerDone;
         private ManualResetEvent serversSend;
 
-        private ILogger logger;
-        private Socket listener;
         private static Protocol protocol = Protocol.Instance;
         private object usersLock = new object();
+        private ILogger logger;
 
-        private byte instance;
+        private Socket listener;
+        private Socket memberServerSocket;
+        private List<Socket> clientsSockets;
+
         private string serverInstance;
+
+        private SERVER_STATE serverState;
 
         private int totalUsers;
         private int connectedUsers;
         public string sessionId;
 
-        private const int pendingQueueLength = 10;
-
+        public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
+        private List<uint> values;
         public SortRandomRequest sortRandomRequest = default;
+        private uint[] exchangeData = null;
         //Future code
         //pubkic Dictionary<OPERATION, SortRandomRequest> requeset;
 
-        public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
-        private List<uint> values;
-        private uint[] exchangeData = null;
 
-        private List<Socket> clientsSockets;
-        private SERVER_STATE serverState;
 
-        private Socket memberServerSocket;
 
         public CommunicationServer(ILogger logger)
         {
@@ -67,8 +67,7 @@ namespace MPCServer
 
         public void setInstance(byte instance)
         {
-            this.instance = instance;
-            this.serverInstance = instance == 0 ? "A" : "B";
+            serverInstance = instance == 0 ? "A" : "B";
         }
 
         public void RestartServer()
@@ -81,14 +80,16 @@ namespace MPCServer
             sessionId = string.Empty;
             serverState = SERVER_STATE.INIT;
             clientsSockets = new List<Socket>();
+
+            exchangeData = null;
+            memberServerSocket.Close();
+            memberServerSocket = null;
+
             acceptDone.Reset();
             sendDone.Reset();
             connectServerDone.Reset();
             serversSend.Reset();
             receiveDone.Reset();
-            exchangeData = null;
-            memberServerSocket.Close();
-            memberServerSocket = null;
         }
 
         public bool ConnectServers(string otherServerIp, int otherServerPort)
@@ -100,7 +101,7 @@ namespace MPCServer
                 // Establish the remote endpoint for the socket.  
                 IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(otherServerIp), otherServerPort);
 
-                // Create a TCP/IP socket.
+                // Create a TCP-IP socket.
                 memberServerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 // Connect to the remote endpoint.  
@@ -147,7 +148,7 @@ namespace MPCServer
                 logger.Debug($"Server {serverInstance} started. Runs on port {port}.");
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listener.Bind(new IPEndPoint(IPAddress.Any, port));
-                listener.Listen(pendingQueueLength);
+                listener.Listen(ProtocolConstants.pendingQueueLength);
 
             }
             catch (Exception ex)
@@ -184,7 +185,7 @@ namespace MPCServer
         public void AcceptCallback(IAsyncResult ar)
         {
             // Get the socket that handles the client request.  
-            Socket acceptListener = (Socket)ar.AsyncState; //maybe same listener
+            Socket acceptListener = (Socket)ar.AsyncState; // Maybe same listener
             Socket handler = acceptListener.EndAccept(ar);
             
 
@@ -217,13 +218,11 @@ namespace MPCServer
                 state.sb.Append(Encoding.ASCII.GetString(
                     state.buffer, 0, bytesRead));
 
-                // Check for end-of-file tag. If it is not there, read
-                // more data.  
+                // Check for end-of-file tag. If it is not there, read more data.  
                 content = state.sb.ToString();
                 if (content.IndexOf("<EOF>") > -1)
                 {
-                    // All the data has been read from the
-                    // client. Display it on the console.  
+                    // All the data has been read from the client. Display it on the console.  
                     logger.Debug($"Received {content.Length} bytes from socket.");
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
@@ -338,7 +337,7 @@ namespace MPCServer
         private void HandleSortRandomness(string data, Socket socket)
         {
             sortRandomRequest = protocol.DeserializeRequest<SortRandomRequest>(data);
-            if (sortRandomRequest != default) // send confirmation
+            if (sortRandomRequest != default) // Send confirmation
             {
                 Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
                 //serverState = SERVER_STATE.INIT;
@@ -365,7 +364,7 @@ namespace MPCServer
                 SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, clientInitRequest.GetType()));
             }
 
-            //send session id to second server
+            // Send session id to second server
             operation = clientInitRequest.operation;
             totalUsers = clientInitRequest.numberOfUsers;
             serverState = SERVER_STATE.CONNECT_AND_DATA;
@@ -373,7 +372,7 @@ namespace MPCServer
 
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId);
             Send(socket, messageRequest);
-            //wait for starting client data
+            // Wait for starting client data
             StateObject state = new StateObject();
             state.workSocket = socket;
             socket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
@@ -393,7 +392,7 @@ namespace MPCServer
             sessionId = serverToServerInitRequest.sessionId;
             operation = serverToServerInitRequest.operation;
             totalUsers = serverToServerInitRequest.numberOfUsers;
-            memberServerSocket = serverSocket; // server B save server A's socket
+            memberServerSocket = serverSocket; // Server B save server A's socket
             serverState = SERVER_STATE.CONNECT_AND_DATA;
             logger.Info($"Start sesion {sessionId}");
             logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
@@ -409,14 +408,14 @@ namespace MPCServer
             
             if (!clientDataRequest.sessionId.Equals(sessionId))
             {
-                // wrong session id
+                // Wrong session id
                 SendError(socket, ServerConstants.MSG_WRONG_SESSION_ID);
                 return;
             }
 
             lock (usersLock)
             {
-                // check if all users are already connected
+                // Check if all users are already connected
                 if (totalUsers == connectedUsers)
                 {
                     SendError(socket, ServerConstants.MSG_ALL_USERS_CONNECTED);

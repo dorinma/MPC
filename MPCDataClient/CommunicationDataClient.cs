@@ -114,8 +114,7 @@ namespace MPCDataClient
         {
             String content = String.Empty;
 
-            // Retrieve the state object and the handler socket  
-            // from the asynchronous state object.  
+            // Retrieve the state object and the handler socket from the asynchronous state object.  
             StateObject state = (StateObject)ar.AsyncState;
             Socket handler = state.workSocket;
 
@@ -128,13 +127,11 @@ namespace MPCDataClient
                 state.sb.Append(Encoding.ASCII.GetString(
                     state.buffer, 0, bytesRead));
 
-                // Check for end-of-file tag. If it is not there, read
-                // more data.  
+                // Check for end-of-file tag. If it is not there, read more data.  
                 content = state.sb.ToString();
                 if (content.IndexOf("<EOF>") > -1)
                 {
-                    // All the data has been read from the
-                    // client. Display it on the console.  
+                    // All the data has been read from the client. Display it on the console.  
                     Console.WriteLine($"Read {content.Length} bytes from");
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
@@ -228,12 +225,6 @@ namespace MPCDataClient
                 default:
                     break;
             }
-        }
-
-        private void HandleError(string data)
-        {
-            Console.WriteLine($"Received error: {data}");
-            CloseSocket();
         }
 
         public void CloseSocket()

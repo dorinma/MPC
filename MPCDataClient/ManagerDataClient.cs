@@ -21,7 +21,7 @@
             userService = new UserService();
         }
 
-        static void Main(string[] args) //args = [ip1, port1, ip2, port2]
+        static void Main(string[] args) // args = [ip1, port1, ip2, port2]
         {
             if (args.Length < 4)
             {
@@ -94,7 +94,7 @@
 
             Console.WriteLine("\nWaiting for results.");
 
-            //Wait for resaults
+            // Wait for resaults
             communicationA.receiveDone.WaitOne();
             communicationA.CloseSocket();
 
