@@ -144,12 +144,19 @@ namespace MPCServer
 
         private static void deleteUsedMasksAndKeys(int numOfElement)
         {
+            int n = comm.sortRandomRequest.n;
+            int dcfKeysToSkip = (2 * n - 1 - numOfElement) * numOfElement / 2;
             comm.sortRandomRequest.dpfMasks = comm.sortRandomRequest.dpfMasks.Skip(numOfElement).ToArray();
             comm.sortRandomRequest.dpfKeys = comm.sortRandomRequest.dpfKeys.Skip(numOfElement).ToArray();
             comm.sortRandomRequest.dpfAesKeys = comm.sortRandomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
             comm.sortRandomRequest.dcfMasks = comm.sortRandomRequest.dcfMasks.Skip(numOfElement).ToArray();
 
-            string[] oldDcfKeys = comm.sortRandomRequest.dcfKeys;
+            comm.sortRandomRequest.dcfKeys = comm.sortRandomRequest.dcfKeys.Skip(dcfKeysToSkip).ToArray();
+            comm.sortRandomRequest.dcfAesKeys = comm.sortRandomRequest.dcfAesKeys.Skip(dcfKeysToSkip).ToArray();
+
+            comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
+
+            /*string[] oldDcfKeys = comm.sortRandomRequest.dcfKeys;
             string[] oldAesDcfKeys = comm.sortRandomRequest.dcfAesKeys;
             int oldDcfKeysSize = comm.sortRandomRequest.dcfKeys.Length;
             int[] isUsedIndex = new int[oldDcfKeysSize];
@@ -176,7 +183,7 @@ namespace MPCServer
             }
             comm.sortRandomRequest.dcfKeys = newDcfKeys;
 
-            comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
+            comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;*/
 
             logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
         }
