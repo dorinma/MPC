@@ -146,44 +146,19 @@ namespace MPCServer
         {
             int n = comm.sortRandomRequest.n;
             int dcfKeysToSkip = (2 * n - 1 - numOfElement) * numOfElement / 2;
-            comm.sortRandomRequest.dpfMasks = comm.sortRandomRequest.dpfMasks.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dpfKeys = comm.sortRandomRequest.dpfKeys.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dpfAesKeys = comm.sortRandomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dcfMasks = comm.sortRandomRequest.dcfMasks.Skip(numOfElement).ToArray();
-
-            comm.sortRandomRequest.dcfKeys = comm.sortRandomRequest.dcfKeys.Skip(dcfKeysToSkip).ToArray();
-            comm.sortRandomRequest.dcfAesKeys = comm.sortRandomRequest.dcfAesKeys.Skip(dcfKeysToSkip).ToArray();
 
             comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
 
-            /*string[] oldDcfKeys = comm.sortRandomRequest.dcfKeys;
-            string[] oldAesDcfKeys = comm.sortRandomRequest.dcfAesKeys;
-            int oldDcfKeysSize = comm.sortRandomRequest.dcfKeys.Length;
-            int[] isUsedIndex = new int[oldDcfKeysSize];
-            int newDcfKeysSize = oldDcfKeysSize - (numOfElement * (numOfElement - 1) / 2); // num of comparisons
-            string[] newDcfKeys = new string[newDcfKeysSize];
-            int index = 0;
+            comm.sortRandomRequest.dcfMasks = comm.sortRandomRequest.dcfMasks.Skip(numOfElement).ToArray();
+            comm.sortRandomRequest.dcfKeysSmallerLowerBound = comm.sortRandomRequest.dcfKeysSmallerLowerBound.Skip(dcfKeysToSkip).ToArray();
+            comm.sortRandomRequest.dcfKeysSmallerUpperBound = comm.sortRandomRequest.dcfKeysSmallerUpperBound.Skip(dcfKeysToSkip).ToArray();
+            comm.sortRandomRequest.shares01 = comm.sortRandomRequest.shares01.Skip(dcfKeysToSkip).ToArray();
+            comm.sortRandomRequest.dcfAesKeysLower = comm.sortRandomRequest.dcfAesKeysLower.Skip(dcfKeysToSkip).ToArray();
+            comm.sortRandomRequest.dcfAesKeysUpper = comm.sortRandomRequest.dcfAesKeysUpper.Skip(dcfKeysToSkip).ToArray();
 
-            for (int i = 0; i < numOfElement; i++)
-            {
-                for (int j = i + 1; j < numOfElement; j++)
-                {
-                    int keyIndex = (2 * comm.sortRandomRequest.n - i - 1) * i / 2 + j - i - 1;
-                    isUsedIndex[keyIndex] = -1;
-                }
-            }
-
-            for (int k = 0; k < oldDcfKeysSize; k++)
-            {
-                if (isUsedIndex[k] != -1)
-                {
-                    newDcfKeys[index] = oldDcfKeys[k];
-                    index++;
-                }
-            }
-            comm.sortRandomRequest.dcfKeys = newDcfKeys;
-
-            comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;*/
+            comm.sortRandomRequest.dpfMasks = comm.sortRandomRequest.dpfMasks.Skip(numOfElement).ToArray();
+            comm.sortRandomRequest.dpfKeys = comm.sortRandomRequest.dpfKeys.Skip(numOfElement).ToArray();
+            comm.sortRandomRequest.dpfAesKeys = comm.sortRandomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
 
             logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
         }

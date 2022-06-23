@@ -13,14 +13,14 @@ namespace Tests.ToolsTest
             uint[] output = new uint[size];
             for (int i = 0; i < size; i++)
             {
-                output[i] = random.NextUInt32();
+                output[i] = (uint)random.Next();
             }
             return output;
         }
 
         public static uint[] SumLists(uint[] listA, uint[] listB)
         {
-            var a =  listA.Zip(listB, SumUints).ToArray();
+            uint[] a =  listA.Zip(listB, SumUints).ToArray();
             return a;
         }
 
