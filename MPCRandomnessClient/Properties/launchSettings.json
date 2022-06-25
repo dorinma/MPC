@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "MPCRandomnessClient": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Code\\Projects\\MPC\\MPCDataClient"
+    }
+  }
+}

@@ -12,5 +12,8 @@ namespace MPCTools.Requests
 
         [JsonProperty("numberOfUsers", Required = Required.Always)]
         public int numberOfUsers { get; set; }
+
+        [JsonProperty("debugMode", Required = Required.Always)]
+        public bool debugMode { get; set; }
     }
 }

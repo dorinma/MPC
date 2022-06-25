@@ -159,12 +159,13 @@ namespace MPCDataClient
             }
         }
 
-        public string SendInitMessage(OPERATION operation, int numberOfUsers)
+        public string SendInitMessage(OPERATION operation, int numberOfUsers, bool debugMode)
         {
             ClientInitRequest clientInitRequest = new ClientInitRequest()
             {
                 operation = operation,
-                numberOfUsers = numberOfUsers
+                numberOfUsers = numberOfUsers,
+                debugMode = debugMode
             };
 
             string data = JsonConvert.SerializeObject(clientInitRequest);

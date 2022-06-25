@@ -7,7 +7,6 @@
 
     public class ManagerDataClient
     {
-        static bool debug = true;
         UserService userService;
         uint[] data;
         //CommunicationDataClient<UInt16> commServerA;
@@ -29,11 +28,6 @@
                 Environment.Exit(-1);
             }
 
-            if (args.Length > 4 && args[4].Equals("-d"))
-            {
-                debug = true;
-            }
-
             string ip1 = args[0];
             string ip2 = args[2];
             string sessionId = "";
@@ -44,9 +38,9 @@
                 Environment.Exit(-1);
             }
 
-            if (userService1.StartSession(out OPERATION operation, out int numberOfUsers))
+            if (userService1.StartSession(out OPERATION operation, out int numberOfUsers, out bool debugMode))
             {
-                sessionId = InitConnectionNewSession(ip1, port1, operation, numberOfUsers);
+                sessionId = InitConnectionNewSession(ip1, port1, operation, numberOfUsers, debugMode);
             }
             else
             {
@@ -56,16 +50,16 @@
 
             uint[] data = userService1.ReadData().ToArray();
 
-            Run(ip2, port2, sessionId, data, debug);
+            Run(ip2, port2, sessionId, data);
         }
 
 
-        public static string InitConnectionNewSession(string ip, int port, OPERATION operation, int numberOfUsers)
+        public static string InitConnectionNewSession(string ip, int port, OPERATION operation, int numberOfUsers, bool debugMode)
         {
             communicationA = new CommunicationDataClient();
             string sessionId;
             communicationA.Connect(ip, port);
-            sessionId = communicationA.SendInitMessage(operation, numberOfUsers);
+            sessionId = communicationA.SendInitMessage(operation, numberOfUsers, debugMode);
             communicationA.receiveDone.Reset();
 
             return sessionId;
@@ -78,7 +72,7 @@
             communicationA.receiveDone.Reset();
         }
 
-        public static string Run(string ip, int port, string sessionId, uint[] data, bool debugMode)
+        public static string Run(string ip, int port, string sessionId, uint[] data)
         {
             communicationB = new CommunicationDataClient();
 
@@ -105,19 +99,16 @@
 
             if (communicationA.dataResponse.Count > 0 && communicationB.dataResponse.Count > 0)
             {
-                if (debugMode)
+                Console.WriteLine(
+                $"Output list: {string.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList())}");
+
+                var fileName = $"results_{DateTimeOffset.Now.ToUnixTimeMilliseconds()}.csv";
+                MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse,
+                    (x, y) => { return (uint)(x + y); }).ToArray(), $@"..\..\..\..\Results\{fileName}");
+
+                if(communicationA.response.Length > 0)
                 {
-                    Console.WriteLine(
-                    $"Output list: {string.Join(", ", communicationA.dataResponse.Zip(communicationB.dataResponse, (x, y) => { return (uint)(x + y); }).ToList())}");
-
-                    var fileName = $"results_{DateTimeOffset.Now.ToUnixTimeMilliseconds()}.csv";
-                    MPCFiles.writeToFile(communicationA.dataResponse.Zip(communicationB.dataResponse,
-                        (x, y) => { return (uint)(x + y); }).ToArray(), $@"..\..\..\..\Results\{fileName}");
-
-                    if(communicationA.response.Length > 0)
-                    {
-                        return communicationA.response + $"\nOutput is saved to Results\\{fileName}";
-                    }
+                    return communicationA.response + $"\nOutput is saved to Results\\{fileName}";
                 }
             }
 

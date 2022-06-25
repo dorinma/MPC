@@ -8,6 +8,7 @@ using System.IO;
 using MPC_UI.ViewModel;
 using MPCDataClient;
 using MPCTools;
+using System.DirectoryServices.ActiveDirectory;
 
 namespace MPC_UI
 {
@@ -57,7 +58,7 @@ namespace MPC_UI
                 uint[] data = managerDataClient.ReadInput(inFile.Text);
                 if (data != null)
                 {
-                    string res = ManagerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data, isDebugMode);
+                    string res = ManagerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data);
                     MessageBox.Show(res);
                     /*if (isDebugMode)
                     {
@@ -94,7 +95,7 @@ namespace MPC_UI
             if (ValidateInputFirstInit())
             {
                 mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1, 
-                    Operations.operations[Operation.SelectedIndex-1], mainDataContext.ParticipantsNum);
+                    Operations.operations[Operation.SelectedIndex-1], mainDataContext.ParticipantsNum, isDebugMode);
                 sessionId.Text = mainDataContext.SessionId; //assume valid session id
                 //isFirstClient = true;
             }
@@ -110,6 +111,7 @@ namespace MPC_UI
             ParticipantsNum.IsEnabled = true;
             sessionId.IsReadOnly = true;
             generateSession.IsEnabled = true;
+            DebugMode.IsEnabled = true;
             //isFirstClient = true;
         }
         
@@ -118,6 +120,7 @@ namespace MPC_UI
             ParticipantsNum.IsEnabled = false;
             sessionId.IsReadOnly = false;
             generateSession.IsEnabled = false;
+            DebugMode.IsEnabled = false;
             isFirstClient = false;
         }
 
@@ -141,8 +144,7 @@ namespace MPC_UI
 
         private void DebugMode_Unchecked(object sender, RoutedEventArgs e)
         {
-            //TODO ignoring for now until sending it in communication
-            //isDebugMode = false;
+            isDebugMode = false;
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)

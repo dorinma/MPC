@@ -19,7 +19,7 @@ namespace MPCDataClient
         /// <summary>Create MyComponent</summary>
         public UserService() : this(fileSystem: new FileSystem()) {}
 
-        internal bool StartSession(out OPERATION operation, out int numberOfUsers)
+        internal bool StartSession(out OPERATION operation, out int numberOfUsers, out bool debugMode)
         {
             Console.WriteLine("Insert action to perform:");
             Console.WriteLine("1. Start new session");
@@ -40,14 +40,22 @@ namespace MPCDataClient
             {
                 operation = ReadOperation();
                 numberOfUsers = ReadNumberOfUsers();
+                debugMode = ReadDebugeMode();
             }
             else
             {
                 operation = 0;
                 numberOfUsers = 0;
+                debugMode = false;
             }
 
             return action == 1;
+        }
+
+        private bool ReadDebugeMode()
+        {
+            Console.WriteLine("To run the computation in debug mode press 1, otherwise press any other character.");
+            return Console.ReadLine().Equals("1");
         }
 
         public OPERATION ReadOperation()

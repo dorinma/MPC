@@ -3,6 +3,8 @@ using System;
 using System.Linq;
 using NLog;
 using System.IO;
+using System.ComponentModel.DataAnnotations;
+using NLog.Config;
 
 namespace MPCServer
 {
@@ -41,6 +43,14 @@ namespace MPCServer
             int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
             comm.setInstance(instance);
 
+            comm.ConnectServers(memberServerIP, memberServerPort);
+
+            if (!comm.OpenSocket(instance == 0 ? 2022 : 2023))
+            {
+                logger.Error("Could not create a socket between servers.");
+                return;
+            }
+
             while (true)
             {
                 Run(memberServerIP, memberServerPort);
@@ -49,28 +59,7 @@ namespace MPCServer
         }
 
         private static void Run(string memberServerIP, int memberServerPort)
-        {
-            long startMinute = DateTimeOffset.Now.Minute;
-            if (instance == 0)
-            {
-                bool connected = comm.ConnectServers(memberServerIP, memberServerPort);
-                while (!connected && DateTimeOffset.Now.Minute - startMinute <= RETRY_TIME)
-                {
-                    connected = comm.ConnectServers(memberServerIP, memberServerPort);
-                }
-                if (!connected)
-                {
-                    logger.Error("Could not connect to other server.");
-                    Environment.Exit(-1);
-                }
-            }
-
-            if (!comm.OpenSocket(instance == 0 ? 2022 : 2023))
-            {
-                logger.Error("Could not create a socket between servers.");
-                return;
-            }
-
+        {      
             values = comm.StartServer();
 
             if (values == null)
@@ -96,7 +85,7 @@ namespace MPCServer
             logger.Info(msg);
 
             string fileName = (instance == 0 ? "outA" : "outB") + "_" + comm.sessionId + ".csv";
-            String fullPath = Path.Combine(@"..\\..\\..\\Results", fileName);
+            string fullPath = Path.Combine(@"..\\..\\..\\Results", fileName);
             MPCFiles.writeToFile(res, fullPath);
 
             if (isDebugMode)
@@ -115,13 +104,14 @@ namespace MPCServer
         private static void SetupLogger()
         {
             GlobalDiagnosticsContext.Set("serverInstance", instance == 0 ? "A" : "B");
-
+            logger = LogManager.GetLogger("Server logger");
             if (isDebugMode)
             {
                 LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
+                LogManager.Configuration.LoggingRules.Last().RuleName = ServerConstants.debugRuleName;
             }
 
-            logger = LogManager.GetLogger("Server logger");
+            LogManager.ReconfigExistingLoggers();
         }
 
         public static uint[] Compute(OPERATION op)

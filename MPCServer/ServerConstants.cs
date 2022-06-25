@@ -27,6 +27,9 @@ namespace MPCServer
             { OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, SERVER_STATE.COMPUTATION}
         };
 
+        public const string debugRuleName = "debugRule";
+        public const int RETRY_TIME = 10; // Minutes
+
         public const string MSG_BAD_MESSAGE_FORMAT = "Bad message format: Failed to parse request {0}";
         public const string MSG_VALIDATE_PROTOCOL_FAIL = "Bad mesage format, missing required prefix.";
         public const string MSG_VALIDATE_SERVER_STATE_FAIL = "The server is currently not accepting this kind of messages. Server state is {0}, Message opcode is {1}.";

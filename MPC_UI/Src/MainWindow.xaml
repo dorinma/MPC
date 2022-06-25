@@ -45,7 +45,7 @@
         <TextBox Grid.Row="3" Grid.Column="3" Name="sessionId" HorizontalAlignment="Left" Margin="242,10,0,17" TextWrapping="Wrap" Text="{Binding SessionId}" Width="79" BorderBrush="Transparent" FontFamily="Cascadia Code" FontSize="15"/>
         <Label Grid.Row="3" Content="ID:" Foreground="White" FontSize="16" FontFamily="Cascadia Code" HorizontalAlignment="Left" Width="36" Grid.Column="3" Margin="201,9,0,16"/>
         <RadioButton GroupName="Session" Name="RB_NewSession" Grid.Row="4" Grid.Column="3" Checked="NewSession_Checked" Unchecked="ExistingSession_Checked" Content="Start New" HorizontalAlignment="Left" VerticalAlignment="Top" Width="137" Background="White" FontFamily="Cascadia Code" BorderThickness="2" Foreground="White" Height="26" FontSize="16" Margin="10,16,0,0" BorderBrush="White"/>
-        <Button Grid.Row="4" Grid.Column="3" IsEnabled="False" Name="generateSession" Click="StartNewSession_Click" Content="Generate" HorizontalAlignment="Left" Width="112" Background="Transparent" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="2" Foreground="White" FontSize="16" Margin="210,11,0,13"/>
+        <Button Grid.Row="4" Grid.Column="4" IsEnabled="False" Name="generateSession" Click="StartNewSession_Click" Content="Generate" HorizontalAlignment="Left" Width="112" Background="Transparent" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="2" Foreground="White" FontSize="16" Margin="10,10,0,14"/>
         <Label Grid.Row="5" Content="Participants number:" Foreground="White" FontSize="16" FontFamily="Cascadia Code" HorizontalAlignment="Center" Width="218" Grid.Column="1" Margin="0,12,0,12" Grid.ColumnSpan="2"/>
         <TextBox Grid.Row="5" Grid.Column="3" Name="ParticipantsNum" IsEnabled="False" PreviewTextInput="NumberValidationTextBox" FontSize="15" HorizontalAlignment="Left" Margin="10,12,0,14" TextWrapping="Wrap" Text="{Binding ParticipantsNum}" Width="125"  BorderBrush="Transparent" FontFamily="Cascadia Code"/>
         <Label Grid.Row="6" Content="Input file:" Foreground="White" FontSize="16" FontFamily="Cascadia Code" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Height="26" Width="218" Grid.Column="1" Grid.ColumnSpan="2"/>
@@ -59,7 +59,7 @@
             <ComboBoxItem Name="OperationFindElem" Content="Find k-th element" IsEnabled="False"/>
         </ComboBox>
         <Button Grid.Row="8" Grid.Column="1" Visibility="Hidden" Name="refreshRnd" Content="Refresh Randomness" Background="Transparent" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="2" Foreground="Green" FontSize="16" Click="refreshRnd_Click" Margin="10,3,14,21" Grid.ColumnSpan="2"/>
-        <CheckBox Grid.Row="8" Grid.Column="3" Name="DebugMode" Content="Debug Mode" Unchecked="DebugMode_Unchecked" Checked="DebugMode_Checked" Foreground="White" FontSize="16" Margin="201,13,10,11" Background="Transparent" FontFamily="Cascadia Code" BorderThickness="2" BorderBrush="White"/>
+        <CheckBox Grid.Row="4" Grid.Column="3" Name="DebugMode" Content="Debug Mode" Unchecked="DebugMode_Unchecked" Checked="DebugMode_Checked" Foreground="White" FontSize="16" Margin="202,15,9,9" Background="Transparent" FontFamily="Cascadia Code" BorderThickness="2" BorderBrush="White"/>
         <Button Grid.Row="8" Grid.Column="4" Name="compute" Content="Send" VerticalAlignment="Top" Background="WhiteSmoke" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="4" Height="34" Foreground="Navy" FontSize="20" FontWeight="Black" Click="Send_Click" Margin="10,3,270,0"/>
 
     </Grid>
