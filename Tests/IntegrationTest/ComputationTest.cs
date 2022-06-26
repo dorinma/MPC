@@ -26,7 +26,7 @@
         public void ComputeSortWithMock_ShouldSuccess(uint[] values, uint[] expectedIndexes)
         {
             RandomUtils.SplitToSecretShares(values, out uint[] sharesA, out uint[] sharesB);
-            ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB);
+            ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB, n: 10);
 
             Mock<IDpfAdapterServer> dpfMock = new Mock<IDpfAdapterServer>();
             SetupDpfMock(dpfMock);
@@ -87,7 +87,7 @@
         public void ComputeSort_ShouldSuccess(uint[] values)
         {
             RandomUtils.SplitToSecretShares(values, out uint[] sharesA, out uint[] sharesB);
-            ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB);
+            ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB, n: 10);
 
             Computer computerA = new Computer(sharesA, requestA, 0, null, new DcfAdapterServer(), new DpfAdapterServer(), loggerMock);
             Computer computerB = new Computer(sharesB, requestB, 1, null, new DcfAdapterServer(), new DpfAdapterServer(), loggerMock);

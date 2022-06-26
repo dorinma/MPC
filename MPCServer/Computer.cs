@@ -40,7 +40,7 @@
         public uint[] Compute(OPERATION op)
         {
             uint[] result = null;
-            memoryBytesCounter = data.Length * DPF_KEY_SIZE + (data.Length * (data.Length - 1) / 2) * DCF_KEY_SIZE;
+            memoryBytesCounter = 2 * data.Length * DPF_KEY_SIZE + (data.Length * (data.Length - 1) / 2) * DCF_KEY_SIZE;
             //TODO move to an abstract method (sizes are different for each operation)
             var watch = Stopwatch.StartNew();
             

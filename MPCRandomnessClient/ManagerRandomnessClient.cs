@@ -10,11 +10,11 @@ namespace MPCRandomnessClient
 {
     public class ManagerRandomnessClient
     {
-        public const int n = 10; // n
-        public const int dcfMasksCount = n; // mask for each input element
+        public const int N = 10; // n
+        /*public const int dcfMasksCount = n; // mask for each input element
         public const int dpfMasksCount = n; // mask for each element's index sum 
         public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
-        public const int dpfGatesCount = n; // dpf gate for each index - n 
+        public const int dpfGatesCount = n; // dpf gate for each index - n */
 
         private static DcfAdapterRandClient dcfAdapter = new DcfAdapterRandClient();
         private static DpfAdapterRandClient dpfAdapter = new DpfAdapterRandClient();
@@ -46,12 +46,16 @@ namespace MPCRandomnessClient
         {
             string newSessionId = RandomUtils.GenerateSessionId();
             Console.WriteLine($"New session is {newSessionId}");
-            CreateCircuits(newSessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB);
+            CreateCircuits(newSessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB, n: N);
             SendToServers(newSessionId, sortRequestA, sortRequestB);
         }
 
-        public static void CreateCircuits(string sessionId ,out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB)
+        public static void CreateCircuits(string sessionId ,out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB, int n)
         {
+            int dcfMasksCount = n; // mask for each input element
+            int dpfMasksCount = n; // mask for each element's index sum 
+            int dcfGatesCount = n * (n - 1) / 2; // first layer (dcf gates) - n choose 2.
+            int dpfGatesCount = n; // dpf gate for each index - n 
             //create masks and split them to shares
             //dcf
             uint[] dcfMasks = RandomUtils.CreateRandomMasks(dcfMasksCount);
@@ -91,11 +95,11 @@ namespace MPCRandomnessClient
             };
 
             //create keys
-            GenerateDcfKeys(dcfMasks, sortRequestA, sortRequestB);
-            GenerateDpfKeys(dpfMasks, outputMasks: dcfMasks, sortRequestA, sortRequestB);
+            GenerateDcfKeys(n, dcfMasks, sortRequestA, sortRequestB);
+            GenerateDpfKeys(n, dpfMasks, outputMasks: dcfMasks, sortRequestA, sortRequestB);
         }
 
-        public static void GenerateDcfKeys(uint[] masks, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
+        public static void GenerateDcfKeys(int n, uint[] masks, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
         {
             // We define the range of the input to be between 0 to 2^31-1. (So the other half (from 2^31-1 to 2^32-1) will use for negative numbers)
             // In regulre state, this range is the positive area but it change with the masks diff 
@@ -133,7 +137,7 @@ namespace MPCRandomnessClient
                 sortRequestB.shares01 = shares01B;
             }
         }
-        public static void GenerateDpfKeys(uint[] masks, uint[] outputMasks, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
+        public static void GenerateDpfKeys(int n, uint[] masks, uint[] outputMasks, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
         {
             for (int i = 0; i < n; i++)
             {
