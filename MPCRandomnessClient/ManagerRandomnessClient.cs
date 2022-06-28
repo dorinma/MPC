@@ -28,6 +28,7 @@ namespace MPCRandomnessClient
 
         public static void Main(string[] args)
         {
+
             //while with timer
             communicationA = new CommunicationRandClient();
             communicationB = new CommunicationRandClient();
@@ -44,13 +45,14 @@ namespace MPCRandomnessClient
 
         public static void CreateAndSendCircuits()
         {
+            //for op
             string newSessionId = RandomUtils.GenerateSessionId();
             Console.WriteLine($"New session is {newSessionId}");
-            CreateCircuits(newSessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB);
-            SendToServers(newSessionId, sortRequestA, sortRequestB);
+            CreateCircuits(newSessionId, out RandomRequest requestA, out RandomRequest requestB);
+            SendToServers(newSessionId, requestA, requestB);
         }
 
-        public static void CreateCircuits(string sessionId ,out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB)
+        public static void CreateCircuits(string sessionId ,out RandomRequest sortRequestA, out RandomRequest sortRequestB)
         {
             
             //dcf
@@ -76,7 +78,7 @@ namespace MPCRandomnessClient
 
             GenerateDpfKeys(dpfMasks, outputMasks: dcfMasks, dpfKeysA, dpfKeysB, dpfAesKeys);
 
-            sortRequestA = new SortRandomRequest
+            sortRequestA = new RandomRequest
             {
                 sessionId = sessionId,
                 n = n,
@@ -88,7 +90,7 @@ namespace MPCRandomnessClient
                 dpfAesKeys = dpfAesKeys
             };
 
-            sortRequestB = new SortRandomRequest
+            sortRequestB = new RandomRequest
             {
                 sessionId = sessionId,
                 n = n,
@@ -101,7 +103,7 @@ namespace MPCRandomnessClient
             };
         }
 
-        private static void SendToServers(string sessionId, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
+        private static void SendToServers(string sessionId, RandomRequest requestA, RandomRequest requestB)
         {
             communicationA.sessionId = sessionId;
             communicationB.sessionId = sessionId;
@@ -113,8 +115,8 @@ namespace MPCRandomnessClient
             communicationB.connectDone.WaitOne();
             //send (need to verify that both server recieved correctly)
 
-            communicationA.SendMasksAndKeys(sortRequestA);
-            communicationB.SendMasksAndKeys(sortRequestB);
+            communicationA.SendMasksAndKeys(requestA);
+            communicationB.SendMasksAndKeys(requestB);
             //recieve confirmation
             communicationA.Receive();
             communicationB.Receive();
@@ -168,7 +170,7 @@ namespace MPCRandomnessClient
 
             GenerateDpfKeys(dpfMasks, outputMasks: dcfMasks, dpfKeysA, dpfKeysB, dpfAesKeys);
 
-            SortRandomRequest sortRequestA = new SortRandomRequest
+            RandomRequest requestA = new RandomRequest
             {
                 sessionId = newSessionId,
                 n = n,
@@ -180,7 +182,7 @@ namespace MPCRandomnessClient
                 dpfAesKeys = dpfAesKeys
             };
 
-            SortRandomRequest sortRequestB = new SortRandomRequest
+            RandomRequest requestB = new RandomRequest
             {
                 sessionId = newSessionId,
                 n = n,
@@ -199,8 +201,8 @@ namespace MPCRandomnessClient
             communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
             //send 
-            communicationA.SendMasksAndKeys(sortRequestA);
-            communicationB.SendMasksAndKeys(sortRequestB);
+            communicationA.SendMasksAndKeys(requestA);
+            communicationB.SendMasksAndKeys(requestB);
             //recieve confirmation
             communicationA.Receive();
             communicationB.Receive();

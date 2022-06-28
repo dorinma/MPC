@@ -34,9 +34,9 @@ namespace MPCServer
 
         private const int pendingQueueLength = 10;
 
-        public SortRandomRequest sortRandomRequest = default;
+        public RandomRequest randomRequest = default;
         //Future code
-        //pubkic Dictionary<OPERATION, SortRandomRequest> requeset;
+        //pubkic Dictionary<OPERATION, RandomRequest> request;
 
         public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
         private List<uint> values;
@@ -103,11 +103,11 @@ namespace MPCServer
                 // Connect to the remote endpoint.  
                 memberServerSocket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), memberServerSocket);
                 connectServerDone.WaitOne();
-                logger.Debug($"Connected to server with IP: {otherServerIp} port: {otherServerPort}.");
+                //logger.Debug($"Connected to server with IP: {otherServerIp} port: {otherServerPort}.");
             }
             catch (Exception ex)
             {
-                logger.Error($"Failed to connect to other server. Error: {ex.Message}");
+                //logger.Error($"Failed to connect to other server. Error: {ex.Message}");
                 result = false;
             }
 
@@ -124,14 +124,14 @@ namespace MPCServer
                 // Complete the connection.  
                 client.EndConnect(ar);
 
-                logger.Debug($"Socket connected to {client.RemoteEndPoint.ToString()}");
+                //logger.Debug($"Socket connected to {client.RemoteEndPoint.ToString()}");
 
                 // Signal that the connection has been made.  
                 connectServerDone.Set();
             }
             catch (Exception ex)
             {
-                logger.Error($"Failed to connect to other server. Error: {ex.Message}");
+                //logger.Error($"Failed to connect to other server. Error: {ex.Message}");
                 Environment.Exit(-1);
             }
         }
@@ -141,7 +141,7 @@ namespace MPCServer
             bool result = true;
             try
             {
-                logger.Debug($"Server {instance} started. Runs on port {port}");
+                //logger.Debug($"Server {instance} started. Runs on port {port}");
                 listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listener.Bind(new IPEndPoint(IPAddress.Any, port));
                 listener.Listen(pendingQueueLength);
@@ -150,7 +150,7 @@ namespace MPCServer
             catch (Exception ex)
 
             { 
-                logger.Error($"Failed to open socket. Error: {ex.Message}");
+                //logger.Error($"Failed to open socket. Error: {ex.Message}");
                 result = false;
             }
             return result;
@@ -173,7 +173,7 @@ namespace MPCServer
             }
             catch (Exception ex)
             {
-                logger.Error($"Accept connection failed. Error: {ex.Message}");
+                //logger.Error($"Accept connection failed. Error: {ex.Message}");
                 return null;
             }
         }
@@ -221,7 +221,7 @@ namespace MPCServer
                 {
                     // All the data has been read from the
                     // client. Display it on the console.  
-                    logger.Debug($"Receieve {content.Length} bytes from socket.");
+                    //logger.Debug($"Receieve {content.Length} bytes from socket.");
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     
@@ -282,13 +282,13 @@ namespace MPCServer
             }
             catch (Exception ex)
             {
-                logger.Error($"Failed to send. Error: {ex.Message}");
+                //logger.Error($"Failed to send. Error: {ex.Message}");
             }
         }
 
         public void SendError(Socket socket, string errMsg)
         {
-            logger.Error($"Error: {errMsg}");
+            //logger.Error($"Error: {errMsg}");
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_ERROR, $"Error: {errMsg}");
             Send(socket, messageRequest);
         }
@@ -304,7 +304,7 @@ namespace MPCServer
             {
                 case OPCODE_MPC.E_OPCODE_RANDOM_SORT:
                     {
-                        HandleSortRandomness(data, socket);
+                        HandleRandomness(data, socket);
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_CLIENT_INIT:
@@ -329,7 +329,7 @@ namespace MPCServer
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR: //todo is this needed? client will send error to server?
                     {
-                        logger.Error($"Server Receive error. Error: {data}");
+                        //logger.Error($"Server Receive error. Error: {data}");
                         //RespondServerDone(Data);
                         break;
                     }       
@@ -338,18 +338,19 @@ namespace MPCServer
             }
         }
 
-        private void HandleSortRandomness(string data, Socket socket)
+        private void HandleRandomness(string data, Socket socket)
         {
-            sortRandomRequest = protocol.DeserializeRequest<SortRandomRequest>(data);
-            if (sortRandomRequest != default) // send confirmation
+            //by random requeset.op
+            randomRequest = protocol.DeserializeRequest<RandomRequest>(data);
+            if (randomRequest != default) // send confirmation
             {
-                Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId));
+                Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, randomRequest.sessionId));
                 serverState = SERVER_STATE.FIRST_INIT;
-                logger.Debug($"Recieve randomness request for {sortRandomRequest.n} elements.");
+                //logger.Debug($"Recieve randomness request for {randomRequest.n} elements.");
             }
             else // Error - wrong format
             {
-                SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, sortRandomRequest.GetType()));
+                SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, randomRequest.GetType()));
             }
         }
 
@@ -381,8 +382,8 @@ namespace MPCServer
             state.workSocket = socket;
             socket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                 new AsyncCallback(ReceiveCallback), state);
-            logger.Info($"Start sesion {sessionId}");
-            logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
+            //logger.Info($"Start sesion {sessionId}");
+            //logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
         }
 
         public void HandleServerInit(string data, Socket serverSocket)
@@ -390,7 +391,7 @@ namespace MPCServer
             ServerToServerInitRequest serverToServerInitRequest = protocol.DeserializeRequest<ServerToServerInitRequest>(data);
             if (serverToServerInitRequest == default)
             {
-                logger.Error(string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, serverToServerInitRequest.GetType()));
+                //logger.Error(string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, serverToServerInitRequest.GetType()));
             }
 
             sessionId = serverToServerInitRequest.sessionId;
@@ -398,8 +399,8 @@ namespace MPCServer
             totalUsers = serverToServerInitRequest.numberOfUsers;
             memberServerSocket = serverSocket; // server B save server A's socket
             serverState = SERVER_STATE.CONNECT_AND_DATA;
-            logger.Info($"Start sesion {sessionId}");
-            logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
+            //logger.Info($"Start sesion {sessionId}");
+            //logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
         }
 
         private void HandleClientData(string data, Socket socket)
@@ -432,7 +433,7 @@ namespace MPCServer
                 clientsSockets.Add(socket);
 
                 acceptDone.Set(); //TODO - should we check that connectedUsers == totalUsers
-                logger.Debug($"User connected and added {clientDataRequest.dataElements.Length} elements. Number of connected users - {connectedUsers}");
+                //logger.Debug($"User connected and added {clientDataRequest.dataElements.Length} elements. Number of connected users - {connectedUsers}");
             }
         }
 
@@ -479,7 +480,7 @@ namespace MPCServer
             }
             else
             {
-                logger.Debug($"Server {instance} receive {dataRequest.dataElements.Length} elements from the other server.");
+                //logger.Debug($"Server {instance} receive {dataRequest.dataElements.Length} elements from the other server.");
             }
 
             exchangeData = dataRequest.dataElements;
@@ -497,7 +498,7 @@ namespace MPCServer
             string data = JsonConvert.SerializeObject(dataRequest);
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_EXCHANGE_DATA, data);
             Send(memberServerSocket, messageRequest);
-            logger.Debug($"Server {instance} send the other server his diff values");
+            //logger.Debug($"Server {instance} send the other server his diff values");
         }
 
         internal uint[] ReceiveServerData()
@@ -516,7 +517,7 @@ namespace MPCServer
                 }
                 catch (Exception ex)
                 {
-                    logger.Error($"Failed to receive message. Error: {ex.Message}");
+                    //logger.Error($"Failed to receive message. Error: {ex.Message}");
                 }
                 receiveDone.WaitOne();
             }

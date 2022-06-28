@@ -10,6 +10,7 @@ using System.Net;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using System.Diagnostics;
 
 namespace MPCServer
 {
@@ -67,16 +68,16 @@ namespace MPCServer
                 {
                     Environment.Exit(-1);
                 }
-                logger.Debug("Input shares:");
-                logger.Debug(string.Join(", ", values));
+                //logger.Debug("Input shares:");
+                //logger.Debug(string.Join(", ", values));
                 
                 uint[] res = Compute(comm.operation);
 
-                logger.Debug("Output shares:");
-                logger.Debug(string.Join(", ", res));
+                //logger.Debug("Output shares:");
+                //logger.Debug(string.Join(", ", res));
 
                 string msg = "Computation completed successfully.";
-                logger.Info(msg);
+                //logger.Info(msg);
                 
                 if (isDebugMode)
                 {
@@ -102,7 +103,7 @@ namespace MPCServer
 
             if (isDebugMode)
             {
-                LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
+                //LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
             }
 
             logger = LogManager.GetLogger("Server logger");
@@ -110,24 +111,50 @@ namespace MPCServer
 
         public static uint[] Compute(OPERATION op) 
         {
-            logger.Info($"Number of elements - {values.Length}.");
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance,
-                comm, new DcfAdapterServer(),new DpfAdapterServer(), logger);
+            //logger.Info($"Number of elements - {values.Length}.");
 
-            uint[] res = computer.Compute(op);
+            var watch = Stopwatch.StartNew();
+
+            //Computer computer = init_computer(comm.randomRequest[op])(values, comm.randomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer());
+            Computer computer = InitComputer(OPERATION.SORT);
+
+            if(computer == null)
+            {
+                //send error , invalid opperation 
+            }
+
+            uint[] res = computer.Compute();
+
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            //logger.Trace($"Operation {op} on {values.Length} elements: {elapsedMs} ms");
+
             return res;
+        }
+
+        private static Computer InitComputer(OPERATION op)
+        {
+            switch (op)
+            {
+                case OPERATION.SORT:
+                    {
+                        return new SortComputer(values, comm.randomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
+                    }
+            }
+
+            return null;
         }
 
         private static void deleteUsedMasksAndKeys(int numOfElement)
         {
-            comm.sortRandomRequest.dpfMasks = comm.sortRandomRequest.dpfMasks.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dpfKeys = comm.sortRandomRequest.dpfKeys.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dpfAesKeys = comm.sortRandomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dcfMasks = comm.sortRandomRequest.dcfMasks.Skip(numOfElement).ToArray();
+            comm.randomRequest.dpfMasks = comm.randomRequest.dpfMasks.Skip(numOfElement).ToArray();
+            comm.randomRequest.dpfKeys = comm.randomRequest.dpfKeys.Skip(numOfElement).ToArray();
+            comm.randomRequest.dpfAesKeys = comm.randomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
+            comm.randomRequest.dcfMasks = comm.randomRequest.dcfMasks.Skip(numOfElement).ToArray();
 
-            string[] oldDcfKeys = comm.sortRandomRequest.dcfKeys;
-            string[] oldAesDcfKeys = comm.sortRandomRequest.dcfAesKeys;
-            int oldDcfKeysSize = comm.sortRandomRequest.dcfKeys.Length;
+            string[] oldDcfKeys = comm.randomRequest.dcfKeys;
+            string[] oldAesDcfKeys = comm.randomRequest.dcfAesKeys;
+            int oldDcfKeysSize = comm.randomRequest.dcfKeys.Length;
             int[] isUsedIndex = new int[oldDcfKeysSize];
             int newDcfKeysSize = oldDcfKeysSize - (numOfElement * (numOfElement - 1) / 2); // num of comparisons
             string[] newDcfKeys = new string[newDcfKeysSize];
@@ -137,7 +164,7 @@ namespace MPCServer
             {
                 for (int j = i + 1; j < numOfElement; j++)
                 {
-                    int keyIndex = (2 * comm.sortRandomRequest.n - i - 1) * i / 2 + j - i - 1;
+                    int keyIndex = (2 * comm.randomRequest.n - i - 1) * i / 2 + j - i - 1;
                     isUsedIndex[keyIndex] = -1;
                 }
             }
@@ -150,11 +177,11 @@ namespace MPCServer
                     index++;
                 }
             }
-            comm.sortRandomRequest.dcfKeys = newDcfKeys;
+            comm.randomRequest.dcfKeys = newDcfKeys;
 
-            comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
+            comm.randomRequest.n = comm.randomRequest.n - numOfElement;
 
-            logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
+            //logger.Debug($"Clear used randomness. {comm.randomRequest.n} elements left.");
         }
 
         public void SendResult() { }

@@ -22,6 +22,7 @@ namespace MPC_UI.ViewModel
             port1 = 2022;
             port2 = 2023;
             participants = 1;
+            sessionId = "";
         }
 
         public string IP1

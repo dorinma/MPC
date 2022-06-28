@@ -26,15 +26,15 @@
         public void ComputeSort_ShouldSuccess(uint[] values, uint[] expectedIndexes)
         {
             RandomUtils.SplitToSecretShares(values, out uint[] sharesA, out uint[] sharesB);
-            ManagerRandomnessClient.CreateCircuits(string.Empty, out SortRandomRequest requestA, out SortRandomRequest requestB);
+            ManagerRandomnessClient.CreateCircuits(string.Empty, out RandomRequest requestA, out RandomRequest requestB);
 
             Mock<IDpfAdapterServer> dpfMock = new Mock<IDpfAdapterServer>();
             SetupDpfMock(dpfMock);
             FixKeysForMock(requestA, requestB);
 
 
-            Computer computerA = new Computer(sharesA, requestA, 0, null, new DcfAdapterServer(), dpfMock.Object, loggerMock);
-            Computer computerB = new Computer(sharesB, requestB, 1, null, new DcfAdapterServer(), dpfMock.Object, loggerMock);
+            SortComputer computerA = new SortComputer(sharesA, requestA, 0, null, new DcfAdapterServer(), dpfMock.Object, loggerMock);
+            SortComputer computerB = new SortComputer(sharesB, requestB, 1, null, new DcfAdapterServer(), dpfMock.Object, loggerMock);
 
             uint[] sumValuesMasks = TestUtils.SumLists(TestUtils.SumLists(sharesA, requestA.dcfMasks), TestUtils.SumLists(sharesB, requestB.dcfMasks));
 
@@ -56,7 +56,7 @@
             Assert.Equal(values, sharesSum);
         }
 
-        private void FixKeysForMock(SortRandomRequest requestA, SortRandomRequest requestB)
+        private void FixKeysForMock(RandomRequest requestA, RandomRequest requestB)
         {
             for (int i = 0; i < requestA.n; i++)
             {

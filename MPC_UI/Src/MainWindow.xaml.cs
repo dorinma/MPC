@@ -157,7 +157,7 @@ namespace MPC_UI
         {
             return ValidateCommInfo()
                 && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 100 //TODO how many??
-                && inFile.Text != "";
+                && inFile.Text != "" && mainDataContext.SessionId != "";
         }
 
         private bool ValidateCommInfo()
