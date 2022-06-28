@@ -58,7 +58,6 @@
             <ComboBoxItem Name="OperationSort" Content="Sort" IsSelected="True"/>
             <ComboBoxItem Name="OperationFindElem" Content="Find k-th element" IsEnabled="False"/>
         </ComboBox>
-        <Button Grid.Row="8" Grid.Column="1" Visibility="Hidden" Name="refreshRnd" Content="Refresh Randomness" Background="Transparent" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="2" Foreground="Green" FontSize="16" Click="refreshRnd_Click" Margin="10,3,14,21" Grid.ColumnSpan="2"/>
         <CheckBox Grid.Row="4" Grid.Column="3" Name="DebugMode" Content="Debug Mode" Unchecked="DebugMode_Unchecked" Checked="DebugMode_Checked" Foreground="White" FontSize="16" Margin="202,15,9,9" Background="Transparent" FontFamily="Cascadia Code" BorderThickness="2" BorderBrush="White"/>
         <Button Grid.Row="8" Grid.Column="4" Name="compute" Content="Send" VerticalAlignment="Top" Background="WhiteSmoke" FontFamily="Cascadia Code" BorderBrush="White" BorderThickness="4" Height="34" Foreground="Navy" FontSize="20" FontWeight="Black" Click="Send_Click" Margin="10,3,270,0"/>
 

@@ -8,7 +8,6 @@ using System.IO;
 using MPC_UI.ViewModel;
 using MPCDataClient;
 using MPCTools;
-using System.DirectoryServices.ActiveDirectory;
 
 namespace MPC_UI
 {
@@ -60,18 +59,6 @@ namespace MPC_UI
                 {
                     string res = ManagerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data);
                     MessageBox.Show(res);
-                    /*if (isDebugMode)
-                    {
-                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(@"..\\..\\..\\Out", "ComputationOutput.txt")))
-                        {
-                            outputFile.WriteLine(res);
-                            MessageBox.Show("Computation is done, output is saved to Out folder.");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Computation is done.");
-                    }*/
                 }
                 else
                 {
@@ -94,10 +81,17 @@ namespace MPC_UI
         {
             if (ValidateInputFirstInit())
             {
-                mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1, 
-                    Operations.operations[Operation.SelectedIndex-1], mainDataContext.ParticipantsNum, isDebugMode);
-                sessionId.Text = mainDataContext.SessionId; //assume valid session id
-                //isFirstClient = true;
+                mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1,
+                    Operations.operations[Operation.SelectedIndex - 1], mainDataContext.ParticipantsNum, isDebugMode);
+                if (mainDataContext.SessionId != "")
+                {
+                    sessionId.Text = mainDataContext.SessionId; //assume valid session id received from server.
+                    //isFirstClient = true;
+                }
+                else
+                {
+                    MessageBox.Show("Could not create session. Check servers' addresses.");
+                }
             }
             else
             {
@@ -124,19 +118,6 @@ namespace MPC_UI
             isFirstClient = false;
         }
 
-        private void refreshRnd_Click(object sender, RoutedEventArgs e)
-        {
-            /*
-            if (ValidateCommInfo())
-            {
-                if (managerRandomnessClient.Run(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2)) 
-                    MessageBox.Show("New randomness has been generated.");
-                else MessageBox.Show("Could not generate new randomness.");
-            }
-            else MessageBox.Show("Please insert valid IPs & ports.");
-            */
-        }
-
         private void DebugMode_Checked(object sender, RoutedEventArgs e)
         {
             isDebugMode = true;
@@ -157,13 +138,13 @@ namespace MPC_UI
         {
             return ValidateIP(mainDataContext.IP1)
                && ValidatePort(mainDataContext.Port1)
-               && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 100; //TODO how many??
+               && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 1000; 
         }
 
         private bool ValidateInput()
         {
             return ValidateCommInfo()
-                && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 100 //TODO how many??
+                && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 1000
                 && inFile.Text != "";
         }
 

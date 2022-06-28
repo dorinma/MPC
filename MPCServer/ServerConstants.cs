@@ -29,6 +29,8 @@ namespace MPCServer
 
         public const string debugRuleName = "debugRule";
         public const int RETRY_TIME = 10; // Minutes
+        public const int portServerA = 2022;
+        public const int portServerB = 2023;
 
         public const string MSG_BAD_MESSAGE_FORMAT = "Bad message format: Failed to parse request {0}";
         public const string MSG_VALIDATE_PROTOCOL_FAIL = "Bad mesage format, missing required prefix.";
