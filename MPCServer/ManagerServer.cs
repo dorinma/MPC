@@ -39,13 +39,19 @@ namespace MPCServer
             SetupLogger();
             comm = new CommunicationServer(logger);
 
+            if(args.Length <= 0)
+            {
+                logger.Error("Missing second server's IP address.");
+                Environment.Exit(-1);
+            }
+
             string memberServerIP = args[0];
-            int memberServerPort = instance == 0 ? 2023 : instance == 1 ? 2022 : 0;
+            int memberServerPort = instance == 0 ? ServerConstants.portServerB : instance == 1 ? ServerConstants.portServerA : 0;
             comm.setInstance(instance);
 
             comm.ConnectServers(memberServerIP, memberServerPort);
 
-            if (!comm.OpenSocket(instance == 0 ? 2022 : 2023))
+            if (!comm.OpenSocket(instance == 0 ? ServerConstants.portServerA : ServerConstants.portServerB))
             {
                 logger.Error("Could not create a socket between servers.");
                 return;

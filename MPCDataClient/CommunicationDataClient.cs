@@ -25,7 +25,7 @@ namespace MPCDataClient
         public string response = string.Empty;
         public List<uint> dataResponse = new List<uint>();
 
-        public void Connect(string serverIp, int serverPort)
+        public bool Connect(string serverIp, int serverPort)
         {
             // Connect to a remote device.  
             try
@@ -39,12 +39,14 @@ namespace MPCDataClient
                 // Connect to the remote endpoint.  
                 client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
                 connectDone.WaitOne();
-                Console.WriteLine($"Connected to server with ip: {serverIp}, port: {serverPort}");
+                Console.WriteLine($"Connected to server with IP: {serverIp}, port: {serverPort}.");
+                return true;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Environment.Exit(-1);
+                Console.WriteLine("Error: " + e.Message);
+                return false;
+                //Environment.Exit(-1);
             }
         }
 
