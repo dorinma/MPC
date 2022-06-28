@@ -9,6 +9,9 @@ namespace MPCTools.Requests
         [JsonProperty("sessionId", Required = Required.Always)]
         public string sessionId { get; set; }
 
+        [JsonProperty("operation", Required = Required.Always)]
+        public OPERATION operation { get; set; }
+
         [JsonProperty("n", Required = Required.Always)]
         public int n { get; set; }
 

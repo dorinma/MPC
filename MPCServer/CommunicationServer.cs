@@ -35,9 +35,7 @@ namespace MPCServer
 
         private const int pendingQueueLength = 10;
 
-        public RandomRequest randomRequest = default;
-        //Future code
-        //pubkic Dictionary<OPERATION, RandomRequest> request;
+        public Dictionary<OPERATION, RandomRequest> randomRequests;
 
         public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
         private List<uint> values;
@@ -365,13 +363,13 @@ namespace MPCServer
 
         private void HandleRandomness(string data, Socket socket)
         {
-            //by random requeset.op
-            randomRequest = protocol.DeserializeRequest<RandomRequest>(data);
-            if (randomRequest != default) // send confirmation
+            RandomRequest randomRequest = protocol.DeserializeRequest<RandomRequest>(data);
+            if (randomRequest != default)
             {
+                randomRequests[randomRequest.operation] = randomRequest;
+                // send confirmation
                 Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, randomRequest.sessionId));
-                //serverState = SERVER_STATE.INIT;
-                logger.Debug($"Recieve randomness request for {randomRequest.n} elements.");
+                logger.Debug($"Recieve randomness request for {randomRequest.operation} for {randomRequest.n} elements.");
             }
             else // Error - wrong format
             {

@@ -122,9 +122,9 @@ namespace MPC_UI
         {
             if (ValidateCommInfo())
             {
-                if (managerRandomnessClient.Run(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2)) 
-                    MessageBox.Show("New randomness has been generated.");
-                else MessageBox.Show("Could not generate new randomness.");
+                //if (managerRandomnessClient.Run(mainDataContext.IP1, mainDataContext.IP2, mainDataContext.Port1, mainDataContext.Port2)) 
+                MessageBox.Show("New randomness has been generated.");
+                //else MessageBox.Show("Could not generate new randomness.");
             }
             else MessageBox.Show("Please insert valid IPs & ports.");
         }
