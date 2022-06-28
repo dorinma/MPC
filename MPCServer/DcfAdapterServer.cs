@@ -10,7 +10,7 @@
 
     public class DcfAdapterServer : IDcfAdapterServer
     {
-        private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
+        private const string dllPath = @"..\\..\\..\\ExtLibs\\DCF\\sycret.dll";
         [DllImport(dllPath)]
         private static extern UInt32 eval_dcf(IntPtr key, IntPtr aesKeys, UInt32 alpha, byte partyId);
 
@@ -19,7 +19,7 @@
             //var index = serverIndex.Equals("A") ? (byte)0 : (byte)1;
             IntPtr keyPointer = Marshal.StringToHGlobalAnsi(key);
             IntPtr aesPointer = Marshal.StringToHGlobalAnsi(aesKey);
-            UInt32 share = eval_dcf(keyPointer, aesPointer, alpha, serverIndex);
+            uint share = eval_dcf(keyPointer, aesPointer, alpha, serverIndex);
             Marshal.FreeHGlobal(keyPointer);
             Marshal.FreeHGlobal(aesPointer);
             return share;

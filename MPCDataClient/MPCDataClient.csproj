@@ -14,4 +14,8 @@
     <ProjectReference Include="..\MPCTools\MPCTools.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Results\" />
+  </ItemGroup>
+
 </Project>

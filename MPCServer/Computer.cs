@@ -16,6 +16,9 @@
         protected CommunicationServer comm;
         protected ILogger logger;
 
+        protected long communicationBytesCounter; 
+        protected long memoryBytesCounter;
+
 
         public Computer(uint[] values, RandomRequest randomRequest, byte instance,
             CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger)
@@ -27,10 +30,21 @@
             this.dcfAdapter = dcfAdapter;
             this.dpfAdapter = dpfAdapter;
             this.logger = logger;
+            communicationBytesCounter = 0;
+            memoryBytesCounter = data.Length * 660 + (data.Length * (data.Length - 1) / 2) * 900; ;
+        }
+
+        public long get_communicationBytesCounter()
+        {
+            return communicationBytesCounter;
+        }
+
+        public long get_memoryBytesCounter()
+        {
+            return memoryBytesCounter;
         }
 
         public abstract uint[] Compute();
-
 
         public uint[] DiffEachPairValues(uint[] sumValuesMasks, int numOfElement)
         {
@@ -75,6 +89,8 @@
                 SumEachSharesWithMask(totalMaskedSum, partServer, masks);
                 comm.SendServerData(totalMaskedSum);
             }
+
+            communicationBytesCounter += numOfElement * sizeof(uint);
 
             return totalMaskedSum;
         }

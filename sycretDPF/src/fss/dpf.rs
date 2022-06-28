@@ -15,12 +15,13 @@ use serde::{Serialize, Deserialize};
 pub fn generate_cw_from_seeds(
     prg: &mut impl Prg,
     alpha: u32,
+    beta: u32,
     s_a: u128,
     s_b: u128,
     cw: &mut [u128; N * 8],
     t_l: &mut [u8; N * 8],
     t_r: &mut [u8; N * 8],
-) -> u32 {
+) -> (u32, u32) {
     // Initialize control bits.
     let mut t_a_i = 0u8;
     let mut t_b_i = 1u8;
@@ -79,7 +80,7 @@ pub fn generate_cw_from_seeds(
         }
     }
     // We only need 32 bits to make a sharing of 1
-    share_leaf(s_a_i as u32, s_b_i as u32, 2, t_b_i) // beta = -m
+    (share_leaf(s_a_i as u32, s_b_i as u32, 1, t_b_i), share_leaf((s_a_i >> 32) as u32, (s_b_i >> 32) as u32, beta, t_b_i))
 }
 
 ///
@@ -106,17 +107,18 @@ pub struct DPFKeyAlpha1 {
     pub cw: [u128; N * 8],
     pub t_l: [u8; N * 8],
     pub t_r: [u8; N * 8],
-    pub cw_leaf: u32,
+    pub cw_leaf_1: u32,
+    pub cw_leaf_2: u32,
 }
 
 pub trait DPFKey1: Sized {
-    fn eval(&self, prg: &mut impl Prg, party_id: u8, x: u32) -> u32;
+    fn eval(&self, prg: &mut impl Prg, party_id: u8, x: u32) -> (u32, u32);
 
-    fn generate_keypair(prg: &mut impl Prg, alpha: u32) -> (Self, Self);
+    fn generate_keypair(prg: &mut impl Prg, alpha: u32, beta: u32) -> (Self, Self);
 }
 
 impl DPFKey1 for DPFKeyAlpha1 {
-    fn generate_keypair(prg: &mut impl Prg, alpha: u32) -> (Self, Self) {
+    fn generate_keypair(prg: &mut impl Prg, alpha: u32, beta: u32) -> (Self, Self) {
         // Thread randomness for parallelization.
         let mut rng = rand::thread_rng();
 
@@ -129,7 +131,7 @@ impl DPFKey1 for DPFKeyAlpha1 {
         let mut t_l = [0u8; N * 8];
         let mut t_r = [0u8; N * 8];
 
-        let cw_leaf = generate_cw_from_seeds(prg, alpha, s_a, s_b, &mut cw, &mut t_l, &mut t_r);
+        let (cw_leaf_1, cw_leaf_2) = generate_cw_from_seeds(prg, alpha, beta, s_a, s_b, &mut cw, &mut t_l, &mut t_r);
 
         // Return a key pair.
         (
@@ -138,19 +140,21 @@ impl DPFKey1 for DPFKeyAlpha1 {
                 cw,
                 t_l,
                 t_r,
-                cw_leaf,
+                cw_leaf_1,
+                cw_leaf_2
             },
             DPFKeyAlpha1 {
                 s: s_b,
                 cw,
                 t_l,
                 t_r,
-                cw_leaf,
+                cw_leaf_1,
+                cw_leaf_2
             },
         )
     }
 
-    fn eval(&self, prg: &mut impl Prg, party_id: u8, x: u32) -> u32 {
+    fn eval(&self, prg: &mut impl Prg, party_id: u8, x: u32) -> (u32, u32) {
         // Initialize the control bit and the seed.
         assert!((party_id == 0u8) || (party_id == 1u8));
         let mut t_i: u8 = party_id;
@@ -185,6 +189,6 @@ impl DPFKey1 for DPFKeyAlpha1 {
                 }
             }
         }
-        compute_out(s_i as u32, self.cw_leaf, t_i, party_id)
+        (compute_out(s_i as u32, self.cw_leaf_1, t_i, party_id), compute_out((s_i >> 32) as u32, self.cw_leaf_2, t_i, party_id))
     }
 }

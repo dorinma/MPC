@@ -5,7 +5,7 @@
 
     public class DcfAdapterRandClient
     {
-        private const string dllPath = @"..\\..\\..\\ExtLibs\\sycret.dll";
+        private const string dllPath = @"..\\..\\..\\ExtLibs\\DCF\\sycret.dll";
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Keys
