@@ -73,7 +73,7 @@ namespace Tests.ServerTest
             Computer computerA = InitComuter(0, emptyRequest, dcfAdapter: dcfMock.Object);
             Computer computerB = InitComuter(1, emptyRequest, dcfAdapter: dcfMock.Object);
 
-            uint[] diffValues = computerA.DiffEachPairValues(values, values.Length); //same for bith computers
+            uint[] diffValues = computerA.DiffEachPairValues(values, values.Length); //same for both computers
 
             SetupDcfMock(dcfMock);
 

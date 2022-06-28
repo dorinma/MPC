@@ -113,28 +113,9 @@ namespace MPCServer
             serversSend.Reset();
             receiveDone.Reset();
 
-            BeginReceiveServerB();
-        }
-
-        private void BeginReceiveServerB()
-        {
-            if (instance != 1)
+            if(instance != 1)
             {
-                return;
-            }
-
-            try
-            {
-                // Create the state object.  
-                StateObject state = new StateObject();
-                state.workSocket = memberServerSocket;
-
-                // Begin receiving the data from the remote device.  
-                memberServerSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-            }
-            catch (Exception ex)
-            {
-                logger.Error($"Failed to receive message. Error: {ex.Message}");
+                BeginReceiveServer();
             }
         }
 
@@ -347,6 +328,11 @@ namespace MPCServer
             catch(Exception e)
             {
                 logger.Error($"Failed to send message. Error: {e.Message}");
+                if(socket == memberServerSocket)
+                {
+                    logger.Error($"Existing...");
+                    Environment.Exit(0);
+                }
             }
         }
 
@@ -593,7 +579,7 @@ namespace MPCServer
             logger.Debug($"Server {serverInstance} sent the other server his diff values.");
         }
 
-        internal uint[] ReceiveServerData()
+        public void BeginReceiveServer()
         {
             if (exchangeData == null)
             {
@@ -609,15 +595,23 @@ namespace MPCServer
                 }
                 catch (Exception ex)
                 {
-                    logger.Error($"Failed to receive message. Error: {ex.Message}");
+                    logger.Error($"Failed to receive message from other server. Error: {ex.Message}\nExisting..");
+                    Environment.Exit(0);
                 }
+
                 receiveDone.WaitOne();
             }
+        }
+
+        public uint[] ReceiveServerData()
+        {
+            BeginReceiveServer();
 
             uint[] currExchangeData = exchangeData;
             exchangeData = null;
 
             return currExchangeData;
+
         }
     }
 }
