@@ -17,7 +17,6 @@
         public long communicationBytesCounter;
         public long memoryBytesCounter;
 
-
         public Computer(uint[] values, RandomRequest randomRequest, byte instance,
             CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger)
         {
