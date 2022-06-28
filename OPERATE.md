@@ -39,6 +39,11 @@ This is the component that runs when the users run the application. The operator
 3. Run randomness client
 4. Wait for inputs (data clients can now connect)
 
+##### Program Arguments:
+In each server's program arguments send the second server's IP address (single argument).
+
+In the randomness client send both servers' communication details: first IP, first port, second IP, second port.
+
 ## Maintenance
 
 #### Extending Functionality
