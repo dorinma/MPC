@@ -4,8 +4,6 @@ namespace MPCTools.Requests
 {
     public class RandomRequest
     {
-        //op
-
         [JsonProperty("sessionId", Required = Required.Always)]
         public string sessionId { get; set; }
 
