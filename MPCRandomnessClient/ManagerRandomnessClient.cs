@@ -21,32 +21,16 @@ namespace MPCRandomnessClient
 
         private static CommunicationRandClient communicationA;
         private static CommunicationRandClient communicationB;
-        private static string ip1;
-        private static string ip2;
-        private static int port1;
-        private static int port2;
+        private static string ip1 = "127.0.0.1";
+        private static string ip2 = "127.0.0.1";
+        private static int port1 = 2022;
+        private static int port2 = 2023;
 
         private const int RETRY_COUNT = 5;
         private const int SLEEP_TIME = 3000; //3 seconds
 
-        public static void Main(string[] args) // args = [ip1, port1, ip2, port2]
+        public static void Main(string[] args)
         {
-            if (args.Length < 4)
-            {
-                Console.WriteLine("Missing servers' communication details.");
-                Environment.Exit(-1);
-            }
-
-            ip1 = args[0];
-            ip2 = args[2];
-            bool validPorts = int.TryParse(args[1], out port1) && int.TryParse(args[3], out port2);
-
-            if(!validPorts)
-            {
-                Console.WriteLine("Invalid ports.");
-                Environment.Exit(-1);
-            }
-
             // future code - while with timer
             communicationA = new CommunicationRandClient();
             communicationB = new CommunicationRandClient();

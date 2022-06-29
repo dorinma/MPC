@@ -41,11 +41,22 @@
             if (userService1.StartSession(out OPERATION operation, out int numberOfUsers, out bool debugMode))
             {
                 sessionId = InitConnectionNewSession(ip1, port1, operation, numberOfUsers, debugMode);
-                if(sessionId == "")
+                if(sessionId == string.Empty)
                 {
-                    Console.WriteLine("Error: Could not create session. Check servers' addresses.");
+                    Console.WriteLine("Error: Could not create session.");
+                    if(communicationA.response != string.Empty)
+                    {
+                        Console.WriteLine(communicationA.response);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Check servers' addresses.");
+                    }
+                    
                     Environment.Exit(-1);
                 }
+
+                Console.WriteLine($"Session id: {sessionId}"); 
             }
             else
             {
@@ -69,7 +80,8 @@
                 communicationA.receiveDone.Reset();
                 return sessionId;
             }
-            return "";
+
+            return string.Empty;
         }
 
         public static void InitConnectionExistingSession(string ip, int port, string sessionId)

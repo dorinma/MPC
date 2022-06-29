@@ -29,6 +29,7 @@ namespace MPCServer
 
         public const string debugRuleName = "debugRule";
         public const int RETRY_TIME = 10; // Minutes
+        public const int SESSION_TIME = 15; // Minutes
         public const int portServerA = 2022;
         public const int portServerB = 2023;
 

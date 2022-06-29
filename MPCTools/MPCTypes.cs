@@ -40,6 +40,7 @@ namespace MPCTools
         E_OPCODE_RANDOM_SORT = 0x07,
         E_OPCODE_SERVER_VERIFY = 0x08,
         E_OPCODE_EXCHANGE_DATA = 0x09,
+        E_OPCODE_RESTART_SERVER = 0x10,
     }
 
     public enum OPERATION : UInt16

@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -37,6 +38,7 @@ namespace MPCServer
         private int totalUsers;
         private int connectedUsers;
         public string sessionId;
+        public DateTime sessionStartTime;
         public bool debugMode;
 
         public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
@@ -94,6 +96,14 @@ namespace MPCServer
             LogManager.ReconfigExistingLoggers();
         }
 
+        private bool SessionTimedOut()
+        {
+            return serverState == SERVER_STATE.CONNECT_AND_DATA &&
+                sessionStartTime != default &&
+                DateTime.UtcNow - sessionStartTime > TimeSpan.FromMinutes(ServerConstants.SESSION_TIME);
+        }
+
+
         public void RestartServer()
         {
             logger.Debug($"Restarting server {serverInstance}.");
@@ -102,6 +112,7 @@ namespace MPCServer
             connectedUsers = 0;
             values = new List<uint>();
             sessionId = string.Empty;
+            sessionStartTime = default;
             serverState = SERVER_STATE.INIT;
             SetDebugMode(true);
             clientsSockets = new List<Socket>();
@@ -113,7 +124,7 @@ namespace MPCServer
             serversSend.Reset();
             receiveDone.Reset();
 
-            if(instance != 1)
+            if(instance == 1)
             {
                 BeginReceiveServer();
             }
@@ -121,20 +132,24 @@ namespace MPCServer
 
         public void ConnectServers(string otherServerIp, int otherServerPort)
         {
-            long startMinute = DateTimeOffset.Now.Minute;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             if (instance == 0)
             {
                 bool connected = TryConnect(otherServerIp, otherServerPort);
-                while (!connected && DateTimeOffset.Now.Minute - startMinute <= ServerConstants.RETRY_TIME)
+                while (!connected && stopwatch.Elapsed <= TimeSpan.FromMinutes(ServerConstants.RETRY_TIME))
                 {
                     connected = TryConnect(otherServerIp, otherServerPort);
                 }
+
+                stopwatch.Stop();
+
                 if (!connected)
                 {
                     logger.Error("Could not connect to other server.");
                     Environment.Exit(-1);
                 }
-                
             }
         }
 
@@ -295,9 +310,19 @@ namespace MPCServer
                             return;
                         }
 
-                        if (messageRequest.opcode != OPCODE_MPC.E_OPCODE_ERROR && !ValidateServerState(messageRequest.opcode))
+                        if (messageRequest.opcode != OPCODE_MPC.E_OPCODE_ERROR &&
+                            messageRequest.opcode != OPCODE_MPC.E_OPCODE_RESTART_SERVER &&
+                            !ValidateServerState(messageRequest.opcode))
                         {
                             SendError(handler, string.Format(ServerConstants.MSG_VALIDATE_SERVER_STATE_FAIL, serverState, messageRequest.opcode));
+
+                            if (SessionTimedOut())
+                            {
+                                logger.Info($"Restarting servers due to timeout.");
+                                Send(memberServerSocket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_RESTART_SERVER, sessionId));
+
+                                RestartServer();
+                            }
                             return;
                         }
 
@@ -396,6 +421,12 @@ namespace MPCServer
                         HandleServerExchangeData(data, socket);
                         break;
                     }
+                case OPCODE_MPC.E_OPCODE_RESTART_SERVER:
+                    {
+                        logger.Error($"Session timed out. Restarting..");
+                        RestartServer();
+                        break;
+                    }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
                         logger.Error($"Server received error: {data}");
@@ -436,10 +467,9 @@ namespace MPCServer
                 return;
             }
 
-            // Send session details to second server
             operation = clientInitRequest.operation;
             totalUsers = clientInitRequest.numberOfUsers;
-
+            sessionStartTime = DateTime.UtcNow;
             SetDebugMode(clientInitRequest.debugMode);
 
             SendSessionDetailsToServer();
@@ -469,6 +499,7 @@ namespace MPCServer
             sessionId = serverToServerInitRequest.sessionId;
             operation = serverToServerInitRequest.operation;
             totalUsers = serverToServerInitRequest.numberOfUsers;
+            sessionStartTime = serverToServerInitRequest.sessionStartTime;
 
             SetDebugMode(serverToServerInitRequest.debugMode);
 
@@ -476,6 +507,8 @@ namespace MPCServer
             serverState = SERVER_STATE.CONNECT_AND_DATA;
             logger.Info($"Start sesion {sessionId}");
             logger.Info($"Operation - {operation}, Number of participants - {totalUsers}");
+
+            BeginReceiveServer(); //Server B listen to server A for case of timeout.
         }
 
         private void HandleClientData(string data, Socket socket)
@@ -507,9 +540,12 @@ namespace MPCServer
                 serverState = totalUsers == connectedUsers ? SERVER_STATE.COMPUTATION : serverState;
                 values.AddRange(clientDataRequest.dataElements);
                 clientsSockets.Add(socket);
-
-                acceptDone.Set();
                 logger.Debug($"New user connected, added {clientDataRequest.dataElements.Length} elements. Number of connected users - {connectedUsers}.");
+                
+                if(serverState == SERVER_STATE.COMPUTATION)
+                {
+                    acceptDone.Set(); // wake up the main thread
+                }
             }
         }
 
@@ -540,6 +576,7 @@ namespace MPCServer
                 operation = operation,
                 numberOfUsers = totalUsers,
                 debugMode = debugMode,
+                sessionStartTime = sessionStartTime
             };
 
             string data = JsonConvert.SerializeObject(serverToServerInitRequest);
@@ -581,32 +618,31 @@ namespace MPCServer
 
         public void BeginReceiveServer()
         {
-            if (exchangeData == null)
+            try
             {
-                receiveDone.Reset();
-                try
-                {
-                    // Create the state object.  
-                    StateObject state = new StateObject();
-                    state.workSocket = memberServerSocket;
+                // Create the state object.  
+                StateObject state = new StateObject();
+                state.workSocket = memberServerSocket;
 
-                    // Begin receiving the data from the remote device.  
-                    memberServerSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-                }
-                catch (Exception ex)
-                {
-                    logger.Error($"Failed to receive message from other server. Error: {ex.Message}\nExisting..");
-                    Environment.Exit(0);
-                }
-
-                receiveDone.WaitOne();
+                // Begin receiving the data from the remote device.  
+                memberServerSocket.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+            }
+            catch (Exception ex)
+            {
+                logger.Error($"Failed to receive message from other server. Error: {ex.Message}\nExisting..");
+                Environment.Exit(0);
             }
         }
 
         public uint[] ReceiveServerData()
         {
-            BeginReceiveServer();
-
+            if (exchangeData == null)
+            {
+                receiveDone.Reset();
+                BeginReceiveServer();
+                receiveDone.WaitOne();
+            }
+            
             uint[] currExchangeData = exchangeData;
             exchangeData = null;
 

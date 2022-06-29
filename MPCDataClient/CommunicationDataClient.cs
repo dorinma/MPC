@@ -21,7 +21,7 @@ namespace MPCDataClient
         private Socket client;
         private static Protocol protocol = Protocol.Instance;
 
-        public string sessionId { get; set; }
+        public string sessionId = string.Empty;
         public string response = string.Empty;
         public List<uint> dataResponse = new List<uint>();
 
@@ -114,7 +114,7 @@ namespace MPCDataClient
 
         public void ReceiveCallback(IAsyncResult ar)
         {
-            String content = String.Empty;
+            string content = string.Empty;
 
             // Retrieve the state object and the handler socket from the asynchronous state object.  
             StateObject state = (StateObject)ar.AsyncState;
