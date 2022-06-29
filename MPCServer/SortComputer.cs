@@ -13,6 +13,7 @@ namespace MPCServer
         public SortComputer(uint[] values, RandomRequest randomRequest, byte instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger) 
             : base(values, randomRequest, instance, comm, dcfAdapter, dpfAdapter, logger)
         {
+            memoryBytesCounter = data.Length * 660 + (data.Length * (data.Length - 1) / 2) * 900;
         }
 
         public override uint[] Compute()

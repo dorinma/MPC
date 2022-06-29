@@ -28,7 +28,7 @@
             this.dpfAdapter = dpfAdapter;
             this.logger = logger;
             communicationBytesCounter = 0;
-            memoryBytesCounter = data.Length * 660 + (data.Length * (data.Length - 1) / 2) * 900; ;
+            memoryBytesCounter = 0; //overinding per operation
         }
 
         public abstract uint[] Compute();
