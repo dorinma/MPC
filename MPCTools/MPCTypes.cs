@@ -17,6 +17,9 @@ namespace MPCTools
 
         public const byte NULL_TERMINATOR = 0xA;
         public const int pendingQueueLength = 10;
+
+        public const int portServerA = 2022;
+        public const int portServerB = 2023;
     }
 
     public class StateObject

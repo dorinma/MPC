@@ -47,12 +47,12 @@ namespace MPCServer
             }
 
             string memberServerIP = args[0];
-            int memberServerPort = instance == 0 ? ServerConstants.portServerB : instance == 1 ? ServerConstants.portServerA : 0;
+            int memberServerPort = instance == 0 ? ProtocolConstants.portServerB : instance == 1 ? ProtocolConstants.portServerA : 0;
             comm.setInstance(instance);
 
             comm.ConnectServers(memberServerIP, memberServerPort);
 
-            if (!comm.OpenSocket(instance == 0 ? ServerConstants.portServerA : ServerConstants.portServerB))
+            if (!comm.OpenSocket(instance == 0 ? ProtocolConstants.portServerA : ProtocolConstants.portServerB))
             {
                 logger.Error("Could not create a socket between servers.");
                 return;

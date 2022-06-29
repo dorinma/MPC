@@ -50,8 +50,12 @@ namespace MPC_UI
 
         private void Send_Click(object sender, RoutedEventArgs e)
         {
-            if (!isFirstClient && ValidateInputFirstInit())
-                ManagerDataClient.InitConnectionExistingSession(mainDataContext.IP1, mainDataContext.Port1, mainDataContext.SessionId);
+            if (!isFirstClient && ValidateInputFirstInit()
+                && !ManagerDataClient.InitConnectionExistingSession(mainDataContext.IP1, mainDataContext.Port1, mainDataContext.SessionId))
+            {
+                MessageBox.Show("Could not send data. Check servers' addresses.");
+                return;
+            }
             if (ValidateInput())
             {
                 uint[] data = managerDataClient.ReadInput(inFile.Text);
@@ -83,7 +87,8 @@ namespace MPC_UI
             if (ValidateInputFirstInit())
             {
                 mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1,
-                    Operations.operations[Operation.SelectedIndex], mainDataContext.ParticipantsNum, isDebugMode);
+                    mainDataContext.IP2, mainDataContext.Port2, Operations.operations[Operation.SelectedIndex], 
+                    mainDataContext.ParticipantsNum, isDebugMode);
                 if (mainDataContext.SessionId != string.Empty)
                 {
                     sessionId.Text = mainDataContext.SessionId; //assume valid session id received from server.
@@ -157,9 +162,9 @@ namespace MPC_UI
 
         private bool ValidateInputFirstInit()
         {
-            return ValidateIP(mainDataContext.IP1)
-               && ValidatePort(mainDataContext.Port1)
-               && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 1000; 
+            return ValidateIP(mainDataContext.IP1) && ValidatePort(mainDataContext.Port1)
+                && ValidateIP(mainDataContext.IP2) && ValidatePort(mainDataContext.Port2)
+               && mainDataContext.ParticipantsNum > 0 && mainDataContext.ParticipantsNum < 1000;
         }
 
         private bool ValidateInput()

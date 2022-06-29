@@ -40,8 +40,8 @@
 
             if (userService1.StartSession(out OPERATION operation, out int numberOfUsers, out bool debugMode))
             {
-                sessionId = InitConnectionNewSession(ip1, port1, operation, numberOfUsers, debugMode);
-                if(sessionId == "")
+                sessionId = InitConnectionNewSession(ip1, port1, ip2, port2, operation, numberOfUsers, debugMode);
+                if(sessionId == String.Empty)
                 {
                     Console.WriteLine("Error: Could not create session. Check servers' addresses.");
                     Environment.Exit(-1);
@@ -50,7 +50,11 @@
             else
             {
                 sessionId = userService1.ReadSessionId();
-                InitConnectionExistingSession(ip1, port1, sessionId);
+                if(!InitConnectionExistingSession(ip1, port1, sessionId))
+                {
+                    Console.WriteLine("Error: Could not create session. Check servers' addresses.");
+                    Environment.Exit(-1);
+                }
             }
 
             uint[] data = userService1.ReadData().ToArray();
@@ -59,29 +63,48 @@
         }
 
 
-        public static string InitConnectionNewSession(string ip, int port, OPERATION operation, int numberOfUsers, bool debugMode)
+        public static string InitConnectionNewSession(string ip1, int port1, string ip2, int port2, OPERATION operation, int numberOfUsers, bool debugMode)
         {
             communicationA = new CommunicationDataClient();
+            if(port1 != ProtocolConstants.portServerA || port2 != ProtocolConstants.portServerB)
+            {
+                return String.Empty;
+            }
+
             string sessionId;
-            if (communicationA.Connect(ip, port))
+            if (communicationA.Connect(ip1, port1))
             {
                 sessionId = communicationA.SendInitMessage(operation, numberOfUsers, debugMode);
                 communicationA.receiveDone.Reset();
                 return sessionId;
             }
-            return "";
+
+            return String.Empty;
         }
 
-        public static void InitConnectionExistingSession(string ip, int port, string sessionId)
+        public static bool InitConnectionExistingSession(string ip, int port, string sessionId)
         {
-            communicationA = new CommunicationDataClient();
-            communicationA.Connect(ip, port);
-            communicationA.receiveDone.Reset();
+            if (port != ProtocolConstants.portServerA)
+            {
+                return false;
+            }
+            else
+            {
+                communicationA = new CommunicationDataClient();
+                communicationA.Connect(ip, port);
+                communicationA.receiveDone.Reset();
+                return true;
+            }
         }
 
         public static string Run(string ip, int port, string sessionId, uint[] data)
         {
             communicationB = new CommunicationDataClient();
+
+            if (port != ProtocolConstants.portServerB)
+            {
+                return "Second server's port is incorrect.";
+            }
 
             RandomUtils.SplitToSecretShares(data, out uint[] serverAShares, out uint[] serverBShares);
             
