@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MPCDataClient
 {
@@ -37,8 +36,16 @@ namespace MPCDataClient
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 // Connect to the remote endpoint.  
-                client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
+                var ar = client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
                 connectDone.WaitOne();
+                Socket socket = (Socket)ar.AsyncState;
+
+                if (!socket.Connected)
+                {
+                    Console.WriteLine("Could not connect to the servers.");
+                    return false;
+                }
+
                 Console.WriteLine($"Connected to server with IP: {serverIp}, port: {serverPort}.");
                 return true;
             }
@@ -66,6 +73,7 @@ namespace MPCDataClient
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+                connectDone.Set();
             }
         }
 

@@ -16,47 +16,32 @@ namespace MPCRandomnessClient
         private static string ip2;
         private static int port1;
         private static int port2;
+        private static int n;
 
         private const int RETRY_COUNT = 5;
         private const int SLEEP_TIME = 3000; //3 seconds
 
-        public static void Main(string[] args) // args = [ip1, port1, ip2, port2]
+        public static void Main(string[] args) // args = [ip1, port1, ip2, port2, n(num of elements)]
         {
-            if (args.Length < 4)
+            if (args.Length < 5)
             {
-                Console.WriteLine("[ERROR] Missing servers' communication details.");
+                Console.WriteLine("[ERROR] Missing program arguments (servers' communication details/ number of elements).");
                 Environment.Exit(-1);
             }
 
             ip1 = args[0];
             ip2 = args[2];
-            bool validPorts = int.TryParse(args[1], out port1) && int.TryParse(args[3], out port2);
+            bool validArgs = int.TryParse(args[1], out port1) && int.TryParse(args[3], out port2) && int.TryParse(args[4], out n);
 
-            if(!validPorts)
+            if(!validArgs)
             {
-                Console.WriteLine("[ERROR] Invalid ports.");
+                Console.WriteLine("[ERROR] Invalid arguments (ports/ n).");
                 Environment.Exit(-1);
             }
 
             // Future code - while with timer
             communicationA = new CommunicationRandClient();
             communicationB = new CommunicationRandClient();
-            int n = 0;
-            if (args.Length < 1)
-            {
-                Console.WriteLine("Missing randomness details.");
-                Environment.Exit(-1);
-            }
-
-            try
-            {
-                n = int.Parse(args[0]);
-            }
-            catch
-            {
-                Console.WriteLine("Illegal randomness details.");
-                Environment.Exit(-1);
-            }
 
             CreateAndSendCircuits(n);
 
@@ -74,7 +59,7 @@ namespace MPCRandomnessClient
             {
                 switch (op)
                 {
-                    case OPERATION.SORT:
+                    case OPERATION.Sort:
                     {
                         currCircuit =  new SortCircuit(n);
                         break;
@@ -153,7 +138,7 @@ namespace MPCRandomnessClient
                 
                 System.Threading.Thread.Sleep(SLEEP_TIME);
                 tries++;
-                SendRadomness(sortRequestA, sortRequestB);
+                SendRadomness(requestA, requestB);
             }
 
             if (communicationA.serversVerified && communicationB.serversVerified)

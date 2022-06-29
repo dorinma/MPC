@@ -133,5 +133,10 @@
             data = userService.ReadData(filePath).ToArray();
             return data;
         }
+
+        public static string GetServerResponse()
+        {
+            return communicationA.response;
+        }
     }
 }

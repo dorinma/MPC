@@ -84,14 +84,23 @@ namespace MPC_UI
             {
                 mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1,
                     Operations.operations[Operation.SelectedIndex], mainDataContext.ParticipantsNum, isDebugMode);
-                if (mainDataContext.SessionId != "")
+                if (mainDataContext.SessionId != string.Empty)
                 {
                     sessionId.Text = mainDataContext.SessionId; //assume valid session id received from server.
                     //isFirstClient = true;
                 }
                 else
                 {
-                    MessageBox.Show("Could not create session. Check servers' addresses.");
+                    string msg = "Could not create session.";
+                    if (ManagerDataClient.GetServerResponse() != string.Empty)
+                    {
+                        msg += " " + ManagerDataClient.GetServerResponse();
+                    }
+                    else
+                    {
+                        msg += " Check servers' addresses.";
+                    }
+                    MessageBox.Show(msg);
                 }
             }
             else

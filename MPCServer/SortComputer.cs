@@ -10,10 +10,14 @@ namespace MPCServer
 {
     public class SortComputer : Computer
     {
+        private const int DPF_KEY_SIZE = 692;
+        private const int DCF_KEY_SIZE = 900;
+
+
         public SortComputer(uint[] values, RandomRequest randomRequest, byte instance, CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger) 
             : base(values, randomRequest, instance, comm, dcfAdapter, dpfAdapter, logger)
         {
-            memoryBytesCounter = data.Length * 660 + (data.Length * (data.Length - 1) / 2) * 900;
+            memoryBytesCounter = data.Length * DPF_KEY_SIZE + (data.Length * (data.Length - 1) / 2) * DCF_KEY_SIZE;
         }
 
         public override uint[] Compute()

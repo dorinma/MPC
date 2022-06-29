@@ -39,16 +39,11 @@ namespace MPCServer
         public string sessionId;
         public bool debugMode;
 
-        private const int pendingQueueLength = 10;
-
         public Dictionary<OPERATION, RandomRequest> randomRequests;
 
-        public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
+        public OPERATION operation; 
         private List<uint> values;
-        public SortRandomRequest sortRandomRequest = default;
         private uint[] exchangeData = null;
-        //Future code
-        //pubkic Dictionary<OPERATION, SortRandomRequest> requeset;
 
         public CommunicationServer(ILogger logger)
         {
@@ -453,9 +448,11 @@ namespace MPCServer
             SetDebugMode(clientInitRequest.debugMode);
 
             SendSessionDetailsToServer();
+            
             // Send session id to the data client
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_INIT, sessionId);
             Send(socket, messageRequest);
+            
             // Wait for client data
             StateObject state = new StateObject();
             state.workSocket = socket;
@@ -554,7 +551,7 @@ namespace MPCServer
 
             string data = JsonConvert.SerializeObject(serverToServerInitRequest);
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_TO_SERVER_INIT, data);
-            //TODO
+
             Send(memberServerSocket, messageRequest);
         }
 

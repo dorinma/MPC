@@ -3,10 +3,9 @@ using System;
 using System.Linq;
 using NLog;
 using System.IO;
-using System.ComponentModel.DataAnnotations;
-using NLog.Config;
-using NLog.Targets;
 using System.Diagnostics;
+using MPCTools.Requests;
+
 
 namespace MPCServer
 {
@@ -125,10 +124,7 @@ namespace MPCServer
 
         public static uint[] Compute(OPERATION op)
         {
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
-
-            return computer.Compute(op);
-            logger.Info($"Number of elements - {values.Length}.");
+            logger.Info($"Number of elements: {values.Length}.");
 
             RandomRequest randomRequest = comm.randomRequests[op];
 
@@ -153,6 +149,7 @@ namespace MPCServer
             uint[] res = computer.Compute();
 
             watch.Stop();
+
             var elapsedMs = watch.ElapsedMilliseconds;
             logger.Trace($"Operation {op} on {values.Length} elements: {elapsedMs} ms");
             logger.Trace($"Runtime {elapsedMs} ms");
@@ -166,7 +163,7 @@ namespace MPCServer
         {
             switch (op)
             {
-                case OPERATION.SORT:
+                case OPERATION.Sort:
                     {
                         return new SortComputer(values, randomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
                     }
