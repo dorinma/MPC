@@ -63,7 +63,8 @@ namespace MPCServer
             connectServerDone = new ManualResetEvent(false);
             serversSend = new ManualResetEvent(false);
             receiveDone = new ManualResetEvent(false);
-        }
+            randomRequests = new Dictionary<OPERATION, RandomRequest>();
+    }
 
         public void setInstance(byte instance)
         {
@@ -366,7 +367,13 @@ namespace MPCServer
             RandomRequest randomRequest = protocol.DeserializeRequest<RandomRequest>(data);
             if (randomRequest != default)
             {
-                randomRequests[randomRequest.operation] = randomRequest;
+                if(!randomRequests.ContainsKey(randomRequest.operation))
+                    randomRequests.Add(randomRequest.operation, randomRequest);
+                else
+                {
+                    randomRequests.Remove(randomRequest.operation);
+                    randomRequests.Add(randomRequest.operation, randomRequest);
+                }
                 // send confirmation
                 Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, randomRequest.sessionId));
                 logger.Debug($"Recieve randomness request for {randomRequest.operation} for {randomRequest.n} elements.");
