@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using MPCTools;
 
 namespace MPC_UI.ViewModel
 {
@@ -11,16 +7,25 @@ namespace MPC_UI.ViewModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        string ip1, ip2, sessionId;
+        string ip1, ip2, sessionId, selectedOper;
         int port1, port2, participants;
+        string[] operations;
 
         public MainDataContext()
         {
-            ip1 = "";
-            ip2 = "";
-            port1 = 0;
-            port2 = 0;
             participants = 1;
+            SetOperations();
+            if(operations != null && operations.Length > 0)
+                selectedOper = operations[0];
+        }
+
+        private void SetOperations()
+        {
+            operations = new string[MPCTools.Operations.operations.Length];
+            for (int i = 0; i < MPCTools.Operations.operations.Length; i++)
+            {
+                operations[i] = MPCTools.Operations.operations[i].ToString();
+            }
         }
 
         public string IP1
@@ -106,6 +111,36 @@ namespace MPC_UI.ViewModel
 
                 if (PropertyChanged != null)
                     PropertyChanged(this, new PropertyChangedEventArgs("SessionId"));
+            }
+        }
+
+        public string[] Operations
+        {
+            get
+            {
+                return operations;
+            }
+            set
+            {
+                operations = value;
+
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs("Operations"));
+            }
+        }
+
+        public string SelectedOper
+        {
+            get
+            {
+                return selectedOper;
+            }
+            set
+            {
+                selectedOper = value;
+
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs("SelectedOper"));
             }
         }
 
