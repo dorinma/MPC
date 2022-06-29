@@ -59,6 +59,7 @@ namespace MPC_UI
                 {
                     string res = ManagerDataClient.Run(mainDataContext.IP2, mainDataContext.Port2, mainDataContext.SessionId, data);
                     MessageBox.Show(res);
+                    ClearScreen();
                 }
                 else
                 {
@@ -82,7 +83,7 @@ namespace MPC_UI
             if (ValidateInputFirstInit())
             {
                 mainDataContext.SessionId = ManagerDataClient.InitConnectionNewSession(mainDataContext.IP1, mainDataContext.Port1,
-                    Operations.operations[Operation.SelectedIndex - 1], mainDataContext.ParticipantsNum, isDebugMode);
+                    Operations.operations[Operation.SelectedIndex], mainDataContext.ParticipantsNum, isDebugMode);
                 if (mainDataContext.SessionId != "")
                 {
                     sessionId.Text = mainDataContext.SessionId; //assume valid session id received from server.
@@ -126,6 +127,17 @@ namespace MPC_UI
         private void DebugMode_Unchecked(object sender, RoutedEventArgs e)
         {
             isDebugMode = false;
+        }
+
+        private void ClearScreen()
+        {
+            mainDataContext.IP1 = "";
+            mainDataContext.IP2 = "";
+            mainDataContext.Port1 = 0;
+            mainDataContext.Port2 = 0;
+            mainDataContext.SessionId = "";
+            RB_ExistingSession.IsChecked = true;
+            inFile.Text = "";
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)

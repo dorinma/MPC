@@ -46,7 +46,7 @@
             
             switch (op)
             {
-                case OPERATION.SORT:
+                case OPERATION.Sort:
                     {
                         result = sortCompute();
                         break;

@@ -44,7 +44,7 @@ namespace MPCRandomnessClient
 
                 // Connect to the remote endpoint.  
                 socket.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), socket);
-                Console.WriteLine($"Connected to server with ip: {serverIp} port: {serverPort}");
+                Console.WriteLine($"[INFO] Connected to server at {serverIp}:{serverPort}.");
             }
             catch (Exception e)
             {
@@ -137,23 +137,20 @@ namespace MPCRandomnessClient
             if (bytesRead > 0)
             {
                 // There  might be more data, so store the data received so far.  
-                state.sb.Append(Encoding.ASCII.GetString(
-                    state.buffer, 0, bytesRead));
+                state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
 
                 // Check for end-of-file tag. If it is not there, read
                 // more data.  
                 content = state.sb.ToString();
                 if (content.IndexOf("<EOF>") > -1)
                 {
-                    // All the data has been read from the
-                    // client. Display it on the console.  
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
-                        content.Length, content);
+                    // All the data has been read from the client. Display it on the console.  
+                    //Console.WriteLine($"[INFO] Read {content.Length} bytes from server at {handler.RemoteEndPoint}.");
 
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     if (messageRequest == default)
                     {
-                        Console.WriteLine($"Bad json format");
+                        Console.WriteLine($"[ERROR] Bad json format");
                         return;
                     }
                     
@@ -179,18 +176,18 @@ namespace MPCRandomnessClient
                         serversVerified = sessionId.Equals(sessionReceived);
                         if (serversVerified)
                         {
-                            Console.WriteLine($"Received confirmation, session id: {sessionId}");
+                            Console.WriteLine($"[INFO] Received confirmation of session: {sessionId}");
                         }
                         else
                         {
-                            Console.WriteLine($"Wrong session id session id: {sessionId}");
+                            Console.WriteLine($"[ERROR] Wrong session id: {sessionId}");
                         }
 
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
-                        Console.WriteLine($"Received error: {data}");
+                        Console.WriteLine($"[ERROR] Received error: {data}");
                         break;
                     }
                 default:
@@ -205,9 +202,9 @@ namespace MPCRandomnessClient
                 socket.Shutdown(SocketShutdown.Both);
                 socket.Close();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine("[ERROR] " + ex.Message);
             }
         }
     }

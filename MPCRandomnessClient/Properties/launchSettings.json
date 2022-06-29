@@ -1,7 +1,8 @@
 {
   "profiles": {
     "MPCRandomnessClient": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "127.0.0.1 2022 127.0.0.1 2023"
     },
     "Profile 1": {
       "commandName": "Project",

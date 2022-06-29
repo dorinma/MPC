@@ -45,11 +45,11 @@ namespace MPCTools
 
     public enum OPERATION : UInt16
     {
-        SORT = 0X01
+        Sort = 0x01
     }
 
     public class Operations
     {
-        public static readonly OPERATION[] operations = { OPERATION.SORT };
+        public static readonly OPERATION[] operations = { OPERATION.Sort };
     }
 }
