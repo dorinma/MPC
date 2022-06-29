@@ -43,9 +43,20 @@
                 sessionId = InitConnectionNewSession(ip1, port1, ip2, port2, operation, numberOfUsers, debugMode);
                 if(sessionId == String.Empty)
                 {
-                    Console.WriteLine("Error: Could not create session. Check servers' addresses.");
+                    Console.WriteLine("Error: Could not create session.");
+                    if(communicationA.response != string.Empty)
+                    {
+                        Console.WriteLine(communicationA.response);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Check servers' addresses.");
+                    }
+                    
                     Environment.Exit(-1);
                 }
+
+                Console.WriteLine($"Session id: {sessionId}"); 
             }
             else
             {

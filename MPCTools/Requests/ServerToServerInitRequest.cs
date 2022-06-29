@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace MPCTools.Requests
 {
@@ -6,6 +7,9 @@ namespace MPCTools.Requests
     {
         [JsonProperty("sessionId", Required = Required.Always)]
         public string sessionId { get; set; }
+
+        [JsonProperty("sessionStartTime", Required = Required.Always)]
+        public DateTime sessionStartTime { get; set; }
 
         [JsonProperty("operation", Required = Required.Always)]
         public OPERATION operation { get; set; }

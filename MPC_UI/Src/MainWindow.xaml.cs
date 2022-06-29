@@ -8,6 +8,7 @@ using System.IO;
 using MPC_UI.ViewModel;
 using MPCDataClient;
 using MPCTools;
+using MPCRandomnessClient;
 
 namespace MPC_UI
 {
@@ -19,10 +20,10 @@ namespace MPC_UI
         private const int MAX_PORTS = 65536; //+1
 
         MainDataContext mainDataContext;
-        MPCDataClient.ManagerDataClient managerDataClient;
-        MPCRandomnessClient.ManagerRandomnessClient managerRandomnessClient;
+        ManagerDataClient managerDataClient;
+
         private bool isFirstClient = false;
-        private bool isDebugMode = true;
+        private bool isDebugMode = false;
 
         public MainWindow()
         {
@@ -31,8 +32,7 @@ namespace MPC_UI
             mainDataContext = new MainDataContext();
             DataContext = mainDataContext;
 
-            managerDataClient = new MPCDataClient.ManagerDataClient();
-            managerRandomnessClient = new MPCRandomnessClient.ManagerRandomnessClient();
+            managerDataClient = new ManagerDataClient();
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
