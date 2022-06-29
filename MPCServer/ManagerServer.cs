@@ -5,6 +5,8 @@ using NLog;
 using System.IO;
 using System.ComponentModel.DataAnnotations;
 using NLog.Config;
+using NLog.Targets;
+using System.Diagnostics;
 
 namespace MPCServer
 {
@@ -89,7 +91,7 @@ namespace MPCServer
 
             string msg = "Computation completed successfully.";
             logger.Info(msg);
-
+               
             string fileName = (instance == 0 ? "outA" : "outB") + "_" + comm.sessionId + ".csv";
             string fullPath = Path.Combine(@"..\\..\\..\\Results", fileName);
             MPCFiles.writeToFile(res, fullPath);
@@ -104,8 +106,9 @@ namespace MPCServer
             }
 
             // Clean used randmoness
-            deleteUsedMasksAndKeys(values.Length);
-        }
+            deleteUsedMasksAndKeys(values.Length, comm.operation);
+            comm.RestartServer(); //TODO check
+         }
 
         private static void SetupLogger()
         {
@@ -122,40 +125,77 @@ namespace MPCServer
 
         public static uint[] Compute(OPERATION op)
         {
-            logger.Info($"Number of elements: {values.Length}.");
-            if (values.Length > comm.sortRandomRequest.n)
+            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
+
+            return computer.Compute(op);
+            logger.Info($"Number of elements - {values.Length}.");
+
+            RandomRequest randomRequest = comm.randomRequests[op];
+
+            if (values.Length > randomRequest.n)
             {
                 string serverInstance = instance == 0 ? "A" : "B";
                 string msg = $"Server {serverInstance} doesn't have enough correlated randomness to perform the computation.";
                 logger.Error(msg);
                 comm.SendMessageToAllClients(OPCODE_MPC.E_OPCODE_ERROR, msg);
                 return null;
+            }          
+
+            Computer computer = InitComputer(op, randomRequest);
+
+            if(computer == null)
+            {
+                //send error , invalid opperation 
             }
 
-            Computer computer = new Computer(values, comm.sortRandomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
+            var watch = Stopwatch.StartNew();
 
-            return computer.Compute(op);
+            uint[] res = computer.Compute();
+
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+            logger.Trace($"Operation {op} on {values.Length} elements: {elapsedMs} ms");
+            logger.Trace($"Runtime {elapsedMs} ms");
+            logger.Trace($"Memory consumption {computer.memoryBytesCounter} bytes");
+            logger.Trace($"communication sent {computer.communicationBytesCounter} bytes");
+
+            return res;
         }
 
-        private static void deleteUsedMasksAndKeys(int numOfElement)
+        private static Computer InitComputer(OPERATION op, RandomRequest randomRequest)
         {
-            int n = comm.sortRandomRequest.n;
+            switch (op)
+            {
+                case OPERATION.SORT:
+                    {
+                        return new SortComputer(values, randomRequest, instance, comm, new DcfAdapterServer(), new DpfAdapterServer(), logger);
+                    }
+            }
+
+            return null;
+        }
+
+        private static void deleteUsedMasksAndKeys(int numOfElement, OPERATION op)
+        {
+            RandomRequest randomRequest = comm.randomRequests[op];
+            int n = randomRequest.n;
             int dcfKeysToSkip = (2 * n - 1 - numOfElement) * numOfElement / 2;
 
-            comm.sortRandomRequest.n = comm.sortRandomRequest.n - numOfElement;
+            randomRequest.n = randomRequest.n - numOfElement;
 
-            comm.sortRandomRequest.dcfMasks = comm.sortRandomRequest.dcfMasks.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dcfKeysSmallerLowerBound = comm.sortRandomRequest.dcfKeysSmallerLowerBound.Skip(dcfKeysToSkip).ToArray();
-            comm.sortRandomRequest.dcfKeysSmallerUpperBound = comm.sortRandomRequest.dcfKeysSmallerUpperBound.Skip(dcfKeysToSkip).ToArray();
-            comm.sortRandomRequest.shares01 = comm.sortRandomRequest.shares01.Skip(dcfKeysToSkip).ToArray();
-            comm.sortRandomRequest.dcfAesKeysLower = comm.sortRandomRequest.dcfAesKeysLower.Skip(dcfKeysToSkip).ToArray();
-            comm.sortRandomRequest.dcfAesKeysUpper = comm.sortRandomRequest.dcfAesKeysUpper.Skip(dcfKeysToSkip).ToArray();
+            randomRequest.dcfMasks = randomRequest.dcfMasks.Skip(numOfElement).ToArray();
+            randomRequest.dcfKeysSmallerLowerBound = randomRequest.dcfKeysSmallerLowerBound.Skip(dcfKeysToSkip).ToArray();
+            randomRequest.dcfKeysSmallerUpperBound = randomRequest.dcfKeysSmallerUpperBound.Skip(dcfKeysToSkip).ToArray();
+            randomRequest.shares01 = randomRequest.shares01.Skip(dcfKeysToSkip).ToArray();
+            randomRequest.dcfAesKeysLower = randomRequest.dcfAesKeysLower.Skip(dcfKeysToSkip).ToArray();
+            randomRequest.dcfAesKeysUpper = randomRequest.dcfAesKeysUpper.Skip(dcfKeysToSkip).ToArray();
 
-            comm.sortRandomRequest.dpfMasks = comm.sortRandomRequest.dpfMasks.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dpfKeys = comm.sortRandomRequest.dpfKeys.Skip(numOfElement).ToArray();
-            comm.sortRandomRequest.dpfAesKeys = comm.sortRandomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
+            randomRequest.dpfMasks = randomRequest.dpfMasks.Skip(numOfElement).ToArray();
+            randomRequest.dpfKeys = randomRequest.dpfKeys.Skip(numOfElement).ToArray();
+            randomRequest.dpfAesKeys = randomRequest.dpfAesKeys.Skip(numOfElement).ToArray();
 
-            logger.Debug($"Clear used randomness. {comm.sortRandomRequest.n} elements left.");
+            comm.randomRequests[op] = randomRequest;
+            logger.Debug($"Clear used {op} randomness. {randomRequest.n} elements left.");
         }
     }
 }

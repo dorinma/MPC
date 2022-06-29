@@ -21,7 +21,7 @@ namespace Tests.ServerTest
             loggerMock = new Mock<ILogger>().Object;
         }
 
-        SortRandomRequest emptyRequest = new SortRandomRequest
+        RandomRequest emptyRequest = new RandomRequest
         {
             sessionId = string.Empty,
             n = 10,
@@ -36,9 +36,9 @@ namespace Tests.ServerTest
             dpfAesKeys = new string[10]
         };
 
-        public Computer InitComuter(byte instance, SortRandomRequest randomRequest = default, IDcfAdapterServer dcfAdapter = default, IDpfAdapterServer dpfAdapter = default)
+        public SortComputer InitComuter(byte instance, RandomRequest randomRequest = default, IDcfAdapterServer dcfAdapter = default, IDpfAdapterServer dpfAdapter = default)
         {
-            return new Computer(null, randomRequest, instance, null, dcfAdapter, dpfAdapter, loggerMock);
+            return new SortComputer(null, randomRequest, instance, null, dcfAdapter, dpfAdapter, loggerMock);
         }
 
         [Theory]
@@ -70,8 +70,8 @@ namespace Tests.ServerTest
         public void ComputesIndexesShares_ShouldSuccess(uint[] values, uint[] expectedIndexes)
         {
             Mock<IDcfAdapterServer> dcfMock = new Mock<IDcfAdapterServer>();
-            Computer computerA = InitComuter(0, emptyRequest, dcfAdapter: dcfMock.Object);
-            Computer computerB = InitComuter(1, emptyRequest, dcfAdapter: dcfMock.Object);
+            SortComputer computerA = InitComuter(0, emptyRequest, dcfAdapter: dcfMock.Object);
+            SortComputer computerB = InitComuter(1, emptyRequest, dcfAdapter: dcfMock.Object);
 
             uint[] diffValues = computerA.DiffEachPairValues(values, values.Length); //same for both computers
 
@@ -91,7 +91,7 @@ namespace Tests.ServerTest
             Mock<IDcfAdapterServer> dcfMock = new Mock<IDcfAdapterServer>();
             dcfMock.Setup(mock => mock.EvalDCF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
                 .Returns(0);
-            Computer computerA = InitComuter(0, emptyRequest, dcfAdapter: dcfMock.Object);
+            SortComputer computerA = InitComuter(0, emptyRequest, dcfAdapter: dcfMock.Object);
             
             Assert.ThrowsAny<Exception>(() => computerA.ComputeIndexesShares(diffValues, diffValues.Length, 10));
         }
@@ -101,8 +101,8 @@ namespace Tests.ServerTest
         public void ComputesResultsShares_ShouldSuccess(uint[] values, uint[] sharesAValues, uint[] sharesBValues, uint[] indexes)
         {
             Mock<IDpfAdapterServer> dpfMock = new Mock<IDpfAdapterServer>();
-            Computer computerA = InitComuter(0, emptyRequest, dpfAdapter: dpfMock.Object);
-            Computer computerB = InitComuter(1, emptyRequest, dpfAdapter: dpfMock.Object);
+            SortComputer computerA = InitComuter(0, emptyRequest, dpfAdapter: dpfMock.Object);
+            SortComputer computerB = InitComuter(1, emptyRequest, dpfAdapter: dpfMock.Object);
 
             SetupDpfMock(dpfMock);
 

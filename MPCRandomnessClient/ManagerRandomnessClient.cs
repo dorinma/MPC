@@ -10,15 +10,6 @@ namespace MPCRandomnessClient
 {
     public class ManagerRandomnessClient
     {
-        public const int N = 10; // n
-        /*public const int dcfMasksCount = n; // mask for each input element
-        public const int dpfMasksCount = n; // mask for each element's index sum 
-        public const int dcfGatesCount = n*(n-1)/2; // first layer (dcf gates) - n choose 2.
-        public const int dpfGatesCount = n; // dpf gate for each index - n */
-
-        private static DcfAdapterRandClient dcfAdapter = new DcfAdapterRandClient();
-        private static DpfAdapterRandClient dpfAdapter = new DpfAdapterRandClient();
-
         private static CommunicationRandClient communicationA;
         private static CommunicationRandClient communicationB;
         private static string ip1;
@@ -50,123 +41,98 @@ namespace MPCRandomnessClient
             // Future code - while with timer
             communicationA = new CommunicationRandClient();
             communicationB = new CommunicationRandClient();
+            int n = 0;
+            if (args.Length < 1)
+            {
+                Console.WriteLine("Missing randomness details.");
+                Environment.Exit(-1);
+            }
 
-            // Sort
-            CreateAndSendCircuits();
+            try
+            {
+                n = int.Parse(args[0]);
+            }
+            catch
+            {
+                Console.WriteLine("Illegal randomness details.");
+                Environment.Exit(-1);
+            }
+
+            CreateAndSendCircuits(n);
+
             communicationA.Reset();
             communicationB.Reset();
-            // Other circuits
         }
 
-        public static void CreateAndSendCircuits()
+        public static void CreateAndSendCircuits(int n)
         {
             string newSessionId = RandomUtils.GenerateSessionId();
             Console.WriteLine($"[INFO] New session id: {newSessionId}");
-            CreateCircuits(newSessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB, n: N);
-            SendToServers(newSessionId, sortRequestA, sortRequestB);
+            Circuit currCircuit = null;
+
+            foreach (OPERATION op in Operations.operations)
+            {
+                switch (op)
+                {
+                    case OPERATION.SORT:
+                    {
+                        currCircuit =  new SortCircuit(n);
+                        break;
+                    }
+                }
+                CreateCircuits(newSessionId, currCircuit, op, out RandomRequest requestA, out RandomRequest requestB);
+                SendToServers(newSessionId, requestA, requestB);
+            }
         }
 
-        public static void CreateCircuits(string sessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB, int n)
+        public static void CreateCircuits(string sessionId, Circuit circuit, OPERATION op, out RandomRequest requestA, out RandomRequest requestB)
         {
-            int dcfMasksCount = n; // Mask for each input element
-            int dpfMasksCount = n; // Mask for each element's index sum 
-            int dcfGatesCount = n * (n - 1) / 2; // First layer (dcf gates) - n choose 2.
-            int dpfGatesCount = n; // Dpf gate for each index - n 
-            // Create masks and split them to shares
-            // Dcf
-            uint[] dcfMasks = RandomUtils.CreateRandomMasks(dcfMasksCount);
+            //create masks and split them to shares
+            //dcf
+            uint[] dcfMasks = RandomUtils.CreateRandomMasks(circuit.dcfMasksCount);
             RandomUtils.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB);
-            // Dpf
-            uint[] dpfMasks = RandomUtils.CreateRandomMasks(dpfMasksCount);
+            //dpf
+            uint[] dpfMasks = RandomUtils.CreateRandomMasks(circuit.dpfMasksCount);
             RandomUtils.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
 
-            sortRequestA = new SortRandomRequest
+            requestA = new RandomRequest
             {
                 sessionId = sessionId,
-                n = n,
+                operation = op,
+                n = circuit.n,
                 dcfMasks = dcfSharesA, // Also masks for the dpf output
-                dcfKeysSmallerLowerBound = new string[dcfGatesCount],
-                dcfKeysSmallerUpperBound = new string[dcfGatesCount],
-                shares01 = new uint[dcfGatesCount],
-                dcfAesKeysLower = new string[dcfGatesCount],
-                dcfAesKeysUpper = new string[dcfGatesCount],
+                dcfKeysSmallerLowerBound = new string[circuit.dcfGatesCount],
+                dcfKeysSmallerUpperBound = new string[circuit.dcfGatesCount],
+                shares01 = new uint[circuit.dcfGatesCount],
+                dcfAesKeysLower = new string[circuit.dcfGatesCount],
+                dcfAesKeysUpper = new string[circuit.dcfGatesCount],
                 dpfMasks = dpfSharesA,
-                dpfKeys = new string[dpfGatesCount],
-                dpfAesKeys = new string[dpfGatesCount]
+                dpfKeys = new string[circuit.dpfGatesCount],
+                dpfAesKeys = new string[circuit.dpfGatesCount]
             };
 
-            sortRequestB = new SortRandomRequest
+            requestB = new RandomRequest
             {
                 sessionId = sessionId,
-                n = n,
+                operation = op,
+                n = circuit.n,
                 dcfMasks = dcfSharesB, // Also masks for the dpf output
-                dcfKeysSmallerLowerBound = new string[dcfGatesCount],
-                dcfKeysSmallerUpperBound = new string[dcfGatesCount],
-                shares01 = new uint[dcfGatesCount],
-                dcfAesKeysLower = new string[dcfGatesCount],
-                dcfAesKeysUpper = new string[dcfGatesCount],
+                dcfKeysSmallerLowerBound = new string[circuit.dcfGatesCount],
+                dcfKeysSmallerUpperBound = new string[circuit.dcfGatesCount],
+                shares01 = new uint[circuit.dcfGatesCount],
+                dcfAesKeysLower = new string[circuit.dcfGatesCount],
+                dcfAesKeysUpper = new string[circuit.dcfGatesCount],
                 dpfMasks = dpfSharesB,
-                dpfKeys = new string[dpfGatesCount],
-                dpfAesKeys = new string[dpfGatesCount]
+                dpfKeys = new string[circuit.dpfGatesCount],
+                dpfAesKeys = new string[circuit.dpfGatesCount]
             };
 
-            // Create keys
-            GenerateDcfKeys(n, dcfMasks, sortRequestA, sortRequestB);
-            GenerateDpfKeys(n, dpfMasks, outputMasks: dcfMasks, sortRequestA, sortRequestB);
+            //create keys
+            circuit.GenerateDcfKeys(dcfMasks, requestA, requestB);
+            circuit.GenerateDpfKeys(dpfMasks, outputMasks: dcfMasks, requestA, requestB);
         }
 
-        public static void GenerateDcfKeys(int n, uint[] masks, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
-        {
-            // We define the range of the input to be between 0 to 2^31-1. (So the other half (from 2^31-1 to 2^32-1) will use for negative numbers)
-            // In regulre state, this range is the positive area but it change with the masks diff 
-            // Now we define the change in the offset.
-            // Basically we have a lower and upper bound for negative area.
-
-            int keyIndex = 0;
-            uint[] shares01 = new uint[sortRequestA.shares01.Length];
-            for (int i = 0; i < n; i++)
-            {
-                for (int j = i + 1; j < n; j++)
-                {
-                    uint maxValuaWithDiff = uint.MaxValue + (masks[i] - masks[j]);
-                    uint halfMaxValuaWithDiff = uint.MaxValue / 2 + (masks[i] - masks[j]);
-                    string keyA1, keyA2, keyB1, keyB2, aesKey1, aesKey2;
-                    shares01[keyIndex] = (maxValuaWithDiff > halfMaxValuaWithDiff) ? (uint)0 : 1;
-                    dcfAdapter.GenerateDCF(halfMaxValuaWithDiff, out keyA1, out keyB1, out aesKey1); 
-                    dcfAdapter.GenerateDCF(maxValuaWithDiff, out keyA2, out keyB2, out aesKey2);
-
-                    sortRequestA.dcfKeysSmallerLowerBound[keyIndex] = keyA1;
-                    sortRequestA.dcfKeysSmallerUpperBound[keyIndex] = keyA2;
-
-                    sortRequestB.dcfKeysSmallerLowerBound[keyIndex] = keyB1;
-                    sortRequestB.dcfKeysSmallerUpperBound[keyIndex] = keyB2;
-
-                    sortRequestA.dcfAesKeysLower[keyIndex] = aesKey1;
-                    sortRequestB.dcfAesKeysLower[keyIndex] = aesKey1;
-
-                    sortRequestA.dcfAesKeysUpper[keyIndex] = aesKey2;
-                    sortRequestB.dcfAesKeysUpper[keyIndex] = aesKey2;
-                    keyIndex++;
-                }
-                RandomUtils.SplitToSecretShares(shares01, out uint[] shares01A, out uint[] shares01B);
-                sortRequestA.shares01 = shares01A;
-                sortRequestB.shares01 = shares01B;
-            }
-        }
-        public static void GenerateDpfKeys(int n, uint[] masks, uint[] outputMasks, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
-        {
-            for (int i = 0; i < n; i++)
-            {
-                dpfAdapter.GenerateDPF(masks[i], 0 - outputMasks[i], out string keyA, out string keyB, out string aesKey);
-                sortRequestA.dpfKeys[i] = keyA;
-                sortRequestB.dpfKeys[i] = keyB;
-
-                sortRequestA.dpfAesKeys[i] = aesKey;
-                sortRequestB.dpfAesKeys[i] = aesKey;
-            }
-        }
-
-        private static void SendToServers(string sessionId, SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
+        private static void SendToServers(string sessionId, RandomRequest requestA, RandomRequest requestB)
         {
             communicationA.sessionId = sessionId;
             communicationB.sessionId = sessionId;
@@ -177,7 +143,7 @@ namespace MPCRandomnessClient
             communicationB.connectDone.WaitOne();
 
             // Send
-            SendRadomness(sortRequestA, sortRequestB);
+            SendRadomness(requestA, requestB);
 
             int tries = 0;
 
@@ -200,10 +166,10 @@ namespace MPCRandomnessClient
             }
         }
 
-        private static void SendRadomness(SortRandomRequest sortRequestA, SortRandomRequest sortRequestB)
+        private static void SendRadomness(RandomRequest requestA, RandomRequest requestB)
         {
-            communicationA.SendMasksAndKeys(sortRequestA);
-            communicationB.SendMasksAndKeys(sortRequestB);
+            communicationA.SendMasksAndKeys(requestA);
+            communicationB.SendMasksAndKeys(requestB);
 
             // Receive confirmation
             communicationA.Receive();

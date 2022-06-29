@@ -4,154 +4,34 @@
     using MPCTools.Requests;
     using System;
     using NLog;
-    using System.Diagnostics;
 
-    public class Computer
+    public abstract class Computer
     {
-        private uint[] data;
-        private SortRandomRequest sortRandomRequest;
-        private byte instance;
-        private IDcfAdapterServer dcfAdapter;
-        private IDpfAdapterServer dpfAdapter;
-        private CommunicationServer comm;
-        private ILogger logger;
+        protected uint[] data;
+        protected RandomRequest randomRequest;
+        protected byte instance;
+        protected IDcfAdapterServer dcfAdapter;
+        protected IDpfAdapterServer dpfAdapter;
+        protected CommunicationServer comm;
+        protected ILogger logger;
+        public long communicationBytesCounter;
+        public long memoryBytesCounter;
 
-        private long communicationBytesCounter;
-        private long memoryBytesCounter;
-
-        private const int DPF_KEY_SIZE = 692;
-        private const int DCF_KEY_SIZE = 900;
-
-
-        public Computer(uint[] values, SortRandomRequest sortRandomRequest, byte instance,
+        public Computer(uint[] values, RandomRequest randomRequest, byte instance,
             CommunicationServer comm, IDcfAdapterServer dcfAdapter, IDpfAdapterServer dpfAdapter, ILogger logger)
         {
             data = values;
-            this.sortRandomRequest = sortRandomRequest;
+            this.randomRequest = randomRequest;
             this.instance = instance;
             this.comm = comm;
             this.dcfAdapter = dcfAdapter;
             this.dpfAdapter = dpfAdapter;
             this.logger = logger;
             communicationBytesCounter = 0;
-            memoryBytesCounter = 0;
+            memoryBytesCounter = 0; //overinding per operation
         }
 
-        public uint[] Compute(OPERATION op)
-        {
-            uint[] result = null;
-            memoryBytesCounter = 2 * data.Length * DPF_KEY_SIZE + (data.Length * (data.Length - 1) / 2) * DCF_KEY_SIZE;
-            //TODO move to an abstract method (sizes are different for each operation)
-            var watch = Stopwatch.StartNew();
-            
-            switch (op)
-            {
-                case OPERATION.Sort:
-                    {
-                        result = sortCompute();
-                        break;
-                    }
-                default:
-                    break;
-            }
-
-            watch.Stop();
-
-            var elapsedMs = watch.ElapsedMilliseconds;
-            logger.Trace($"{op} operation on {data.Length} elements.");
-            logger.Trace($"Runtime: {elapsedMs} ms.");
-            logger.Trace($"Memory consumption: {memoryBytesCounter} bytes.");
-            logger.Trace($"communication: {communicationBytesCounter} bytes sent.");
-            return result;
-        }
-
-        public uint[] sortCompute()
-        {
-
-            long totalMemoryBefore = GC.GetTotalMemory(true);
-
-            // First level - dcf between each pair values
-            int numOfElement = data.Length;
-            int n = sortRandomRequest.n;
-
-            // todo check n > numofelement
-
-            uint[] sumValuesMasks = SumServersPartsWithMasks(numOfElement, data, sortRandomRequest.dcfMasks);
-
-            uint[] diffValues = DiffEachPairValues(sumValuesMasks, numOfElement);
-
-            uint[] sharesIndexes = ComputeIndexesShares(diffValues, numOfElement, n);
-
-            logger.Debug("Indexes shares:");
-            logger.Debug(string.Join(", ", sharesIndexes));
-
-            // second level - sum results
-            uint[] sumIndexesMasks = SumServersPartsWithMasks(sharesIndexes.Length, sharesIndexes, sortRandomRequest.dpfMasks);
-
-            logger.Debug("Masked indexes:");
-            logger.Debug(string.Join(", ", sumIndexesMasks));
-
-            // third level - compare eatch value result to all possible indexes and placing in the returned list
-            uint[] sortList = ComputeResultsShares(sumIndexesMasks, sumValuesMasks, numOfElement);
-
-            long totalMemoryAfter = GC.GetTotalMemory(true);
-            memoryBytesCounter += totalMemoryAfter - totalMemoryBefore;
-            
-            return sortList;
-        }
-
-        public uint[] ComputeResultsShares(uint[] sumIndexesMasks, uint[] sumValuesMasks, int numOfElement)
-        {
-            uint[] sortList = new uint[numOfElement];
-            string[] dpfKeys = sortRandomRequest.dpfKeys;
-            string[] dpfAesKeys = sortRandomRequest.dpfAesKeys;
-            for (int i = 0; i < numOfElement; i++)
-            {
-                for (int j = 0; j < numOfElement; j++)
-                {
-                    sortList[j] += dpfAdapter.EvalDPF(instance, dpfKeys[i], dpfAesKeys[i], sumIndexesMasks[i] - (uint)j, sumValuesMasks[i]);
-                }
-            }
-            return sortList;
-        }
-
-        public uint[] ComputeIndexesShares(uint[] diffValues, int numOfElement, int n)
-        {
-            uint[] sharesIndexes = new uint[numOfElement];
-            string[] keysSmallerLowerBound = sortRandomRequest.dcfKeysSmallerLowerBound;
-            string[] keysSmallerUpperBound = sortRandomRequest.dcfKeysSmallerUpperBound;
-            string[] aesKeysLower = sortRandomRequest.dcfAesKeysLower;
-            string[] aesKeysUpper = sortRandomRequest.dcfAesKeysUpper;
-            uint[] shares01 = sortRandomRequest.shares01;
-            int valuesIndex = 0;
-
-            for (int i = 0; i < numOfElement; i++)
-            {
-                for (int j = i + 1; j < numOfElement; j++)
-                {
-                    // calculate the index for keyij -> key for the gate with input with mask i and j
-                    int keyIndex = (2 * n - i - 1) * i / 2 + j - i - 1;
-
-                    // -1 if values[i]-values[j] < smaller upper bound, otherxise 0 (shares)
-                    uint outputShare1 = 0 - dcfAdapter.EvalDCF(instance, keysSmallerUpperBound[keyIndex], aesKeysUpper[keyIndex], diffValues[valuesIndex]);
-                    // -1 if values[i]-values[j] < smaller lower bound, otherxise 0 (shares)
-                    uint outputShare2 = 0 - dcfAdapter.EvalDCF(instance, keysSmallerLowerBound[keyIndex], aesKeysLower[keyIndex], diffValues[valuesIndex]);
-                   
-                    // eventually return 1 if values[i] < values[j], otherxise 0 (shares)
-                    uint outputShare = shares01[keyIndex] - (outputShare1 - outputShare2); 
-
-                    // For the continuation of the algorithm, 1 means larger than and 0 means smaller than  
-                    // So switch 1 to 0 and the opposite for values[i]
-                    sharesIndexes[i] -= instance == 0 ? outputShare : (outputShare - 1);
-
-                    sharesIndexes[j] += outputShare;
-
-                    valuesIndex++;
-                }
-            }
-
-            return sharesIndexes;
-        }
+        public abstract uint[] Compute();
 
         public uint[] DiffEachPairValues(uint[] sumValuesMasks, int numOfElement)
         {
@@ -179,7 +59,7 @@
             }
         }
 
-        private uint[] SumServersPartsWithMasks(int numOfElement, uint[] partServer, uint[] masks) 
+        public uint[] SumServersPartsWithMasks(int numOfElement, uint[] partServer, uint[] masks) 
         {
             uint[] totalMaskedSum;
 

@@ -39,6 +39,10 @@ namespace MPCServer
         public string sessionId;
         public bool debugMode;
 
+        private const int pendingQueueLength = 10;
+
+        public Dictionary<OPERATION, RandomRequest> randomRequests;
+
         public OPERATION operation; // 1.merge 2.find the K'th element 3.sort
         private List<uint> values;
         public SortRandomRequest sortRandomRequest = default;
@@ -63,7 +67,8 @@ namespace MPCServer
             connectServerDone = new ManualResetEvent(false);
             serversSend = new ManualResetEvent(false);
             receiveDone = new ManualResetEvent(false);
-        }
+            randomRequests = new Dictionary<OPERATION, RandomRequest>();
+    }
 
         public void setInstance(byte instance)
         {
@@ -370,7 +375,7 @@ namespace MPCServer
             {
                 case OPCODE_MPC.E_OPCODE_RANDOM_SORT:
                     {
-                        HandleSortRandomness(data, socket);
+                        HandleRandomness(data, socket);
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_CLIENT_INIT:
@@ -403,17 +408,25 @@ namespace MPCServer
             }
         }
 
-        private void HandleSortRandomness(string data, Socket socket)
+        private void HandleRandomness(string data, Socket socket)
         {
-            sortRandomRequest = protocol.DeserializeRequest<SortRandomRequest>(data);
-            if (sortRandomRequest != default)
+            RandomRequest randomRequest = protocol.DeserializeRequest<RandomRequest>(data);
+            if (randomRequest != default)
             {
-                Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, sortRandomRequest.sessionId)); // Send confirmation
-                logger.Debug($"Received randomness request for {sortRandomRequest.n} elements.");
+                if(!randomRequests.ContainsKey(randomRequest.operation))
+                    randomRequests.Add(randomRequest.operation, randomRequest);
+                else
+                {
+                    randomRequests.Remove(randomRequest.operation);
+                    randomRequests.Add(randomRequest.operation, randomRequest);
+                }
+                // send confirmation
+                Send(socket, protocol.CreateMessage(OPCODE_MPC.E_OPCODE_SERVER_VERIFY, randomRequest.sessionId));
+                logger.Debug($"Recieve randomness request for {randomRequest.operation} for {randomRequest.n} elements.");
             }
             else
             {
-                SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, sortRandomRequest.GetType()));
+                SendError(socket, string.Format(ServerConstants.MSG_BAD_MESSAGE_FORMAT, randomRequest.GetType()));
             }
         }
 
