@@ -15,30 +15,32 @@ namespace Tests.ServerTest
     public class ComputerTest
     {
         private readonly ILogger loggerMock;
+        public RandomRequest emptyRequest;
 
         public ComputerTest()
         {
             loggerMock = new Mock<ILogger>().Object;
+            emptyRequest = new RandomRequest
+            {
+                sessionId = string.Empty,
+                n = 10,
+                dcfMasks = new uint[10], //also masks for the dpf output
+                dcfKeysSmallerLowerBound = new string[45], // 10 C 2
+                dcfKeysSmallerUpperBound = new string[45],
+                shares01 = new uint[45],
+                dcfAesKeysLower = new string[45],
+                dcfAesKeysUpper = new string[45],
+                dpfMasks = new uint[10],
+                dpfKeys = new string[10],
+                dpfAesKeys = new string[10]
+            };
         }
 
-        RandomRequest emptyRequest = new RandomRequest
-        {
-            sessionId = string.Empty,
-            n = 10,
-            dcfMasks = new uint[10], //also masks for the dpf output
-            dcfKeysSmallerLowerBound = new string[45], // 10 C 2
-            dcfKeysSmallerUpperBound = new string[45],
-            shares01 = new uint[45],
-            dcfAesKeysLower = new string[45],
-            dcfAesKeysUpper = new string[45],
-            dpfMasks = new uint[10],
-            dpfKeys = new string[10],
-            dpfAesKeys = new string[10]
-        };
+        
 
         public SortComputer InitComuter(byte instance, RandomRequest randomRequest = default, IDcfAdapterServer dcfAdapter = default, IDpfAdapterServer dpfAdapter = default)
         {
-            return new SortComputer(null, randomRequest, instance, null, dcfAdapter, dpfAdapter, loggerMock);
+            return new SortComputer(new uint[0], randomRequest, instance, null, dcfAdapter, dpfAdapter, loggerMock);
         }
 
         [Theory]
@@ -76,6 +78,7 @@ namespace Tests.ServerTest
             uint[] diffValues = computerA.DiffEachPairValues(values, values.Length); //same for both computers
 
             SetupDcfMock(dcfMock);
+            FixKeysForMock(emptyRequest);
 
             uint[] sharesA = computerA.ComputeIndexesShares(diffValues, values.Length, 10);
             uint[] sharesB = computerB.ComputeIndexesShares(diffValues, values.Length, 10);
@@ -114,6 +117,15 @@ namespace Tests.ServerTest
             Assert.Equal(values, sharesSum);
         }
 
+        private void FixKeysForMock(RandomRequest request)
+        {
+            for (int i = 0; i < request.dcfKeysSmallerLowerBound.Length; i++)
+            {
+                request.dcfKeysSmallerLowerBound[i] = "0";
+                request.dcfKeysSmallerUpperBound[i] = "1";
+            }
+        }
+
         private void SetupDpfMock(Mock<IDpfAdapterServer> dpfMock)
         {
             var rand = new Random();
@@ -131,7 +143,9 @@ namespace Tests.ServerTest
             dcfMock.Setup(mock => mock.EvalDCF(0, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
                 .Returns(firstShare);
             dcfMock.Setup(mock => mock.EvalDCF(1, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<uint>()))
-                .Returns((byte instance, string key, string aes, uint alpha) => (int)alpha <= 0 ? 1-firstShare : 0-firstShare);
+                .Returns((byte instance, string key, string aes, uint alpha) => 
+                    key.Equals("0") ? (alpha <= int.MaxValue ? 1-firstShare : 0-firstShare) :
+                    (alpha <= uint.MaxValue ? 1 - firstShare : 0 - firstShare));
         }
 
         public static IEnumerable<object[]> SumEachSharesWithMask_ValidInputs()

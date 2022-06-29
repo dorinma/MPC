@@ -5,7 +5,7 @@ using NLog;
 using System.IO;
 using System.Diagnostics;
 using MPCTools.Requests;
-
+using NLog.Config;
 
 namespace MPCServer
 {
@@ -112,7 +112,9 @@ namespace MPCServer
         private static void SetupLogger()
         {
             GlobalDiagnosticsContext.Set("serverInstance", instance == 0 ? "A" : "B");
+            LogManager.Configuration = new XmlLoggingConfiguration(@"..\\..\\..\\Properties\\NLog.config");
             logger = LogManager.GetLogger("Server logger");
+
             if (isDebugMode)
             {
                 LogManager.Configuration.AddRuleForAllLevels("logconsole", loggerNamePattern: "*");
