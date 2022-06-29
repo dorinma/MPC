@@ -32,7 +32,7 @@ Running the UI application will open the following window:
  In order to begin computation, the user must first insert the following data:
  
  #### Servers' details
- IP addresses and ports of both remote servers.
+ IP addresses and ports of both remote servers. Make sure to insert addresses in the correct order (first server A then B).
  
  #### Session details
  The user must choose either he wants to start a new session of computation, or join an exising one.
