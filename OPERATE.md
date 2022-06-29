@@ -42,7 +42,7 @@ This is the component that runs when the users run the application. The operator
 ##### Program Arguments:
 In each server's program arguments send the second server's IP address (single argument).
 
-In the randomness client send both servers' communication details: first IP, first port, second IP, second port.
+In the randomness client send both servers' communication details, and number or elements to generate randomness for: first IP, first port, second IP, second port, n.
 
 ## Maintenance
 
