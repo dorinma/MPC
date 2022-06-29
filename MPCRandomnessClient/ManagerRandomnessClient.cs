@@ -23,7 +23,7 @@ namespace MPCRandomnessClient
             communicationA = new CommunicationRandClient();
             communicationB = new CommunicationRandClient();
             int n = 0;
-            if (args.Length == 1)
+            if (args.Length < 1)
             {
                 Console.WriteLine("Missing randomness details.");
                 Environment.Exit(-1);
