@@ -35,7 +35,7 @@ namespace MPCRandomnessClient
             }
             catch
             {
-                Console.WriteLine("Iligal randomness details.");
+                Console.WriteLine("Illegal randomness details.");
                 Environment.Exit(-1);
             }
 
