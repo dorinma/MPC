@@ -72,7 +72,7 @@ namespace MPCRandomnessClient
             }
         }
 
-        public void SendMasksAndKeys(SortRandomRequest sortRequest)
+        public void SendMasksAndKeys(RandomRequest sortRequest)
         {
             string data = JsonConvert.SerializeObject(sortRequest);
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_RANDOM_SORT, data);
