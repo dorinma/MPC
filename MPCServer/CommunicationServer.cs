@@ -14,7 +14,7 @@ namespace MPCServer
 {
     public class CommunicationServer
     {
-        //events
+        // Events
         private ManualResetEvent acceptDone;
         private ManualResetEvent receiveDone;
         private ManualResetEvent sendDone;
@@ -45,9 +45,6 @@ namespace MPCServer
         private uint[] exchangeData = null;
         //Future code
         //pubkic Dictionary<OPERATION, SortRandomRequest> requeset;
-
-
-
 
         public CommunicationServer(ILogger logger)
         {

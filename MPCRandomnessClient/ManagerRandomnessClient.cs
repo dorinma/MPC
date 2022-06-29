@@ -33,7 +33,7 @@ namespace MPCRandomnessClient
         {
             if (args.Length < 4)
             {
-                Console.WriteLine("Missing servers' communication details.");
+                Console.WriteLine("[ERROR] Missing servers' communication details.");
                 Environment.Exit(-1);
             }
 
@@ -43,40 +43,40 @@ namespace MPCRandomnessClient
 
             if(!validPorts)
             {
-                Console.WriteLine("Invalid ports.");
+                Console.WriteLine("[ERROR] Invalid ports.");
                 Environment.Exit(-1);
             }
 
-            // future code - while with timer
+            // Future code - while with timer
             communicationA = new CommunicationRandClient();
             communicationB = new CommunicationRandClient();
 
-            //sort
+            // Sort
             CreateAndSendCircuits();
             communicationA.Reset();
             communicationB.Reset();
-            //other circuits..
+            // Other circuits
         }
 
         public static void CreateAndSendCircuits()
         {
             string newSessionId = RandomUtils.GenerateSessionId();
-            Console.WriteLine($"New session is {newSessionId}");
+            Console.WriteLine($"[INFO] New session id: {newSessionId}");
             CreateCircuits(newSessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB, n: N);
             SendToServers(newSessionId, sortRequestA, sortRequestB);
         }
 
         public static void CreateCircuits(string sessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB, int n)
         {
-            int dcfMasksCount = n; // mask for each input element
-            int dpfMasksCount = n; // mask for each element's index sum 
-            int dcfGatesCount = n * (n - 1) / 2; // first layer (dcf gates) - n choose 2.
-            int dpfGatesCount = n; // dpf gate for each index - n 
-            //create masks and split them to shares
-            //dcf
+            int dcfMasksCount = n; // Mask for each input element
+            int dpfMasksCount = n; // Mask for each element's index sum 
+            int dcfGatesCount = n * (n - 1) / 2; // First layer (dcf gates) - n choose 2.
+            int dpfGatesCount = n; // Dpf gate for each index - n 
+            // Create masks and split them to shares
+            // Dcf
             uint[] dcfMasks = RandomUtils.CreateRandomMasks(dcfMasksCount);
             RandomUtils.SplitToSecretShares(dcfMasks, out uint[] dcfSharesA, out uint[] dcfSharesB);
-            //dpf
+            // Dpf
             uint[] dpfMasks = RandomUtils.CreateRandomMasks(dpfMasksCount);
             RandomUtils.SplitToSecretShares(dpfMasks, out uint[] dpfSharesA, out uint[] dpfSharesB);
 
@@ -84,7 +84,7 @@ namespace MPCRandomnessClient
             {
                 sessionId = sessionId,
                 n = n,
-                dcfMasks = dcfSharesA, //also masks for the dpf output
+                dcfMasks = dcfSharesA, // Also masks for the dpf output
                 dcfKeysSmallerLowerBound = new string[dcfGatesCount],
                 dcfKeysSmallerUpperBound = new string[dcfGatesCount],
                 shares01 = new uint[dcfGatesCount],
@@ -99,7 +99,7 @@ namespace MPCRandomnessClient
             {
                 sessionId = sessionId,
                 n = n,
-                dcfMasks = dcfSharesB, //also masks for the dpf output
+                dcfMasks = dcfSharesB, // Also masks for the dpf output
                 dcfKeysSmallerLowerBound = new string[dcfGatesCount],
                 dcfKeysSmallerUpperBound = new string[dcfGatesCount],
                 shares01 = new uint[dcfGatesCount],
@@ -110,7 +110,7 @@ namespace MPCRandomnessClient
                 dpfAesKeys = new string[dpfGatesCount]
             };
 
-            //create keys
+            // Create keys
             GenerateDcfKeys(n, dcfMasks, sortRequestA, sortRequestB);
             GenerateDpfKeys(n, dpfMasks, outputMasks: dcfMasks, sortRequestA, sortRequestB);
         }
@@ -170,21 +170,20 @@ namespace MPCRandomnessClient
         {
             communicationA.sessionId = sessionId;
             communicationB.sessionId = sessionId;
-            // send to servers
-            //connect
+            // Connect
             communicationA.Connect(ip1, port1);
             communicationB.Connect(ip2, port2);
             communicationA.connectDone.WaitOne();
             communicationB.connectDone.WaitOne();
-            //send (need to verify that both server received correctly)
 
+            // Send
             SendRadomness(sortRequestA, sortRequestB);
 
             int tries = 0;
 
             while ((!communicationA.serversVerified || !communicationB.serversVerified) && tries < RETRY_COUNT)
             {
-                Console.WriteLine($"Try #{tries + 1}: at least one server did not get the masks and keys correctly.");
+                Console.WriteLine($"[ERROR] Try #{tries + 1}: at least one server did not get the masks and keys correctly.");
                 
                 System.Threading.Thread.Sleep(SLEEP_TIME);
                 tries++;
@@ -193,11 +192,11 @@ namespace MPCRandomnessClient
 
             if (communicationA.serversVerified && communicationB.serversVerified)
             { 
-                Console.WriteLine($"\nThe correlated randomness was sent successfully to both servers.");
+                Console.WriteLine($"[INFO] The correlated randomness was sent successfully to both servers.");
             }
             else
             {
-                Console.WriteLine("Failed to send correlated randomness to the servers.");
+                Console.WriteLine("[ERROR] Failed to send correlated randomness to the servers.");
             }
         }
 
@@ -205,56 +204,13 @@ namespace MPCRandomnessClient
         {
             communicationA.SendMasksAndKeys(sortRequestA);
             communicationB.SendMasksAndKeys(sortRequestB);
-            //receive confirmation
+
+            // Receive confirmation
             communicationA.Receive();
             communicationB.Receive();
 
             communicationA.receiveDone.WaitOne();
             communicationB.receiveDone.WaitOne();
         }
-
-        /*
-        public bool Run(string ip_1, string ip_2, int port_1, int port_2)
-        {
-            bool res = true;
-            communicationA = new CommunicationRandClient();
-            communicationB = new CommunicationRandClient();
-
-            //sort
-            string newSessionId = RandomUtils.GenerateSessionId();
-            Console.WriteLine($"New session is {newSessionId}");
-            communicationA.sessionId = newSessionId;
-            communicationB.sessionId = newSessionId;
-
-            //random requeset
-            CreateCircuits(newSessionId, out SortRandomRequest sortRequestA, out SortRandomRequest sortRequestB);
-
-
-            // send to servers
-            //connect
-            communicationA.Connect(ip_1, port_1);
-            communicationB.Connect(ip_2, port_2);
-            communicationA.connectDone.WaitOne();
-            communicationB.connectDone.WaitOne();
-            //send 
-            communicationA.SendMasksAndKeys(sortRequestA);
-            communicationB.SendMasksAndKeys(sortRequestB);
-            //receive confirmation
-            communicationA.Receive();
-            communicationB.Receive();
-
-            communicationA.receiveDone.WaitOne();
-            communicationB.receiveDone.WaitOne();
-
-            if (!communicationA.serversVerified || !communicationB.serversVerified)
-            {
-                res = false;
-            }
-
-            communicationA.Reset();
-            communicationB.Reset();
-            return res;
-        }
-        */
     }
 }
