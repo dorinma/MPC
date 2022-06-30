@@ -93,8 +93,6 @@ namespace MPCRandomnessClient
                 // Complete sending the data to the remote device.  
                 int bytesSent = socket.EndSend(ar);
 
-                // Signal that all bytes have been sent.  
-                //sendDone.Set();
             }
             catch (Exception e)
             {
@@ -123,8 +121,7 @@ namespace MPCRandomnessClient
         {
             String content = String.Empty;
 
-            // Retrieve the state object and the handler socket  
-            // from the asynchronous state object.  
+            // Retrieve the state object and the handler socket from the asynchronous state object.  
             StateObject state = (StateObject)ar.AsyncState;
             Socket handler = state.workSocket;
 
@@ -133,17 +130,14 @@ namespace MPCRandomnessClient
 
             if (bytesRead > 0)
             {
-                // There  might be more data, so store the data received so far.  
+                // There might be more data, so store the data received so far.  
                 state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
 
-                // Check for end-of-file tag. If it is not there, read
-                // more data.  
+                // Check for end-of-file tag. If it is not there, read more data.  
                 content = state.sb.ToString();
                 if (content.IndexOf("<EOF>") > -1)
                 {
-                    // All the data has been read from the client. Display it on the console.  
-                    //Console.WriteLine($"[INFO] Read {content.Length} bytes from server at {handler.RemoteEndPoint}.");
-
+                    // All the data has been read from the client.
                     MessageRequest messageRequest = protocol.DeserializeRequest<MessageRequest>(content);
                     if (messageRequest == default)
                     {

@@ -551,7 +551,7 @@ namespace MPCServer
                 
                 if(serverState == SERVER_STATE.COMPUTATION)
                 {
-                    acceptDone.Set(); // wake up the main thread
+                    acceptDone.Set(); // Wake up the main thread
                 }
             }
         }

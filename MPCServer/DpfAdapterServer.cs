@@ -11,7 +11,6 @@ namespace MPCServer
     public class DpfAdapterServer : IDpfAdapterServer
     {
         private const string dllPath = @"..\\..\\..\\ExtLibs\\DPF\\sycret.dll";
-        //private const string dllPath = @"C:\Users\eden\Desktop\BGU\Project\MPC\sycretDPF\target\debug\sycret.dll";
         
         [StructLayout(LayoutKind.Sequential)]
         public struct Pair

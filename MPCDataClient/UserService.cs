@@ -16,7 +16,6 @@ namespace MPCDataClient
         {
             this.fileSystem = fileSystem;
         }
-        /// <summary>Create MyComponent</summary>
         public UserService() : this(fileSystem: new FileSystem()) {}
 
         internal bool StartSession(out OPERATION operation, out int numberOfUsers, out bool debugMode)
@@ -117,7 +116,6 @@ namespace MPCDataClient
         {
             Console.WriteLine("\nInsert data file path");
             string path = Console.ReadLine();
-            //path = @"..\\..\\..\\..\\inputFile.csv";
             try
             {
                 return ParseFile(path);
@@ -142,17 +140,8 @@ namespace MPCDataClient
             {
                 return ParseFile(filePath);
             }
-            catch (Exception e)
+            catch
             {
-                /*Console.WriteLine("Reading failed - {0}", e.Message);
-                Console.WriteLine("If you want to try again press 1, otherwise press any other character");
-                var option = Console.ReadLine();
-                if (option != "1")
-                {
-                    Environment.Exit(-1);
-                }
-
-                ReadData();*/
                 return null;
             }
         }
@@ -163,7 +152,7 @@ namespace MPCDataClient
             Stream fileStream = fileSystem.File.OpenRead(path);
             using (var reader = new StreamReader(fileStream))
             {
-                reader.ReadLine(); //skip column name
+                reader.ReadLine(); //Skip column name
                 while (!reader.EndOfStream)
                 {
                     output.Add(uint.Parse(reader.ReadLine()));

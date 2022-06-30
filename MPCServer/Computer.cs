@@ -28,7 +28,7 @@
             this.dpfAdapter = dpfAdapter;
             this.logger = logger;
             communicationBytesCounter = 0;
-            memoryBytesCounter = 0; //overinding per operation
+            memoryBytesCounter = 0; // Overriding in each operation
         }
 
         public abstract uint[] Compute();
@@ -65,7 +65,7 @@
 
             if (instance == 0)
             {
-                uint[] maskedSum = new uint[numOfElement]; //init with 0
+                uint[] maskedSum = new uint[numOfElement]; // Init with 0
                 SumEachSharesWithMask(maskedSum, partServer, masks);
                 comm.SendServerData(maskedSum);
                 totalMaskedSum = comm.ReceiveServerData();

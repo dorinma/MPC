@@ -53,7 +53,6 @@ namespace MPCDataClient
             {
                 Console.WriteLine("Error: " + e.Message);
                 return false;
-                //Environment.Exit(-1);
             }
         }
 
@@ -198,7 +197,6 @@ namespace MPCDataClient
 
             string data = JsonConvert.SerializeObject(clientDataRequest);
             MessageRequest messageRequest = protocol.CreateMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, data);
-            //byte[] meesage = protocol.CreateSessionAndDataMessage(OPCODE_MPC.E_OPCODE_CLIENT_DATA, sessionId, sizeof(uint), data);
             Send(messageRequest);
         }
 
@@ -209,7 +207,7 @@ namespace MPCDataClient
             {
                 case OPCODE_MPC.E_OPCODE_SERVER_INIT:
                     {
-                        sessionId = data.Substring(0, ProtocolConstants.SESSION_ID_SIZE); //TODO data and randomness clients
+                        sessionId = data.Substring(0, ProtocolConstants.SESSION_ID_SIZE); 
                         break;
                     }
                 case OPCODE_MPC.E_OPCODE_SERVER_MSG:
@@ -230,7 +228,6 @@ namespace MPCDataClient
                 case OPCODE_MPC.E_OPCODE_ERROR:
                     {
                         response = data;
-                        //HandleError(data);
                         break;
                     }
                 default:

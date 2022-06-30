@@ -9,7 +9,6 @@
     {
         UserService userService;
         uint[] data;
-        //CommunicationDataClient<UInt16> commServerA;
 
         private static UserService userService1 = new UserService();
         private static CommunicationDataClient communicationA;

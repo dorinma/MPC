@@ -11,7 +11,6 @@ namespace MPCTools
     {
         public static void writeToFile(uint[] res, String fullFilePath)
         {
-            //fileName = Path.Combine(@"..\\..\\..\\Results", fileName);
             var csv = new StringBuilder();
             for (int i = 0; i < res.Length; i++)
             {

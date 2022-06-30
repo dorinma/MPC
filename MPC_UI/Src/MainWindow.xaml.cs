@@ -12,9 +12,6 @@ using MPCRandomnessClient;
 
 namespace MPC_UI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private const int MAX_PORTS = 65536; //+1
@@ -92,7 +89,6 @@ namespace MPC_UI
                 if (mainDataContext.SessionId != string.Empty)
                 {
                     sessionId.Text = mainDataContext.SessionId; //assume valid session id received from server.
-                    //isFirstClient = true;
                 }
                 else
                 {

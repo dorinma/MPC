@@ -106,7 +106,7 @@ namespace MPCServer
 
             // Clean used randmoness
             deleteUsedMasksAndKeys(values.Length, comm.operation);
-            comm.RestartServer(); //TODO check
+            comm.RestartServer();
          }
 
         private static void SetupLogger()
@@ -140,11 +140,6 @@ namespace MPCServer
             }          
 
             Computer computer = InitComputer(op, randomRequest);
-
-            if(computer == null)
-            {
-                //send error , invalid opperation 
-            }
 
             var watch = Stopwatch.StartNew();
 
